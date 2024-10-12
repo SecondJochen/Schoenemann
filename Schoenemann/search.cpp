@@ -69,7 +69,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board& board)
     Move hashedMove = Move::NULL_MOVE;
 
     //Get some important search constants
-    const bool pvNode = (alpha != beta) - 1;
+    const bool pvNode = beta > alpha + 1;
     const bool inCheck = board.inCheck();
 
     //Get an potential hash entry
@@ -130,7 +130,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board& board)
     }
 
     //Reverse futility pruning
-    if (!pvNode && !inCheck && depth <= 6 && staticEval - 70 * depth >= beta)
+    if (!inCheck && depth <= 6 && staticEval - 70 * depth >= beta)
     {
         return staticEval;
     }
@@ -190,9 +190,6 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board& board)
     }
 
     short type = UPPER_BOUND;
-
-    bool bSearchPv = true;
-
     Movelist moveList;
     movegen::legalmoves(moveList, board);
 
@@ -231,28 +228,25 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board& board)
             checkExtension = 1;
         }
 
-        if (bSearchPv)
+        if (i == 0)
         {
             score = -pvs(-beta, -alpha, depth - 1 + checkExtension, ply + 1, board);
         }
         else
         {
             score = -pvs(-alpha - 1, -alpha, depth - 1 + checkExtension, ply + 1, board);
-            if (score > alpha && score < beta)
+            if (score > alpha && beta - alpha > 1)
             {
                 score = -pvs(-beta, -alpha, depth - 1 + checkExtension, ply + 1, board);
             }
         }
-        
         board.unmakeMove(move);
-
         if (score > bestScore)
         {
             bestScore = score;
             if (score > alpha)
             {
                 alpha = score;
-                bSearchPv = false;
                 type = EXACT;
                 bestMoveInPVS = move;
 
@@ -304,7 +298,7 @@ int Search::qs(int alpha, int beta, Board& board, int ply)
     }
 
     nodes++;
-    const bool pvNode = (alpha != beta) - 1;
+    const bool pvNode = beta > alpha + 1;
     const std::uint64_t zobristKey = board.zobrist();
 
     Hash* entry = transpositionTabel.getHash(zobristKey);
