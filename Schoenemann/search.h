@@ -9,6 +9,8 @@
 #include "consts.h"
 #include "see.h"
 #include "nnue.h"
+#include "tune.h"
+#include "tuneconsts.h"
 
 using namespace chess;
 
