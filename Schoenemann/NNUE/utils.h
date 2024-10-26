@@ -8,9 +8,10 @@ class utilitys
 {
 public:
 
-    static inline std::int16_t crelu(int input)
+    static inline std::int32_t crelu(int input)
     {
-        return std::max(0, std::min(255, input));
+        const std::int32_t clipped = std::clamp<std::int32_t>(static_cast<std::int32_t>(input), 0, QA);
+        return clipped * clipped;
     }
 
     static inline void addAll(
@@ -83,6 +84,7 @@ public:
                 sum += crelu(secondAccumulator[j]) * weight[hiddenSize + step + j];
             }
             step += hiddenSize * 2;
+            sum /= QA;
             output[i] = sum + bias[i];
         }
     }

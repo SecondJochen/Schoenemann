@@ -4,23 +4,26 @@
 #include <cstdint>
 #include <cassert>
 #include <sstream>
+#include <immintrin.h>
 
 #include "accumulator.h"
 #include "utils.h"
 #include "stream.h"
-
 class network
 {
 private:
-    std::array<std::int16_t, inputHidden> featureWeight;
-    std::array<std::int16_t, hiddenSize> featureBias;
 
-    std::array<std::int16_t, hiddenSize * 2 * outputSize> outputWeight;
-    std::array<std::int16_t, outputSize> outputBias;
+    struct {
+        std::array<std::int16_t, inputHidden> featureWeight;
+        std::array<std::int16_t, hiddenSize> featureBias;
 
-    std::array<std::int32_t, outputSize> finalOutput;
+        std::array<std::int16_t, hiddenSize * 2 * outputSize> outputWeight;
+        std::array<std::int16_t, outputSize> outputBias;
 
-    std::array<accumulator, stackSize> accumulators;
+        std::array<std::int32_t, outputSize> finalOutput;
+    } innerNet; 
+
+    std::array<accumulator, 1> accumulators;
     std::uint16_t currentAccumulator = 0;
 
     void initAccumulator()
@@ -40,10 +43,39 @@ public:
     {
         initAccumulator();
 
-        stream.readArray(featureWeight);
-        stream.readArray(featureBias);
-        stream.readArray(outputWeight);
-        stream.readArray(outputBias);
+        // open the nn file
+        //FILE* nn = fopen("C:\\GitHub\\Schoenemann\\Schoenemann\\NNUE\\quantised.bin", "rb");
+        FILE* nn = nullptr;
+
+        // if it's not invalid read the config values from it
+        if (nn) {
+            std::cout << "Reading network file" << std::endl;
+            // initialize an accumulator for every input of the second layer
+            size_t read = 0;
+            size_t fileSize = sizeof(innerNet);
+            size_t objectsExpected = fileSize / sizeof(int16_t);
+
+            read += fread(&innerNet.featureWeight, sizeof(int16_t), inputSize * hiddenSize, nn);
+            read += fread(&innerNet.featureBias, sizeof(int16_t), hiddenSize, nn);
+            read += fread(&innerNet.outputWeight, sizeof(int16_t), hiddenSize * 2, nn);
+            read += fread(&innerNet.outputBias, sizeof(int16_t), 1, nn);
+
+            if (std::abs((int64_t) read - (int64_t) objectsExpected) >= 16) {
+                std::cout << "Error loading the net, aborting ";
+                std::cout << "Expected " << objectsExpected << " shorts, got " << read << "\n";
+                exit(1);
+            }
+
+            // after reading the config we can close the file
+            fclose(nn);
+        }
+        else {
+            //std::cout << "Using the default loading method" << std::endl;
+            stream.readArray(innerNet.featureWeight);
+            stream.readArray(innerNet.featureBias);
+            stream.readArray(innerNet.outputWeight);
+            stream.readArray(innerNet.outputBias);
+        }
     }
 
     inline void resetAccumulator()
@@ -55,7 +87,7 @@ public:
     {
         accumulator &accumulator = accumulators[currentAccumulator];
         accumulator.zeroAccumulator();
-        accumulator.loadBias(featureBias);
+        accumulator.loadBias(innerNet.featureBias);
     }
 
     inline void updateAccumulator(
@@ -77,11 +109,11 @@ public:
         // Update the accumolator
         if (operation == activate)
         {
-            utilitys::addAll(accumulator.white, accumulator.black, featureWeight, whiteIndex * hiddenSize, blackIndex * hiddenSize);
+            utilitys::addAll(accumulator.white, accumulator.black, innerNet.featureWeight, whiteIndex * hiddenSize, blackIndex * hiddenSize);
         }
         else
         {
-            utilitys::subAll(accumulator.white, accumulator.black, featureWeight, whiteIndex * hiddenSize, blackIndex * hiddenSize);
+            utilitys::subAll(accumulator.white, accumulator.black, innerNet.featureWeight, whiteIndex * hiddenSize, blackIndex * hiddenSize);
         }
     }
 
@@ -93,14 +125,14 @@ public:
         // Make a forward pass throw the network based on the sideToMove
         if (sideToMove == 0)
         {
-            utilitys::activate(accumulator.white, accumulator.black, outputWeight, outputBias, finalOutput);
+            utilitys::activate(accumulator.white, accumulator.black, innerNet.outputWeight, innerNet.outputBias, innerNet.finalOutput);
         }
         else
         {
-            utilitys::activate(accumulator.black, accumulator.white, outputWeight, outputBias, finalOutput);
+            utilitys::activate(accumulator.black, accumulator.white, innerNet.outputWeight, innerNet.outputBias, innerNet.finalOutput);
         }
 
         // Scale ouput and dived it by QAB
-        return finalOutput[0] * scale / (QA * QB);
+        return innerNet.finalOutput[0] * scale / (QA * QB);
     }
 };
