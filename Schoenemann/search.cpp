@@ -2,45 +2,45 @@
 
 std::chrono::time_point start = std::chrono::high_resolution_clock::now();
 
-DEFINE_PARAM_S(probeCutBetaAddition, 390, 25);
-DEFINE_PARAM_S(probeCuteSubtractor, 2, 1);
+DEFINE_PARAM_S(probeCutBetaAddition, 403, 25);
+DEFINE_PARAM_S(probeCuteSubtractor, 3, 1);
 
-DEFINE_PARAM_S(iidDepth, 3, 1);
+DEFINE_PARAM_S(iidDepth, 4, 1);
 
-DEFINE_PARAM_S(rfpDepth, 5, 1);
-DEFINE_PARAM_S(rfpEvalSubtractor, 69, 6);
+DEFINE_PARAM_S(rfpDepth, 4, 1);
+DEFINE_PARAM_S(rfpEvalSubtractor, 72, 6);
 
-DEFINE_PARAM_S(winningDepth, 5, 1);
-DEFINE_PARAM_S(winningEvalSubtractor, 102, 20);
-DEFINE_PARAM_S(winningDepthMultiplyer, 19 , 4);
+DEFINE_PARAM_S(winningDepth, 6, 1);
+DEFINE_PARAM_S(winningEvalSubtractor, 100, 20);
+DEFINE_PARAM_S(winningDepthMultiplyer, 16, 4);
 
-DEFINE_PARAM_S(probeCutMarginAdder, 66, 10);
+DEFINE_PARAM_S(probeCutMarginAdder, 59, 10);
 
-DEFINE_PARAM_S(winningDepthDivisor, 4, 1);
-DEFINE_PARAM_S(winningDepthSubtractor, 3, 1);
+DEFINE_PARAM_S(winningDepthDivisor, 5, 1);
+DEFINE_PARAM_S(winningDepthSubtractor, 4, 1);
 DEFINE_PARAM_B(winningCount, 3, 1, 6);
 
-DEFINE_PARAM_S(nmpDepth, 3, 1);
+DEFINE_PARAM_B(nmpDepth, 3, 1, 9);
 DEFINE_PARAM_S(nmpDepthAdder, 3, 1);
 DEFINE_PARAM_S(nmpDepthDivisor, 3, 1);
 
-DEFINE_PARAM_S(razorDepth, 1, 1);
-DEFINE_PARAM_S(razorAlpha, 341, 30);
-DEFINE_PARAM_S(razorDepthMultiplyer, 73, 9);
+DEFINE_PARAM_B(razorDepth, 1, 1, 10);
+DEFINE_PARAM_S(razorAlpha, 318, 30);
+DEFINE_PARAM_S(razorDepthMultiplyer, 63, 9);
 
 DEFINE_PARAM_B(lmrDepth, 1, 1, 7);
 
-DEFINE_PARAM_B(pvsSSEDepth, 1, 1, 6);
-DEFINE_PARAM_S(pvsSSECaptureCutoff, 97, 10);
-DEFINE_PARAM_S(pvsSSENonCaptureCutoff, 35, 10);
+DEFINE_PARAM_B(pvsSSEDepth, 2, 1, 6);
+DEFINE_PARAM_S(pvsSSECaptureCutoff, 95, 10);
+DEFINE_PARAM_S(pvsSSENonCaptureCutoff, 42, 10);
 
-DEFINE_PARAM_S(aspDelta, 25, 6);
-DEFINE_PARAM_S(aspDivisor, 2, 1);
-DEFINE_PARAM_S(aspMultiplier, 150, 15);
-DEFINE_PARAM_S(aspEntryDepth, 6, 2);
+DEFINE_PARAM_S(aspDelta, 27, 6);
+// DEFINE_PARAM_B(aspDivisor, 2, 2, 8); When tuned this triggers crashes for some reason :(
+DEFINE_PARAM_B(aspMultiplier, 121, 1, 450);
+DEFINE_PARAM_B(aspEntryDepth, 7, 6, 12);
 
-DEFINE_PARAM_S(lmrBase, 77, 9);
-DEFINE_PARAM_S(lmrDivisor, 236, 15);
+DEFINE_PARAM_B(lmrBase, 78, 1, 300);
+DEFINE_PARAM_B(lmrDivisor, 291, 1, 700);
 
 int Search::pvs(int alpha, int beta, int depth, int ply, Board& board)
 {
@@ -507,7 +507,7 @@ int Search::aspiration(int depth, int score, Board& board)
         }
         else if (score <= alpha)
         {
-            beta = (alpha + beta) / aspDivisor;
+            beta = (alpha + beta) / 2;
             alpha = std::max(alpha - delta, -infinity);
         }
         else
