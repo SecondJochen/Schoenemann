@@ -238,8 +238,7 @@ void processCommand(const std::string& cmd, Board& board)
     }
     else if (token == "datagen")
     {
-        is >> token;
-        generate(std::stoi(token));
+        generate(board);
     }
     else if (token == "bench") 
 	{
@@ -296,6 +295,12 @@ int uciLoop(int argc, char* argv[])
     if (argc > 1 && strcmp(argv[1], "bench") == 0) 
 	{
         runBenchmark();
+		return 0;
+    }
+
+    if (argc > 1 && strcmp(argv[1], "datagen") == 0) 
+	{
+        generate(board);
 		return 0;
     }
 

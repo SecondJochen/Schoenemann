@@ -2,6 +2,7 @@
 #include "consts.h"
 #include "chess.hpp"
 #include <random>
+#include <chrono>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -10,4 +11,4 @@
 
 using namespace chess;
 
-void generate(int amount);
+void generate(Board& board);

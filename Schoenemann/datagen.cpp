@@ -1,11 +1,9 @@
 #include "datagen.h"
 
-void generate(int amount) 
+void generate(Board& board) 
 {
-    Board board;
-
     seracher.hasNodeLimit = true;
-    seracher.nodeLimit = 8000;
+    seracher.nodeLimit = 5000;
     int positions = 0;
 
     std::random_device rd;  
@@ -20,31 +18,52 @@ void generate(int amount)
 
     std::ios::sync_with_stdio(false);
     transpositionTabel.setSize(16);
+    std::uint64_t counter = 0;
 
-    // Accumulate output in the file directly
-    for (int j = 0; j < amount; j++)
+    auto startTime = std::chrono::steady_clock::now();
+
+    while (true)
     {
+        counter++;
         board.setFen(STARTPOS);
+
+        bool exitEarly = false;
 
         for (int i = 0; i < 8; i++)
         {
             Movelist moveList;
             movegen::legalmoves(moveList, board);
+            
+            std::pair<GameResultReason, GameResult> result = board.isGameOver();
+            if (result.second != GameResult::NONE)
+            {
+                exitEarly = true;
+                break;
+            }
+
+            if (moveList.size() == 0) 
+            {
+                exitEarly = true;
+                break;
+            }
+            
             std::uniform_int_distribution<> dis(0, moveList.size() - 1);
 
             board.makeMove(moveList[dis(gen)]);
         }
 
-        std::string outputLine[400];
+        if (exitEarly) 
+        {
+            continue;
+        }
+
+        std::string outputLine[501];
         std::string resultString = "none";
         int moveCount = 0;
+        bool isIllegal = false;
 
-        for (int i = 0; i < 400; i++)
+        for (int i = 0; i < 500; i++)
         {
-            seracher.iterativeDeepening(board, true);
-
-            Move bestMove = seracher.rootBestMove;
-
             std::pair<GameResultReason, GameResult> result = board.isGameOver();
             if (result.second != GameResult::NONE)
             {
@@ -52,7 +71,8 @@ void generate(int amount)
                 {
                     resultString = "0.5";
                 }
-                else if (result.second == GameResult::WIN && board.sideToMove() == Color::WHITE)
+                
+                if (result.second == GameResult::LOSE && board.sideToMove() == Color::BLACK)
                 {
                     resultString = "1.0";
                 }
@@ -64,19 +84,23 @@ void generate(int amount)
                 break;
             }
 
-            if (board.inCheck() || board.isCapture(bestMove))
+            Movelist moveList;
+            movegen::legalmoves(moveList, board);
+
+            seracher.iterativeDeepening(board, true);
+
+            Move bestMove = seracher.rootBestMove;
+
+            if (board.at(bestMove.from()) == Piece::NONE || !(board.at(bestMove.from()) < Piece::BLACKPAWN) == (board.sideToMove() == Color::WHITE))
             {
-                board.makeMove(bestMove);
-                continue;
+                isIllegal = true;
+                break;
             }
 
-            if (board.sideToMove() == Color::WHITE && seracher.scoreData >= 15000)
-            {
-                board.makeMove(bestMove);
-                continue;
-            }
-
-            if (board.sideToMove() == Color::BLACK && seracher.scoreData <= 15000)
+            if (board.inCheck() || 
+                board.isCapture(bestMove) || 
+                (board.sideToMove() == Color::WHITE && seracher.scoreData >= 15000) || 
+                (board.sideToMove() == Color::BLACK && seracher.scoreData <= 15000))
             {
                 board.makeMove(bestMove);
                 continue;
@@ -86,35 +110,40 @@ void generate(int amount)
             {
                 outputLine[i] = board.getFen() + " | " + std::to_string(seracher.scoreData) + " | ";
             }
-            else if (board.sideToMove() == Color::BLACK)
+            else if (board.sideToMove() == Color::WHITE)
             {
                 outputLine[i] = board.getFen() + " | " + std::to_string(-seracher.scoreData) + " | ";
             }
 
             moveCount++;
-            positions++;
             board.makeMove(bestMove);
         }
 
-        if (resultString == "none")
+        if (resultString == "none" || isIllegal)
         {
             continue;
         }
 
-        for (int i = 0; i < std::min(moveCount, 400); i++)
-        {
+        for (int i = 0; i < std::min(moveCount, 500); i++)
+        {   
             if (outputLine[i].empty())
             {
                 continue;
             }
             
             outputFile << outputLine[i] + resultString + "\n";
+            positions++;
         }
 
-        if (amount % 25 == 0)
+        if (counter % 100 == 0)
         {
-            std::cout << "Generated: " << positions << std::endl; 
+            auto currentTime = std::chrono::steady_clock::now();
+            auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
+            double positionsPerSecond = static_cast<double>(positions) / elapsedTime;
+            std::cout << "Generated: " << positions << " positions | " << "PPS: " <<(int) positionsPerSecond << std::endl;
         }
+
+        seracher.nodes = 0;
     }
 
     transpositionTabel.clear();
