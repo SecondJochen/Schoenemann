@@ -4,12 +4,12 @@
 
 constexpr std::uint16_t inputSize = 768;
 constexpr std::uint16_t hiddenSize = 1024;
-constexpr std::uint16_t outputSize = 1;
+constexpr std::uint16_t outputSize = 8;
 constexpr std::uint16_t scale = 400;
 
 constexpr std::uint8_t QA = 255;
 constexpr std::uint8_t QB = 64;
-constexpr std::uint32_t inputHidden = inputSize * hiddenSize;
+constexpr std::uint32_t inputHiddenSize = inputSize * hiddenSize;
 constexpr bool activate = true;
 constexpr bool deactivate = false;
 

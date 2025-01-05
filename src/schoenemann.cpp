@@ -8,20 +8,16 @@
 #include "helper.h"
 #include "nnue.h"
 #include "datagen.h"
-#include "quantised.h"
 #include "tune.h"
 
 Search searcher;
 tt transpositionTabel(8);
 
-memorystream memoryStream(quantised_bin, quantised_bin_len);
-
-// Define and load the network from the stream
-network net(memoryStream);
+network net;
 
 int transpositionTableSize = 8;
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     // The main board
     Board board;
@@ -48,7 +44,25 @@ int main(int argc, char* argv[])
 
     if (argc > 1 && strcmp(argv[1], "datagen") == 0)
     {
-        generate(board);
+        // Vector to hold threads
+        std::vector<std::thread> threads;
+
+        // Launch multiple threads
+        for (int i = 0; i < 5; ++i)
+        {
+            threads.emplace_back(std::thread([&board]() {
+    generate(board);
+}));
+        }
+
+        // Join threads to ensure they complete before exiting main
+        for (auto &t : threads)
+        {
+            if (t.joinable())
+            {
+                t.join();
+            }
+        }
         return 0;
     }
     // Main UCI-Loop
@@ -256,7 +270,8 @@ int main(int argc, char* argv[])
         }
         else if (token == "eval")
         {
-            std::cout << "The evaluation is: " << searcher.scaleOutput(net.evaluate((int)board.sideToMove()), board) << " cp" << std::endl;
+            std::cout << "The raw eval is: " << net.evaluate((int)board.sideToMove(), board.occ().count()) << std::endl;
+            std::cout << "The scaled evaluation is: " << searcher.scaleOutput(net.evaluate((int)board.sideToMove(), board.occ().count()), board) << " cp" << std::endl;
         }
         else if (token == "test")
         {

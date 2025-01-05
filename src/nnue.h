@@ -1,7 +1,6 @@
 #pragma once
 
 #include <iostream>
-#include "NNUE/perspective.h"
+#include "NNUE/nnue.h"
 
-extern memorystream memoryStream;
 extern network net;
