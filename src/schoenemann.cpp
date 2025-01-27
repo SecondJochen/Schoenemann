@@ -1,4 +1,23 @@
-﻿#include "schoenemann.h"
+﻿/*
+  This file is part of the Schoenemann chess engine written by Jochengehtab
+
+  Copyright (C) 2024-2025 Jochengehtab
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+#include "schoenemann.h"
 
 Search searcher;
 tt transpositionTabel(8);
@@ -72,7 +91,7 @@ int main(int argc, char *argv[])
             uciPrint();
 
 #ifdef DO_TUNING
-            std::cout << paramsToUci();
+            std::cout << engineParameterToUCI();
 #endif
             std::cout << "uciok" << std::endl;
         }
@@ -100,7 +119,7 @@ int main(int argc, char *argv[])
             {
                 is >> token;
 #ifdef DO_TUNING
-                EngineParam *param = findParam(token);
+                EngineParameter *param = findEngineParameterByName(token);
                 if (param != nullptr)
                 {
                     is >> token;
@@ -250,14 +269,6 @@ int main(int argc, char *argv[])
         {
             runBenchmark();
         }
-        else if (token == "nodes")
-        {
-            std::cout << searcher.nodes << std::endl;
-        }
-        else if (token == "ttest")
-        {
-            transpositionTableTest(board);
-        }
         else if (token == "eval")
         {
             std::cout << "The raw eval is: " << net.evaluate((int)board.sideToMove(), board.occ().count()) << std::endl;
@@ -269,11 +280,7 @@ int main(int argc, char *argv[])
         }
         else if (token == "spsa")
         {
-            std::cout << paramsToSpsaInput() << std::endl;
-        }
-        else if (token == "params")
-        {
-            std::cout << paramsToUci() << std::endl;
+            std::cout << engineParameterToSpsaInput() << std::endl;
         }
         else if (token == "stop")
         {
