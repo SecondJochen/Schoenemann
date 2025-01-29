@@ -44,10 +44,16 @@ public:
         return bits;
     }
 
+    Bitboard getFromSquare(std::uint8_t index)
+    {
+        // We take our whole bits and apply a maske the consits of one 1ULL that gets shifted by the index
+        return Bitboard(bits & (1ULL << index));
+    }
+
     std::string str()
     {
-        std::bitset<64> b(bits);
-        std::string str_bitset = b.to_string();
+        std::bitset<64> bitset(bits);
+        std::string str_bitset = bitset.to_string();
 
         std::stringstream stream;
         int counter = 0;

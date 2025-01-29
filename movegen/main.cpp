@@ -1,5 +1,4 @@
 #include <iostream>
-#include <bitset>
 
 #include "bitboard.h"
 #include "attacks.h"
@@ -8,8 +7,7 @@ int main()
 {
     Bitboard bb;
     
-    bb.set(28);
-    std::cout << bb.str() << std::endl;
+    bb.set(63);
     std::cout << generateKingAttacks(bb).str();
 
     return 0;
