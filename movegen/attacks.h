@@ -50,7 +50,38 @@ constexpr Bitboard shift(Bitboard bitboard)
 
     if constexpr (dir == Direction::underlying::SOUTH)
     {
-        return bitboard >> 8;
+        return bitboard.getBits() >> 8;
+    }
+
+    if constexpr (dir == Direction::underlying::EAST)
+    {
+        return bitboard.getBits() >> 1;
+    }
+
+    if constexpr (dir == Direction::underlying::WEST)
+    {
+        return bitboard.getBits() << 1;
+    }
+
+    if constexpr (dir == Direction::underlying::NORTH_EAST)
+    {
+        return bitboard.getBits() << 7;
+    }
+
+    if constexpr (dir == Direction::underlying::NORTH_WEST)
+    {
+        return bitboard.getBits() << 9;
+    }
+
+    if constexpr (dir == Direction::underlying::SOUTH_EAST)
+    {
+        return bitboard.getBits() >> 9;
+    }
+
+
+    if constexpr (dir == Direction::underlying::SOUTH_WEST)
+    {
+        return bitboard.getBits() >> 7;
     }
 }
 
