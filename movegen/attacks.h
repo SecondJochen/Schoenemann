@@ -78,7 +78,6 @@ constexpr Bitboard shift(Bitboard bitboard)
         return bitboard.getBits() >> 9;
     }
 
-
     if constexpr (dir == Direction::underlying::SOUTH_WEST)
     {
         return bitboard.getBits() >> 7;
