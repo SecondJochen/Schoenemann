@@ -14,7 +14,6 @@ class Bitboard
 public:
     Bitboard() : bits(0) {}
     Bitboard(std::uint64_t newBits) : bits(newBits) {}
-
     // This all is based on the concet that 1ULL is equal to
     // 0000000000000000000000000000000000000000000000000000000000000001
     // and we always shift this last set by an index
@@ -57,11 +56,24 @@ public:
 
         std::stringstream stream;
         int counter = 0;
-        for (int i = 0; i < 64; i += 8)
+        for (int i = 0; i < 64; i++)
         {
-            counter++;
-            stream << str_bitset.substr(i, 8) << " " << counter << std::endl;
+            stream << str_bitset.substr(i, 1) << " ";
+            if ((i + 1) % 8 == 0)
+            {
+                counter++;
+                stream << " " << counter << std::endl;
+            }
+            
         }
+
+        stream << std::endl;
+
+        for (std::uint8_t i = 97; i < 105; i++)
+        {
+            stream << static_cast<char>(i) << " ";
+        }
+
         return stream.str();
     }
 
@@ -74,6 +86,11 @@ public:
     {
         bits |= bitboard.bits;
         return *this;
+    }
+
+    Bitboard operator&(const Bitboard &bitboard) const noexcept
+    {
+        return Bitboard(bits & bitboard.bits);
     }
 
 private:
