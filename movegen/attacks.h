@@ -1,48 +1,11 @@
 #pragma once
 
 #include "bitboard.h"
-
-class Direction
-{
-private:
-    // underlying is choosen as the class name to avoid name collisions
-    enum class underlying : std::int8_t
-    {
-        NORTH = 8,
-        EAST = 1,
-        SOUTH = -NORTH,
-        WEST = -EAST,
-
-        NORTH_EAST = NORTH + EAST,
-        SOUTH_EAST = SOUTH + EAST,
-        SOUTH_WEST = SOUTH + WEST,
-        NORTH_WEST = NORTH + WEST
-    };
-
-    constexpr Direction(underlying newDirection) : direction(newDirection) {}
-
-    underlying direction;
-
-    template <Direction::underlying dir>
-    friend constexpr Bitboard shift(Bitboard sq);
-
-public:
-    constexpr operator underlying() { return direction; }
-    static constexpr Direction NORTH() { return underlying::NORTH; }
-    static constexpr Direction SOUTH() { return underlying::SOUTH; }
-    static constexpr Direction EAST() { return underlying::EAST; }
-    static constexpr Direction WEST() { return underlying::WEST; }
-
-    static constexpr Direction NORTH_EAST() { return underlying::NORTH_EAST; }
-    static constexpr Direction NORTH_WEST() { return underlying::NORTH_WEST; }
-    static constexpr Direction SOUTH_EAST() { return underlying::SOUTH_EAST; }
-    static constexpr Direction SOUTH_WEST() { return underlying::SOUTH_WEST; }
-};
+#include "coordinates.h"
 
 template <Direction::underlying dir>
 constexpr Bitboard shift(Bitboard bitboard)
 {
-
     if constexpr (dir == Direction::underlying::NORTH)
     {
         return bitboard.getBits() << 8;
@@ -55,32 +18,32 @@ constexpr Bitboard shift(Bitboard bitboard)
 
     if constexpr (dir == Direction::underlying::EAST)
     {
-        return bitboard.getBits() >> 1;
+        return (bitboard.getBits() & ~File::toBitboard(File::FILE_H)) << 1;
     }
 
     if constexpr (dir == Direction::underlying::WEST)
     {
-        return bitboard.getBits() << 1;
+        return (bitboard.getBits() & ~Bitboard(0)) >> 1;
     }
 
     if constexpr (dir == Direction::underlying::NORTH_EAST)
     {
-        return bitboard.getBits() << 7;
+        return (bitboard.getBits() & ~Bitboard(7)) << 9;
     }
 
     if constexpr (dir == Direction::underlying::NORTH_WEST)
     {
-        return bitboard.getBits() << 9;
+        return (bitboard.getBits() & ~Bitboard(0)) << 7;
     }
 
     if constexpr (dir == Direction::underlying::SOUTH_EAST)
     {
-        return bitboard.getBits() >> 9;
+        return (bitboard.getBits() & ~Bitboard(7)) >> 7;
     }
 
     if constexpr (dir == Direction::underlying::SOUTH_WEST)
     {
-        return bitboard.getBits() >> 7;
+        return (bitboard.getBits() & ~Bitboard(0)) >> 9;
     }
 }
 
