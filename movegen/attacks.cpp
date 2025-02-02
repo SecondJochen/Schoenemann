@@ -40,10 +40,14 @@ Bitboard generateKnighAttacks(Bitboard &bitboard)
 Bitboard generateRockAttacks(Bitboard &occupied, std::uint8_t square)
 {
     Bitboard attacks;
-    Bitboard squareBitboard = occupied.getFromSquare(square);
+    Bitboard squareBitboard;
+
+    squareBitboard.set(square);
+
     while (squareBitboard)
     {
         attacks |= squareBitboard;
+        std::cout << attacks.str() << std::endl;
         if (occupied & squareBitboard)
         {
             break;
@@ -51,7 +55,7 @@ Bitboard generateRockAttacks(Bitboard &occupied, std::uint8_t square)
         squareBitboard = shift<Direction::NORTH>(squareBitboard);
     }
 
-    attacks &= squareBitboard.getBits();
+    attacks &= ~squareBitboard.getBits();
     
     return attacks;
 }
