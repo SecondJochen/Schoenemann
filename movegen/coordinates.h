@@ -3,42 +3,20 @@
 
 class Direction
 {
-private:
-    // underlying is choosen as the class name to avoid name collisions
-    enum class underlying : std::int8_t
-    {
-        NORTH = 8,
-        EAST = 1,
-        SOUTH = -NORTH,
-        WEST = -EAST,
-
-        NORTH_EAST = NORTH + EAST,
-        SOUTH_EAST = SOUTH + EAST,
-        SOUTH_WEST = SOUTH + WEST,
-        NORTH_WEST = NORTH + WEST
-    };
-
-    constexpr Direction(underlying newDirection) : direction(newDirection) {}
-
-    underlying direction;
-
-    template <Direction::underlying dir>
-    friend constexpr Bitboard shift(Bitboard bitboard);
-
 public:
-    constexpr operator underlying() { return direction; }
-    static constexpr Direction NORTH() { return underlying::NORTH; }
-    static constexpr Direction SOUTH() { return underlying::SOUTH; }
-    static constexpr Direction EAST() { return underlying::EAST; }
-    static constexpr Direction WEST() { return underlying::WEST; }
+    constexpr static std::int8_t NORTH = 8;
+    constexpr static std::int8_t EAST = 1;
+    constexpr static std::int8_t SOUTH = -NORTH;
+    constexpr static std::int8_t WEST = -EAST;
 
-    static constexpr Direction NORTH_EAST() { return underlying::NORTH_EAST; }
-    static constexpr Direction NORTH_WEST() { return underlying::NORTH_WEST; }
-    static constexpr Direction SOUTH_EAST() { return underlying::SOUTH_EAST; }
-    static constexpr Direction SOUTH_WEST() { return underlying::SOUTH_WEST; }
+    constexpr static std::int8_t NORTH_EAST = NORTH + EAST;
+    constexpr static std::int8_t SOUTH_EAST = SOUTH + EAST;
+    constexpr static std::int8_t SOUTH_WEST = SOUTH + WEST;
+    constexpr static std::int8_t NORTH_WEST = NORTH + WEST;
 };
 
-class File {
+class File
+{
 public:
     constexpr static std::uint8_t FILE_A = 0;
     constexpr static std::uint8_t FILE_B = 1;
@@ -55,19 +33,15 @@ public:
     }
 };
 
-class Rank {
-private:
-    enum class underlying : std::uint8_t
-    {
-        RANK_1 = 0,
-        RANK_2 = 1,
-        RANK_3 = 2,
-        RANK_4 = 3,
-        RANK_5 = 4,
-        RANK_6 = 5,
-        RANK_7 = 6,
-        RANK_8 = 7
-    };
-
-    underlying ranks;
+class Rank
+{
+public:
+    constexpr static std::uint8_t RANK_A = 0;
+    constexpr static std::uint8_t RANK_B = 1;
+    constexpr static std::uint8_t RANK_C = 2;
+    constexpr static std::uint8_t RANK_D = 3;
+    constexpr static std::uint8_t RANK_E = 4;
+    constexpr static std::uint8_t RANK_F = 5;
+    constexpr static std::uint8_t RANK_G = 6;
+    constexpr static std::uint8_t RANK_H = 7;
 };
