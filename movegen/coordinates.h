@@ -51,7 +51,7 @@ public:
 
     static Bitboard toBitboard(std::uint8_t file)
     {
-        return Bitboard(file);
+        return 0x0101010101010101 << file;
     }
 };
 

@@ -23,27 +23,27 @@ constexpr Bitboard shift(Bitboard bitboard)
 
     if constexpr (dir == Direction::underlying::WEST)
     {
-        return (bitboard.getBits() & ~Bitboard(0)) >> 1;
+        return (bitboard.getBits() & ~File::toBitboard(File::FILE_A)) >> 1;
     }
 
     if constexpr (dir == Direction::underlying::NORTH_EAST)
     {
-        return (bitboard.getBits() & ~Bitboard(7)) << 9;
+        return (bitboard.getBits() & ~File::toBitboard(File::FILE_H)) << 9;
     }
 
     if constexpr (dir == Direction::underlying::NORTH_WEST)
     {
-        return (bitboard.getBits() & ~Bitboard(0)) << 7;
+        return (bitboard.getBits() & ~File::toBitboard(File::FILE_A)) << 7;
     }
 
     if constexpr (dir == Direction::underlying::SOUTH_EAST)
     {
-        return (bitboard.getBits() & ~Bitboard(7)) >> 7;
+        return (bitboard.getBits() & ~File::toBitboard(File::FILE_H)) >> 7;
     }
 
     if constexpr (dir == Direction::underlying::SOUTH_WEST)
     {
-        return (bitboard.getBits() & ~Bitboard(0)) >> 9;
+        return (bitboard.getBits() & ~File::toBitboard(File::FILE_A)) >> 9;
     }
 }
 

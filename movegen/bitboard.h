@@ -64,7 +64,6 @@ public:
                 counter++;
                 stream << " " << counter << std::endl;
             }
-            
         }
 
         stream << std::endl;
