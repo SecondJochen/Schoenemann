@@ -87,6 +87,12 @@ public:
         return *this;
     }
 
+    constexpr Bitboard &operator&=(const Bitboard &bitboard) noexcept
+    {
+        bits &= bitboard.bits;
+        return *this;
+    }
+
     Bitboard operator&(const Bitboard &bitboard) const noexcept
     {
         return Bitboard(bits & bitboard.bits);

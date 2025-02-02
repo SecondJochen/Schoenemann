@@ -50,3 +50,5 @@ Bitboard generateKingAttacks(Bitboard &bitboard);
 
 // TODO probably make a look-up table for common Knight positions
 Bitboard generateKnighAttacks(Bitboard &bitboard);
+
+Bitboard generateRockAttacks(Bitboard &occupied, std::uint8_t square);
