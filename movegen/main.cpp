@@ -7,8 +7,9 @@ int main()
 {
     Bitboard bb;
     
-    bb.set(63);
-    std::cout << generateKingAttacks(bb).str();
+    bb.set(20);
+    std::cout << bb.str() << std::endl << std::endl;
+    std::cout << generateKnighAttacks(bb).str();
 
     return 0;
 }
