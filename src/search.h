@@ -34,9 +34,9 @@ struct SearchStack
 	int pvLength;
 	bool inCheck;
 	std::array<Move, 150> pvLine;
-	Move killerMove;
-	PieceType previousMovedPiece;
-	Move previousMove;
+	Move killerMove = Move::NULL_MOVE;
+	PieceType previousMovedPiece = PieceType::NONE;
+	Move previousMove = Move::NULL_MOVE;
 };
 
 class Search

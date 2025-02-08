@@ -287,7 +287,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
 
         int scoreMoves[218] = {0};
         // Sort the list
-        orderMoves(moveList, entry, board, scoreMoves, stack[ply].killerMove, ply);
+        orderMoves(moveList, entry, board, scoreMoves, ply);
 
         for (int i = 0; i < moveList.size() && probCutCount < winningCount; i++)
         {
@@ -344,7 +344,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
 
     int scoreMoves[218] = {0};
     // Sort the list
-    orderMoves(moveList, entry, board, scoreMoves, stack[ply].killerMove, ply);
+    orderMoves(moveList, entry, board, scoreMoves, ply);
 
     // Set up values for the search
     int score = 0;
@@ -360,7 +360,6 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
     for (int i = 0; i < moveList.size(); i++)
     {
         Move move = sortByScore(moveList, scoreMoves, i);
-
         bool isQuiet = !board.isCapture(move);
 
         if (!pvNode && move != hashedMove && bestScore > -infinity && depth <= pvsSSEDepth && !see(board, move, (!isQuiet ? -pvsSSECaptureCutoff : -pvsSSENonCaptureCutoff)))
