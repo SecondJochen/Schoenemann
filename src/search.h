@@ -44,6 +44,7 @@ class Search
 {
 public:
 	const int infinity = 32767;
+	const int CORRHIST_LIMIT = 1024;
 
 	Move rootBestMove = Move::NULL_MOVE;
 
@@ -63,8 +64,11 @@ public:
 	
 	std::array<std::array<std::array<int, 64>, 6>, 2> quietHistory;
 	std::array<std::array<std::array<std::array<int, 6>, 64>, 6>, 64> continuationHistory;
+	std::array<std::array<int, 2>, 16384> pawnCorrectionHistory;
 	std::array<std::array<std::uint8_t, 218>, 150> reductions;
 	std::array<SearchStack, 150> stack;
+
+	const int pawnCorrectionHistorySize = 16384;
 
 	int pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCutNode);
 	int qs(int alpha, int beta, Board &board, int ply);
@@ -72,11 +76,14 @@ public:
 	int scaleOutput(int rawEval, Board &board);
 	int getQuietHistory(Board &board, Move move);
 	int getContinuationHistory(PieceType piece, Move move, int ply);
+	int correctEval(int rawEval, Board &board);
+	std::uint64_t getPieceKey(PieceType piece, const Board& board);
 
 	void iterativeDeepening(Board &board, bool isInfinite);
 	void initLMR();
 	void updateQuietHistory(Board &board, Move move, int bonus);
 	void updateContinuationHistory(PieceType piece, Move move, int bonus, int ply);
+	void updatePawnCorrectionHistory(int bonus, Board &board);
 
 	std::string getPVLine();
 

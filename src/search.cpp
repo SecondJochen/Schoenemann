@@ -92,6 +92,12 @@ DEFINE_PARAM_S(materialScaleQueen, 18, 3);
 DEFINE_PARAM_S(materialScaleGamePhaseAdder, 169, 25);
 DEFINE_PARAM_B(materialScaleGamePhaseDivisor, 269, 1, 700);
 
+// Pawn CorrectionHistory
+DEFINE_PARAM_B(correctionValueDiv, 30, 1, 600);
+DEFINE_PARAM_S(pawnCorrectionHistoryDepthAdder, 180, 20);
+DEFINE_PARAM_B(pawnCorrectionHistoryDepthDiv, 768, 1, 4000);
+DEFINE_PARAM_B(pawnCorrectionHistoryGravityDiv, 768, 1, 4000);
+
 int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCutNode)
 {
     if (shouldStop)
@@ -223,6 +229,9 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
     {
         staticEval = scaleOutput(net.evaluate((int)board.sideToMove(), board.occ().count()), board);
     }
+
+    int rawEval = staticEval;
+    staticEval = std::clamp(correctEval(staticEval, board), -infinity + 150, infinity - 150);
 
     // Update the static Eval on the stack
     stack[ply].staticEval = staticEval;
@@ -394,8 +403,8 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
                     extensions++;
                 }
             }
-            
-            // Multicut 
+
+            // Multicut
             else if (singularBeta >= beta)
             {
                 return singularBeta;
@@ -522,12 +531,17 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
     {
         finalType = UPPER_BOUND;
     }
-    
+
     if (!isSingularSearch)
     {
-        transpositionTabel.storeEvaluation(zobristKey, depth, finalType, transpositionTabel.scoreToTT(bestScore, ply), bestMoveInPVS, staticEval);
+        transpositionTabel.storeEvaluation(zobristKey, depth, finalType, transpositionTabel.scoreToTT(bestScore, ply), bestMoveInPVS, rawEval);
     }
-    
+
+    if (!inCheck && (bestMoveInPVS == Move::NULL_MOVE || !board.isCapture(bestMoveInPVS)) && (finalType == EXACT || (finalType == UPPER_BOUND && bestScore <= staticEval) || (finalType == LOWER_BOUND && bestScore > staticEval)))
+    {
+        int bonus = std::clamp((int)(bestScore - staticEval) * depth * pawnCorrectionHistoryDepthAdder / pawnCorrectionHistoryDepthDiv, -CORRHIST_LIMIT / 4, CORRHIST_LIMIT / 4);
+        updatePawnCorrectionHistory(bonus, board);
+    }
 
     return bestScore;
 }
@@ -611,6 +625,9 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
         standPat = scaleOutput(net.evaluate((int)board.sideToMove(), board.occ().count()), board);
     }
 
+    int rawEval = standPat;
+    standPat = std::clamp(correctEval(standPat, board), -infinity + 150, infinity - 150);
+
     if (standPat >= beta)
     {
         return standPat;
@@ -689,6 +706,8 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
     {
         transpositionTabel.storeEvaluation(zobristKey, 0, bestScore >= beta ? LOWER_BOUND : UPPER_BOUND, transpositionTabel.scoreToTT(bestScore, ply), bestMoveInQs, standPat);
     }
+    transpositionTabel.storeEvaluation(zobristKey, 0, bestScore >= beta ? LOWER_BOUND : UPPER_BOUND, transpositionTabel.scoreToTT(bestScore, ply), bestMoveInQs, rawEval);
+
     return bestScore;
 }
 
@@ -751,6 +770,8 @@ void Search::iterativeDeepening(Board &board, bool isInfinite)
 
         bestMoveThisIteration = rootBestMove;
         hasOneLegalMove = bestMoveThisIteration != Move::NULL_MOVE && bestMoveThisIteration != Move::NO_MOVE;
+
+        // This is ugly but whitout it i get time losses etc
         if (!hasOneLegalMove)
         {
             searcher.hardLimit = 10000;
@@ -850,4 +871,33 @@ void Search::updateContinuationHistory(PieceType piece, Move move, int bonus, in
         // | Ply - 1 Moved Piece From | Ply - 1 Move To Index | Moved Piece From | Move To Index |
         continuationHistory[stack[ply - 1].previousMovedPiece][stack[ply - 1].previousMove.to().index()][piece][move.to().index()] += scaledBonus;
     }
+}
+
+void Search::updatePawnCorrectionHistory(int bonus, Board &board)
+{
+    int pawnHash = getPieceKey(PieceType::PAWN, board);
+    // Gravity
+    int scaledBonus = bonus - pawnCorrectionHistory[board.sideToMove()][pawnHash & (pawnCorrectionHistorySize - 1)] * std::abs(bonus) / pawnCorrectionHistoryGravityDiv;
+    pawnCorrectionHistory[board.sideToMove()][pawnHash & (pawnCorrectionHistorySize - 1)] += scaledBonus;
+}
+
+int Search::correctEval(int rawEval, Board &board)
+{
+    int pawnEntry = pawnCorrectionHistory[board.sideToMove()][getPieceKey(PieceType::PAWN, board) & (pawnCorrectionHistorySize - 1)];
+
+    int corrHistoryBonus = pawnEntry; // Later here come minor Corr Hist all multipled
+
+    return rawEval + corrHistoryBonus / correctionValueDiv;
+}
+
+std::uint64_t Search::getPieceKey(PieceType piece, const Board &board)
+{
+    std::uint64_t key = 0;
+    Bitboard bitboard = board.pieces(piece);
+    while (bitboard)
+    {
+        const Square square = bitboard.pop();
+        key ^= Zobrist::piece(board.at(square), square);
+    }
+    return key;
 }
