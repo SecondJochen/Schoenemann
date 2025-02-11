@@ -2,6 +2,7 @@
 
 #include "bitboard.h"
 #include "coordinates.h"
+
 template<const std::int8_t dir>
 constexpr Bitboard shift(Bitboard bitboard)
 {
@@ -30,14 +31,14 @@ constexpr Bitboard shift(Bitboard bitboard)
         return (bitboard.getBits() & ~File::toBitboard(File::FILE_H)) << 9;
     }
 
-    if constexpr (dir == Direction::NORTH_WEST)
-    {
-        return (bitboard.getBits() & ~File::toBitboard(File::FILE_A)) << 7;
-    }
-
     if constexpr (dir == Direction::SOUTH_EAST)
     {
         return (bitboard.getBits() & ~File::toBitboard(File::FILE_H)) >> 7;
+    }
+
+    if constexpr (dir == Direction::NORTH_WEST)
+    {
+        return (bitboard.getBits() & File::toBitboard(File::FILE_A)) << 7;
     }
 
     if constexpr (dir == Direction::SOUTH_WEST)
@@ -46,9 +47,9 @@ constexpr Bitboard shift(Bitboard bitboard)
     }
 }
 
-Bitboard generateKingAttacks(Bitboard &bitboard);
+Bitboard generateKingAttacks(Bitboard& bitboard);
 
 // TODO probably make a look-up table for common Knight positions
-Bitboard generateKnighAttacks(Bitboard &bitboard);
+Bitboard generateKnighAttacks(Bitboard& bitboard);
 
-Bitboard generateRockAttacks(Bitboard &occupied, std::uint8_t square);
+Bitboard generateRockAttacks(Bitboard& occupied, std::uint8_t square);

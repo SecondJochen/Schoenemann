@@ -1,4 +1,5 @@
-#include <iostream>
+#pragma once
+
 #include "bitboard.h"
 
 class Direction
@@ -15,6 +16,11 @@ public:
     constexpr static std::int8_t NORTH_WEST = NORTH + WEST;
 };
 
+const Bitboard FILE_MASKS[8] = {
+    0x0101010101010101ULL, 0x0202020202020202ULL, 0x0404040404040404ULL, 0x0808080808080808ULL,
+    0x1010101010101010ULL, 0x2020202020202020ULL, 0x4040404040404040ULL, 0x8080808080808080ULL,
+};
+
 class File
 {
 public:
@@ -29,7 +35,7 @@ public:
 
     static Bitboard toBitboard(std::uint8_t file)
     {
-        return 0x0101010101010101 << file;
+        return FILE_MASKS[file];
     }
 };
 

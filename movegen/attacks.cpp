@@ -3,6 +3,8 @@
 Bitboard generateKingAttacks(Bitboard& bitboard)
 {
     Bitboard attacks;
+    // We loop over all squares and create a bitboard
+    // From that square we create a bitboard but only if the square is set beforehand
     for (int i = 0; i < 64; i++)
     {
         Bitboard temp = bitboard.getFromSquare(i);
@@ -18,7 +20,7 @@ Bitboard generateKingAttacks(Bitboard& bitboard)
     return attacks;
 }
 
-Bitboard generateKnighAttacks(Bitboard &bitboard)
+Bitboard generateKnighAttacks(Bitboard& bitboard)
 {
     Bitboard attacks;
     for (int i = 0; i < 64; i++)
@@ -37,17 +39,19 @@ Bitboard generateKnighAttacks(Bitboard &bitboard)
     return attacks;
 }
 
-Bitboard generateRockAttacks(Bitboard &occupied, std::uint8_t square)
+Bitboard generateRockAttacks(Bitboard& occupied, std::uint8_t square)
 {
     Bitboard attacks;
     Bitboard squareBitboard;
 
+    squareBitboard.clear();
     squareBitboard.set(square);
 
-    while (squareBitboard)
+
+    // The bitboard gets shifted to the north until it is zero
+    while (squareBitboard.getBits())
     {
         attacks |= squareBitboard;
-        std::cout << attacks.str() << std::endl;
         if (occupied & squareBitboard)
         {
             break;
@@ -55,7 +59,46 @@ Bitboard generateRockAttacks(Bitboard &occupied, std::uint8_t square)
         squareBitboard = shift<Direction::NORTH>(squareBitboard);
     }
 
-    attacks &= ~squareBitboard.getBits();
-    
+    squareBitboard.clear();
+    squareBitboard.set(square);
+
+    while (squareBitboard.getBits())
+    {
+        attacks |= squareBitboard;
+        if (occupied & squareBitboard)
+        {
+            break;
+        }
+        squareBitboard = shift<Direction::SOUTH>(squareBitboard);
+    }
+
+    squareBitboard.clear();
+    squareBitboard.set(square);
+
+    while (squareBitboard.getBits())
+    {
+        attacks |= squareBitboard;
+        if (occupied & squareBitboard)
+        {
+            break;
+        }
+        squareBitboard = shift<Direction::EAST>(squareBitboard);
+    }
+
+    squareBitboard.clear();
+    squareBitboard.set(square);
+
+    while (squareBitboard.getBits())
+    {
+        attacks |= squareBitboard;
+        if (occupied & squareBitboard)
+        {
+            break;
+        }
+        squareBitboard = shift<Direction::WEST>(squareBitboard);
+    }
+
+    attacks.clear(square);
+
     return attacks;
 }
