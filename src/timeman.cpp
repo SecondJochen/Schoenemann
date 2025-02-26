@@ -19,6 +19,8 @@
 
 #include "timeman.h"
 
+int bestMoveStabilityCount = 0;
+
 void getTimeForMove()
 {
   searcher.timeLeft -= searcher.timeLeft / 2;
@@ -28,7 +30,21 @@ void getTimeForMove()
   int maxTime = (int)(searcher.timeLeft * 0.76);
 
   searcher.hardLimit = std::min(maxTime, (int)(baseTime * 3.04));
-  searcher.softLimit = std::min(maxTime, (int)(baseTime * 0.76));
+  double bmFactor = 1.3 - 0.05 * bestMoveStabilityCount;
+  searcher.softLimit = std::min(maxTime, (int)((baseTime * 0.76 * bmFactor)));
+}
+
+void updateBestMoveStability(Move bestMove, Move previousBestMove)
+{
+  if (bestMove == previousBestMove && bestMoveStabilityCount < 10)
+  {
+    bestMoveStabilityCount++;
+  }
+  else
+  {
+    bestMoveStabilityCount = 0;
+  }
+  
 }
 
 bool shouldStopSoft(std::chrono::steady_clock::time_point start)
