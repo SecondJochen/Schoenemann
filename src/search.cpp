@@ -519,16 +519,31 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
                 if (isQuiet)
                 {
                     stack[ply].killerMove = move;
-                    int quietHistoryBonus = std::min(static_cast<int>(quietHistoryGravityBase) + static_cast<int>(quietHistoryDepthMul) * depth, static_cast<int>(quietHistoryBonusCap));
+                    int quietHistoryBonus = std::min(
+                        static_cast<int>(quietHistoryGravityBase) + 
+                        static_cast<int>(quietHistoryDepthMul) * depth, 
+                        static_cast<int>(quietHistoryBonusCap));
+
                     updateQuietHistory(board, move, quietHistoryBonus);
 
-                    int continuationHistoryBonus = std::min(static_cast<int>(continuationHistoryGravityBase) + static_cast<int>(continuationHistoryDepthMul) * depth, static_cast<int>(continuationHistoryBonusCap));
+                    int continuationHistoryBonus = std::min(
+                        static_cast<int>(continuationHistoryGravityBase) + 
+                        static_cast<int>(continuationHistoryDepthMul) * depth, 
+                        static_cast<int>(continuationHistoryBonusCap));
 
                     // Update the continuation History
                     updateContinuationHistory(board.at(move.from()).type(), move, continuationHistoryBonus, ply);
 
-                    int quietHistoryMalus = std::min(static_cast<int>(quietHistoryMalusBase) + static_cast<int>(quietHistoryMalusDepthMul) * depth, static_cast<int>(quietHistoryMalusMax));
-                    int continuationHistoryMalus = std::min(static_cast<int>(continuationHistoryMalusBase) + static_cast<int>(continuationHistoryMalusDepthMul) * depth, static_cast<int>(continuationHistoryMalusMax));
+                    int quietHistoryMalus = std::min(
+                        static_cast<int>(quietHistoryMalusBase) + 
+                        static_cast<int>(quietHistoryMalusDepthMul) * depth, 
+                        static_cast<int>(quietHistoryMalusMax));
+
+                    int continuationHistoryMalus = std::min(
+                        static_cast<int>(continuationHistoryMalusBase) + 
+                        static_cast<int>(continuationHistoryMalusDepthMul) * depth, 
+                        static_cast<int>(continuationHistoryMalusMax));
+ 
                     // History malus
                     for (int x = 0; x < movesMadeCounter; x++)
                     {
@@ -538,8 +553,8 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
                             continue;
                         }
 
-                        updateQuietHistory(board, madeMove, -(quietHistoryMalus * movesMadeCounter));
-                        updateContinuationHistory(board.at(madeMove.from()).type(), madeMove, -(continuationHistoryMalus * movesMadeCounter), ply);
+                        updateQuietHistory(board, madeMove, -quietHistoryMalus);
+                        updateContinuationHistory(board.at(madeMove.from()).type(), madeMove, -continuationHistoryMalus, ply);
                     }
                 }
 
@@ -897,7 +912,8 @@ void Search::updateContinuationHistory(PieceType piece, Move move, int bonus, in
 {
     // Continuation History is indexed as follows
     // | Ply - 1 Moved Piece From | Ply - 1 Move To Index | Moved Piece From | Move To Index |
-    int scaledBonus = (bonus - getContinuationHistory(piece, move, ply - 1) * std::abs(bonus) / continuationHistoryDiv);
+    int gravity = (bonus - getContinuationHistory(piece, move, ply - 1));
+    int scaledBonus = (gravity * std::abs(bonus) / continuationHistoryDiv);
 
     if (stack[ply - 1].previousMovedPiece != PieceType::NONE)
     {
