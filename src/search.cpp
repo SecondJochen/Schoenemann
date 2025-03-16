@@ -811,6 +811,11 @@ void Search::iterativeDeepening(Board &board, bool isInfinite)
 
     for (int i = 1; i <= 256; i++)
     {
+        if (i > 7)
+        {
+            previousBestScore = scoreData;
+        }
+        
         scoreData = i >= aspDepth ? aspiration(i, scoreData, board) : pvs(-infinity, infinity, i, 0, board, false);
 
         if (i > 6)
@@ -826,6 +831,12 @@ void Search::iterativeDeepening(Board &board, bool isInfinite)
         {
             updateBestMoveStability(bestMoveThisIteration, previousBestMove);
         }
+
+        if (i > 7)
+        {
+            updateEvalStability(scoreData, previousBestScore);
+        }
+        
 
         // Only report statistic if we are not in a fixed node search beacuse of datagen
         if (!hasNodeLimit)
