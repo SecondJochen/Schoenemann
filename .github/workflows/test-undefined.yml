@@ -1,0 +1,77 @@
+name: Build and Benchmark
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up ${{ matrix.os }} environment
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang make
+        shell: bash
+
+      - name: Set up ${{ matrix.os }} environment
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install llvm
+        shell: powershell
+
+      - name: Build project
+        run: |
+          cd src
+          make all
+        shell: bash
+
+      - name: Check for Bench number in commit message
+        id: bench-check
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          echo "Commit message: $COMMIT_MSG"
+          if [[ $COMMIT_MSG =~ Bench[[:space:]]+([0-9]+) ]]; then
+            BENCH_NUM="${BASH_REMATCH[1]}"
+            echo "Found bench number: $BENCH_NUM"
+            echo "BENCH_NUM=$BENCH_NUM" >> $GITHUB_ENV
+          else
+            echo "No bench number found in commit message"
+          fi
+        shell: bash
+
+      - name: Run benchmark test
+        if: env.BENCH_NUM
+        run: |
+          cd src
+          if [[ -f null.exe ]]; then
+            BINARY=./null.exe
+          else
+            BINARY=./null
+          fi
+          OUTPUT=$($BINARY bench)
+          echo "Bench output: $OUTPUT"
+          if [[ $OUTPUT =~ ([0-9]+) ]]; then
+            OUTPUT_NUM="${BASH_REMATCH[1]}"
+          else
+            echo "Failed to extract bench number from output"
+            exit 1
+          fi
+          echo "Commit bench number: ${{ env.BENCH_NUM }}"
+          if [ "$OUTPUT_NUM" -ne "${{ env.BENCH_NUM }}" ]; then
+            echo "Bench number mismatch: expected ${{ env.BENCH_NUM }}, got $OUTPUT_NUM"
+            exit 1
+          fi
+        shell: bash
