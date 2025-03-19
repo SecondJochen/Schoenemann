@@ -17,16 +17,13 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#ifndef SEARCH_H
+#define SEARCH_H
 
 #include <chrono>
 #include <iostream>
 
-#include "timeman.h"
-#include "moveorder.h"
 #include "consts.h"
-#include "see.h"
-#include "tune.h"
 
 struct SearchStack
 {
@@ -57,13 +54,8 @@ public:
 	int nodeLimit = 0;
 	int timeForMove = 0;
 	int scoreData = 0;
-	int timeLeft = 0;
-	int increment = 0;
 	int nodes = 0;
 	int previousBestScore = 0;
-
-	long hardLimit = 0;
-	long softLimit = 0;
 
 	std::array<std::array<std::uint8_t, 218>, 256> reductions;
 	SearchStack stack[256];
@@ -80,3 +72,5 @@ private:
 	int aspiration(int maxDepth, int score, Board &board);
 	std::string getPVLine();
 };
+
+#endif
