@@ -23,11 +23,10 @@
 
 DEFINE_PARAM_S(mvaLvvMultiplyer, 103, 20);
 
-void MoveOrder::orderMoves(Movelist &moveList, Hash *entry, Board &board, int scores[], int ply)
+void MoveOrder::orderMoves(History* history, Movelist &moveList, Hash *entry, Move& killer, SearchStack* stack, Board &board, int* scores, int ply)
 {
 	const bool isNullptr = entry == nullptr ? true : false;
 	const std::uint64_t key = board.zobrist();
-	const Move killer = searcher.stack[ply].killerMove;
 
 	for (int i = 0; i < moveList.size(); i++)
 	{
@@ -62,10 +61,10 @@ void MoveOrder::orderMoves(Movelist &moveList, Hash *entry, Board &board, int sc
 		}
 		else
 		{
-			scores[i] += history.getQuietHistory(board, move);
-			if (ply > 0 && searcher.stack[ply - 1].previousMovedPiece != PieceType::NONE)
+			scores[i] += history->getQuietHistory(board, move);
+			if (ply > 0 && stack[ply - 1].previousMovedPiece != PieceType::NONE)
 			{
-				scores[i] += history.getContinuationHistory(board.at(move.from()).type(), move, ply - 1, searcher.stack);
+				scores[i] += history->getContinuationHistory(board.at(move.from()).type(), move, ply - 1, stack);
 			}
 		}
 	}

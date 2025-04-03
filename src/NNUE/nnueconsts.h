@@ -17,12 +17,23 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef NNUE_H
-#define NNUE_H
+#ifndef NNUECONSTS
+#define NNUECONSTS
 
 #include <iostream>
-#include "NNUE/nnue.h"
 
-extern network net;
+constexpr std::uint16_t inputSize = 768;
+constexpr std::uint16_t hiddenSize = 1024;
+constexpr std::uint16_t outputSize = 8;
+constexpr std::uint16_t scale = 400;
+
+constexpr std::uint8_t QA = 255;
+constexpr std::uint8_t QB = 64;
+constexpr std::uint32_t inputHiddenSize = inputSize * hiddenSize;
+constexpr bool activate = true;
+constexpr bool deactivate = false;
+
+constexpr std::uint16_t blackSqures = 64 * 6;
+constexpr std::uint8_t whiteSquares = 64;
 
 #endif

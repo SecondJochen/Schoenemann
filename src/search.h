@@ -24,22 +24,21 @@
 #include <iostream>
 
 #include "consts.h"
-
-struct SearchStack
-{
-	int staticEval;
-	int pvLength;
-	bool inCheck;
-	std::array<Move, 256> pvLine;
-	Move killerMove = Move::NULL_MOVE;
-	PieceType previousMovedPiece = PieceType::NONE;
-	Move previousMove = Move::NULL_MOVE;
-	Move exludedMove = Move::NULL_MOVE;
-};
+#include "time.h"
+#include "tt.h"
+#include "moveorder.h"
+#include "search_fwd.h"
 
 class Search
 {
 public:
+	Search(Time &timeManagement,
+		   tt &transpositionTabel,
+		   MoveOrder &moveOrder,
+		   network &net) : timeManagement(timeManagement),
+						   transpositionTabel(transpositionTabel),
+						   moveOrder(moveOrder),
+						   net(net) {}
 	const int infinity = 32767;
 	const int CORRHIST_LIMIT = 1024;
 	const int MAX_PLY = 256;
@@ -61,17 +60,23 @@ public:
 	std::array<std::array<std::uint8_t, 218>, 256> reductions;
 	SearchStack stack[256];
 
-	int pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCutNode);
-	int qs(int alpha, int beta, Board &board, int ply);
+	int pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::int16_t ply, Board &board, bool isCutNode);
+	int qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t ply);
 
 	int scaleOutput(int rawEval, Board &board);
 
 	void iterativeDeepening(Board &board, bool isInfinite);
 	void initLMR();
+	void resetHistory();
 
 private:
 	int aspiration(int maxDepth, int score, Board &board);
 	std::string getPVLine();
+	Time &timeManagement;
+	tt &transpositionTabel;
+	History history;
+	MoveOrder &moveOrder;
+	network &net;
 };
 
 #endif

@@ -20,7 +20,8 @@
 #ifndef TIME_H
 #define TIME_H
 
-#include "consts.h"
+#include "chess.hpp"
+using namespace chess;
 
 class Time
 {
@@ -28,13 +29,14 @@ private:
     std::uint16_t bestMoveStabilityCount = 0;
     std::uint16_t bestEvalStabilityCount = 0;
 
-    long hardLimit = 0;
-    long softLimit = 0;
+    double hardLimit = 0;
+    double softLimit = 0;
 
 public:
     void calculateTimeForMove();
     void updateBestMoveStability(Move bestMove, Move previousBestMove);
     void updateEvalStability(int score, int previousScore);
+    void reset();
 
     bool shouldStopSoft(std::chrono::steady_clock::time_point start);
     bool shouldStopID(std::chrono::steady_clock::time_point start);

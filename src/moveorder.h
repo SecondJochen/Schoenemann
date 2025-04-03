@@ -20,13 +20,15 @@
 #ifndef MOVEORDER_H
 #define MOVEORDER_H
 
-#include "consts.h"
+#include "search_fwd.h"
+#include "tt.h"
+#include "history.h"
 
 class MoveOrder
 {
 private:
 public:
-    void orderMoves(Movelist &moveList, Hash *entry, Board &board, int scores[], int ply);
+    void orderMoves(History* history, Movelist &moveList, Hash *entry, Move& killer, SearchStack* stack, Board &board, int* scores, int ply);
     Move sortByScore(Movelist &moveList, int scores[], int i);
 };
 

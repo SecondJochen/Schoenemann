@@ -23,24 +23,28 @@
 
 #include "consts.h"
 #include "helper.h"
-#include "nnue.h"
+#include "NNUE/nnue.h"
 #include "datagen.h"
 #include "tune.h"
-
-Search searcher;
-tt transpositionTabel(8);
-History history;
-Time timeManagement;
-MoveOrder moveOrder;
-
-network net;
-
-int transpositionTableSize = 8;
+#include "search.h"
+#include "history.h"
+#include "tt.h"
+#include "time.h"
+#include "moveorder.h"
 
 int main(int argc, char *argv[])
 {
+    std::uint32_t transpositionTableSize = 16;
+
+    tt transpositionTabel(transpositionTableSize);
+    Time timeManagement;
+    MoveOrder moveOrder;
+    network net;
+
+    Search *searcher = new Search(timeManagement, transpositionTabel, moveOrder, net);
+
     // The main board
-    Board board;
+    Board board(&net);
 
     // UCI-Command stuff
     std::string token, cmd;
@@ -52,13 +56,18 @@ int main(int argc, char *argv[])
     board.set960(false);
 
     // Init the LMR
-    searcher.initLMR();
+    searcher->initLMR();
 
-    transpositionTabel.setSize(8);
+    transpositionTabel.setSize(transpositionTableSize);
+    timeManagement.reset();
+    searcher->resetHistory();
 
     if (argc > 1 && strcmp(argv[1], "bench") == 0)
     {
-        runBenchmark();
+        runBenchmark(*searcher, board);
+
+        // Delete the search object that was previously allocated on the heap
+        delete searcher;
         return 0;
     }
 
@@ -70,8 +79,8 @@ int main(int argc, char *argv[])
         // Launch multiple threads
         for (int i = 0; i < 5; ++i)
         {
-            threads.emplace_back(std::thread([&board]()
-                                             { generate(board); }));
+            // threads.emplace_back(std::thread([&board]()
+            //  { generate(board, searcher, transpositionTabel); }));
         }
 
         // Join threads to ensure they complete before exiting main
@@ -107,7 +116,7 @@ int main(int argc, char *argv[])
         }
         else if (token == "stop")
         {
-            searcher.shouldStop = true;
+            searcher->shouldStop = true;
         }
         else if (token == "isready")
         {
@@ -120,6 +129,12 @@ int main(int argc, char *argv[])
 
             // Clear the transposition table
             transpositionTabel.clear();
+
+            // Reset the time mangement
+            timeManagement.reset();
+
+            // Also reset all the historys
+            searcher->resetHistory();
         }
         else if (token == "setoption")
         {
@@ -196,12 +211,12 @@ int main(int argc, char *argv[])
         {
             int number[4];
             bool hasTime = false;
-            searcher.shouldStop = false;
+            searcher->shouldStop = false;
 
             is >> token;
             if (!is.good())
             {
-                searcher.iterativeDeepening(board, true);
+                searcher->iterativeDeepening(board, true);
             }
             while (is.good())
             {
@@ -230,21 +245,21 @@ int main(int argc, char *argv[])
                 else if (token == "depth")
                 {
                     is >> token;
-                    searcher.pvs(-infinity, infinity, std::stoi(token), 0, board, false);
-                    std::cout << "bestmove " << uci::moveToUci(searcher.rootBestMove) << std::endl;
+                    searcher->pvs(-infinity, infinity, std::stoi(token), 0, board, false);
+                    std::cout << "bestmove " << uci::moveToUci(searcher->rootBestMove) << std::endl;
                 }
                 else if (token == "nodes")
                 {
                     is >> token;
-                    searcher.hasNodeLimit = true;
-                    searcher.nodeLimit = std::stoi(token);
-                    searcher.iterativeDeepening(board, true);
+                    searcher->hasNodeLimit = true;
+                    searcher->nodeLimit = std::stoi(token);
+                    searcher->iterativeDeepening(board, true);
                 }
                 else if (token == "movetime")
                 {
                     is >> token;
                     timeManagement.timeLeft = std::stoi(token);
-                    std::thread t1(std::bind(&Search::iterativeDeepening, &searcher, board, false));
+                    std::thread t1(std::bind(&Search::iterativeDeepening, searcher, board, false));
                     t1.detach();
                 }
                 if (!(is >> token))
@@ -264,7 +279,7 @@ int main(int argc, char *argv[])
                     timeManagement.timeLeft = number[1];
                     timeManagement.increment = number[3];
                 }
-                searcher.iterativeDeepening(board, false);
+                searcher->iterativeDeepening(board, false);
             }
         }
         else if (token == "d")
@@ -273,16 +288,16 @@ int main(int argc, char *argv[])
         }
         else if (token == "datagen")
         {
-            generate(board);
+            // generate(board);
         }
         else if (token == "bench")
         {
-            runBenchmark();
+            runBenchmark(*searcher, board);
         }
         else if (token == "eval")
         {
             std::cout << "The raw eval is: " << net.evaluate((int)board.sideToMove(), board.occ().count()) << std::endl;
-            std::cout << "The scaled evaluation is: " << searcher.scaleOutput(net.evaluate((int)board.sideToMove(), board.occ().count()), board) << " cp" << std::endl;
+            std::cout << "The scaled evaluation is: " << searcher->scaleOutput(net.evaluate((int)board.sideToMove(), board.occ().count()), board) << " cp" << std::endl;
         }
         else if (token == "test")
         {
@@ -294,8 +309,12 @@ int main(int argc, char *argv[])
         }
         else if (token == "stop")
         {
-            searcher.shouldStop = true;
+            searcher->shouldStop = true;
         }
     } while (token != "quit");
+
+    // Delete the search object that was previously allocated on the heap
+    delete searcher;
+
     return 0;
 }
