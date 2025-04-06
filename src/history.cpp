@@ -24,7 +24,7 @@
 
 DEFINE_PARAM_B(quietHistoryDiv, 28711, 10000, 50000);
 DEFINE_PARAM_B(continuationHistoryDiv, 28156, 10000, 50000);
-DEFINE_PARAM_B(correctionValueDiv, 30, 1, 600);
+DEFINE_PARAM_B(correctionValueDiv, 90, 1, 600);
 
 int History::getQuietHistory(Board &board, Move move)
 {
@@ -63,16 +63,21 @@ void History::updateContinuationHistory(PieceType piece, Move move, int bonus, i
 void History::updatePawnCorrectionHistory(int bonus, Board &board, int div)
 {
     int pawnHash = getPieceKey(PieceType::PAWN, board);
+    int nonPawnHash = getPieceKey(PieceType::KNIGHT, board) | getPieceKey(PieceType::BISHOP, board) | getPieceKey(PieceType::ROOK, board) | getPieceKey(PieceType::QUEEN, board);
     // Gravity
-    int scaledBonus = bonus - pawnCorrectionHistory[board.sideToMove()][pawnHash & (pawnCorrectionHistorySize - 1)] * std::abs(bonus) / div;
-    pawnCorrectionHistory[board.sideToMove()][pawnHash & (pawnCorrectionHistorySize - 1)] += scaledBonus;
+    int scaledBonusPawn = bonus - pawnCorrectionHistory[board.sideToMove()][pawnHash & (pawnCorrectionHistorySize - 1)] * std::abs(bonus) / div;
+    int scaledBonusNonPawn = bonus - nonPawnCorrectionHistory[board.sideToMove()][nonPawnHash & (pawnCorrectionHistorySize - 1)] * std::abs(bonus) / div;
+
+    pawnCorrectionHistory[board.sideToMove()][pawnHash & (pawnCorrectionHistorySize - 1)] += scaledBonusPawn;
+    nonPawnCorrectionHistory[board.sideToMove()][pawnHash & (pawnCorrectionHistorySize - 1)] += scaledBonusNonPawn;
 }
 
 int History::correctEval(int rawEval, Board &board)
 {
-    int pawnEntry = pawnCorrectionHistory[board.sideToMove()][getPieceKey(PieceType::PAWN, board) & (pawnCorrectionHistorySize - 1)];
+    int pawnEntry = pawnCorrectionHistory[board.sideToMove()][(getPieceKey(PieceType::KNIGHT, board) | getPieceKey(PieceType::BISHOP, board) | getPieceKey(PieceType::ROOK, board) | getPieceKey(PieceType::QUEEN, board)) & (pawnCorrectionHistorySize - 1)];
+    int nonPawnEntry = nonPawnCorrectionHistory[board.sideToMove()][getPieceKey(PieceType::PAWN, board) & (pawnCorrectionHistorySize - 1)];
 
-    int corrHistoryBonus = pawnEntry; // Later here come minor Corr Hist all multipled
+    int corrHistoryBonus = pawnEntry * nonPawnEntry; // Later here come minor Corr Hist all multipled
 
     return rawEval + corrHistoryBonus / correctionValueDiv;
 }
