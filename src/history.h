@@ -26,10 +26,11 @@ class History
     std::array<std::array<std::array<int, 64>, 6>, 2> quietHistory;
     std::array<std::array<std::array<std::array<int, 6>, 64>, 6>, 64> continuationHistory;
     std::array<std::array<int, 2>, 16384> pawnCorrectionHistory;
-    std::array<std::array<int, 2>, 16384> nonPawnCorrectionHistory;
+    std::array<std::array<std::array<int, 2>, 2>, 16384> nonPawnCorrectionHistory;
 
 private:
-    std::uint64_t getPieceKey(PieceType piece, const Board &board);
+    std::uint64_t getPieceKey(PieceType piece, const Board &board, Color color);
+    std::uint64_t generateNonPawnKey(const Board& board, Color color);
     const int pawnCorrectionHistorySize = 16384;
 
 public:
