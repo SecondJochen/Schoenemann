@@ -86,7 +86,7 @@ int History::correctEval(int rawEval, Board &board)
     int nonPawnEntry = nonPawnCorrectionHistory[board.sideToMove()][0][generateNonPawnKey(board, Color::WHITE) & (CORRECTION_HISTORY_SIZE - 1)] +
                        nonPawnCorrectionHistory[board.sideToMove()][1][generateNonPawnKey(board, Color::BLACK) & (CORRECTION_HISTORY_SIZE - 1)];
 
-    int corrHistoryBonus = pawnEntry + (nonPawnEntry * 0.5);
+    int corrHistoryBonus = (pawnEntry * 0.5) + (nonPawnEntry * 0.5);
 
     return rawEval + corrHistoryBonus / correctionValueDiv;
 }
