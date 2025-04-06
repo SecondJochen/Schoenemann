@@ -597,8 +597,8 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
 
     if (!inCheck && (bestMoveInPVS == Move::NULL_MOVE || !board.isCapture(bestMoveInPVS)) && (finalType == EXACT || (finalType == UPPER_BOUND && bestScore <= staticEval) || (finalType == LOWER_BOUND && bestScore > staticEval)))
     {
-        int bonus = std::clamp((int)(bestScore - staticEval) * depth * pawnCorrectionHistoryDepthAdd / pawnCorrectionHistoryDepthDiv, -CORRHIST_LIMIT / 4, CORRHIST_LIMIT / 4);
-        history.updatePawnCorrectionHistory(bonus, board, pawnCorrectionHistoryDepthDiv);
+        std::int16_t bonus = std::clamp((int)(bestScore - staticEval) * depth * pawnCorrectionHistoryDepthAdd / pawnCorrectionHistoryDepthDiv, -CORRHIST_LIMIT / 4, CORRHIST_LIMIT / 4);
+        history.updateCorrectionHistory(bonus, board, pawnCorrectionHistoryDepthDiv);
     }
 
     return bestScore;

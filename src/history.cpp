@@ -31,7 +31,7 @@ int History::getQuietHistory(Board &board, Move move)
     return quietHistory[board.sideToMove()][board.at(move.from()).type()][move.to().index()];
 }
 
-void History::updateQuietHistory(Board &board, Move move, int bonus)
+void History::updateQuietHistory(Board &board, Move move, std::int16_t bonus)
 {
     quietHistory
         [board.sideToMove()]
@@ -40,12 +40,12 @@ void History::updateQuietHistory(Board &board, Move move, int bonus)
         (bonus - getQuietHistory(board, move) * std::abs(bonus) / quietHistoryDiv);
 }
 
-int History::getContinuationHistory(PieceType piece, Move move, int ply, SearchStack *stack)
+int History::getContinuationHistory(PieceType piece, Move move, std::int16_t ply, SearchStack *stack)
 {
     return continuationHistory[stack[ply].previousMovedPiece][stack[ply].previousMove.to().index()][piece][move.to().index()];
 }
 
-void History::updateContinuationHistory(PieceType piece, Move move, int bonus, int ply, SearchStack *stack)
+void History::updateContinuationHistory(PieceType piece, Move move, std::int16_t bonus, std::int16_t ply, SearchStack *stack)
 {
     // Continuation History is indexed as follows
     // | Ply - 1 Moved Piece From | Ply - 1 Move To Index | Moved Piece From | Move To Index |
@@ -60,31 +60,31 @@ void History::updateContinuationHistory(PieceType piece, Move move, int bonus, i
     }
 }
 
-void History::updatePawnCorrectionHistory(int bonus, Board &board, int div)
+void History::updateCorrectionHistory(std::int16_t bonus, Board &board, std::int16_t div)
 {
     int pawnHash = getPieceKey(PieceType::PAWN, board, Color::NONE);
     int nonPawnHashWhite = generateNonPawnKey(board, Color::WHITE);
     int nonPawnHashBlack = generateNonPawnKey(board, Color::BLACK);
 
     // Gravity
-    int scaledBonusPawn = bonus - pawnCorrectionHistory[board.sideToMove()][pawnHash & (pawnCorrectionHistorySize - 1)] * std::abs(bonus) / div;
+    int scaledBonusPawn = bonus - pawnCorrectionHistory[board.sideToMove()][pawnHash & (CORRECTION_HISTORY_SIZE - 1)] * std::abs(bonus) / div;
 
     // 0 = White; 1 = Black
-    int scaledBonusNonPawnWhite = bonus - nonPawnCorrectionHistory[board.sideToMove()][0][nonPawnHashWhite & (pawnCorrectionHistorySize - 1)] * std::abs(bonus) / div;
-    int scaledBonusNonPawnBlack = bonus - nonPawnCorrectionHistory[board.sideToMove()][1][nonPawnHashBlack & (pawnCorrectionHistorySize - 1)] * std::abs(bonus) / div;
+    int scaledBonusNonPawnWhite = bonus - nonPawnCorrectionHistory[board.sideToMove()][0][nonPawnHashWhite & (CORRECTION_HISTORY_SIZE - 1)] * std::abs(bonus) / div;
+    int scaledBonusNonPawnBlack = bonus - nonPawnCorrectionHistory[board.sideToMove()][1][nonPawnHashBlack & (CORRECTION_HISTORY_SIZE - 1)] * std::abs(bonus) / div;
 
-    pawnCorrectionHistory[board.sideToMove()][pawnHash & (pawnCorrectionHistorySize - 1)] += scaledBonusPawn;
+    pawnCorrectionHistory[board.sideToMove()][pawnHash & (CORRECTION_HISTORY_SIZE - 1)] += scaledBonusPawn;
 
-    nonPawnCorrectionHistory[board.sideToMove()][0][nonPawnHashWhite & (pawnCorrectionHistorySize - 1)] += scaledBonusNonPawnWhite;
-    nonPawnCorrectionHistory[board.sideToMove()][1][nonPawnHashBlack & (pawnCorrectionHistorySize - 1)] += scaledBonusNonPawnBlack;
+    nonPawnCorrectionHistory[board.sideToMove()][0][nonPawnHashWhite & (CORRECTION_HISTORY_SIZE - 1)] += scaledBonusNonPawnWhite;
+    nonPawnCorrectionHistory[board.sideToMove()][1][nonPawnHashBlack & (CORRECTION_HISTORY_SIZE - 1)] += scaledBonusNonPawnBlack;
 }
 
 int History::correctEval(int rawEval, Board &board)
 {
-    int pawnEntry = pawnCorrectionHistory[board.sideToMove()][getPieceKey(PieceType::PAWN, board, Color::NONE) & (pawnCorrectionHistorySize - 1)];
+    int pawnEntry = pawnCorrectionHistory[board.sideToMove()][getPieceKey(PieceType::PAWN, board, Color::NONE) & (CORRECTION_HISTORY_SIZE - 1)];
 
-    int nonPawnEntry = nonPawnCorrectionHistory[board.sideToMove()][0][generateNonPawnKey(board, Color::WHITE) & (pawnCorrectionHistorySize - 1)] +
-                       nonPawnCorrectionHistory[board.sideToMove()][1][generateNonPawnKey(board, Color::BLACK) & (pawnCorrectionHistorySize - 1)];
+    int nonPawnEntry = nonPawnCorrectionHistory[board.sideToMove()][0][generateNonPawnKey(board, Color::WHITE) & (CORRECTION_HISTORY_SIZE - 1)] +
+                       nonPawnCorrectionHistory[board.sideToMove()][1][generateNonPawnKey(board, Color::BLACK) & (CORRECTION_HISTORY_SIZE - 1)];
 
     int corrHistoryBonus = pawnEntry + (nonPawnEntry * 0.5);
 

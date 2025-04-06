@@ -23,23 +23,23 @@
 
 class History
 {
-    std::array<std::array<std::array<int, 64>, 6>, 2> quietHistory;
-    std::array<std::array<std::array<std::array<int, 6>, 64>, 6>, 64> continuationHistory;
-    std::array<std::array<int, 2>, 16384> pawnCorrectionHistory;
-    std::array<std::array<std::array<int, 2>, 2>, 16384> nonPawnCorrectionHistory;
+    std::array<std::array<std::array<std::int16_t, 64>, 6>, 2> quietHistory;
+    std::array<std::array<std::array<std::array<std::int16_t, 6>, 64>, 6>, 64> continuationHistory;
+    std::array<std::array<std::int16_t, 2>, 16384> pawnCorrectionHistory;
+    std::array<std::array<std::array<std::int16_t, 2>, 2>, 16384> nonPawnCorrectionHistory;
 
 private:
     std::uint64_t getPieceKey(PieceType piece, const Board &board, Color color);
     std::uint64_t generateNonPawnKey(const Board& board, Color color);
-    const int pawnCorrectionHistorySize = 16384;
+    const int CORRECTION_HISTORY_SIZE = 16384;
 
 public:
     int getQuietHistory(Board &board, Move move);
-    int getContinuationHistory(PieceType piece, Move move, int ply, SearchStack *stack);
+    int getContinuationHistory(PieceType piece, Move move, std::int16_t ply, SearchStack *stack);
     int correctEval(int rawEval, Board &board);
-    void updateQuietHistory(Board &board, Move move, int bonus);
-    void updatePawnCorrectionHistory(int bonus, Board &board, int div);
-    void updateContinuationHistory(PieceType piece, Move move, int bonus, int ply, SearchStack *stack);
+    void updateQuietHistory(Board &board, Move move, std::int16_t bonus);
+    void updateCorrectionHistory(std::int16_t bonus, Board &board, std::int16_t div);
+    void updateContinuationHistory(PieceType piece, Move move, std::int16_t bonus, std::int16_t ply, SearchStack *stack);
     void resetHistorys();
 };
 
