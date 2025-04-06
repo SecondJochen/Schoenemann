@@ -76,7 +76,7 @@ void History::updatePawnCorrectionHistory(int bonus, Board &board, int div)
     pawnCorrectionHistory[board.sideToMove()][pawnHash & (pawnCorrectionHistorySize - 1)] += scaledBonusPawn;
 
     nonPawnCorrectionHistory[board.sideToMove()][0][nonPawnHashWhite & (pawnCorrectionHistorySize - 1)] += scaledBonusNonPawnWhite;
-    nonPawnCorrectionHistory[board.sideToMove()][0][nonPawnHashBlack & (pawnCorrectionHistorySize - 1)] += scaledBonusNonPawnBlack;
+    nonPawnCorrectionHistory[board.sideToMove()][1][nonPawnHashBlack & (pawnCorrectionHistorySize - 1)] += scaledBonusNonPawnBlack;
 }
 
 int History::correctEval(int rawEval, Board &board)
@@ -86,7 +86,7 @@ int History::correctEval(int rawEval, Board &board)
     int nonPawnEntry = nonPawnCorrectionHistory[board.sideToMove()][0][generateNonPawnKey(board, Color::WHITE) & (pawnCorrectionHistorySize - 1)] +
                        nonPawnCorrectionHistory[board.sideToMove()][1][generateNonPawnKey(board, Color::BLACK) & (pawnCorrectionHistorySize - 1)];
 
-    int corrHistoryBonus = pawnEntry + nonPawnEntry;
+    int corrHistoryBonus = pawnEntry + (nonPawnEntry * 0.5);
 
     return rawEval + corrHistoryBonus / correctionValueDiv;
 }
