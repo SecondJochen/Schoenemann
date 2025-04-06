@@ -77,7 +77,7 @@ int History::correctEval(int rawEval, Board &board)
     int pawnEntry = pawnCorrectionHistory[board.sideToMove()][(getPieceKey(PieceType::KNIGHT, board) | getPieceKey(PieceType::BISHOP, board) | getPieceKey(PieceType::ROOK, board) | getPieceKey(PieceType::QUEEN, board)) & (pawnCorrectionHistorySize - 1)];
     int nonPawnEntry = nonPawnCorrectionHistory[board.sideToMove()][getPieceKey(PieceType::PAWN, board) & (pawnCorrectionHistorySize - 1)];
 
-    int corrHistoryBonus = pawnEntry * nonPawnEntry; // Later here come minor Corr Hist all multipled
+    int corrHistoryBonus = pawnEntry + nonPawnEntry;
 
     return rawEval + corrHistoryBonus / correctionValueDiv;
 }
