@@ -22,9 +22,9 @@
 #include "history.h"
 #include "tune.h"
 
-DEFINE_PARAM_B(quietHistoryDiv, 28711, 10000, 50000);
-DEFINE_PARAM_B(continuationHistoryDiv, 28156, 10000, 50000);
-DEFINE_PARAM_B(correctionValueDiv, 30, 1, 600);
+DEFINE_PARAM_B(quietHistoryDiv, 28711, 10000, 35000);
+DEFINE_PARAM_B(continuationHistoryDiv, 28156, 10000, 35000);
+DEFINE_PARAM_B(correctionValueDiv, 280, 1, 300);
 
 int History::getQuietHistory(Board &board, Move move)
 {
@@ -86,7 +86,7 @@ int History::correctEval(int rawEval, Board &board)
     int nonPawnEntry = nonPawnCorrectionHistory[board.sideToMove()][0][generateNonPawnKey(board, Color::WHITE) & (CORRECTION_HISTORY_SIZE - 1)] +
                        nonPawnCorrectionHistory[board.sideToMove()][1][generateNonPawnKey(board, Color::BLACK) & (CORRECTION_HISTORY_SIZE - 1)];
 
-    int corrHistoryBonus = (pawnEntry * 0.5) + (nonPawnEntry * 0.5);
+    int corrHistoryBonus = (pawnEntry * 50) + (nonPawnEntry * 54);
 
     return rawEval + corrHistoryBonus / correctionValueDiv;
 }
