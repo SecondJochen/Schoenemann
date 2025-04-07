@@ -1,62 +1,63 @@
-/*
-  This file is part of the Schoenemann chess engine written by Jochengehtab
-
-  Copyright (C) 2024-2025 Jochengehtab
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Affero General Public License as
-  published by the Free Software Foundation, either version 3 of the
-  License, or (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Affero General Public License for more details.
-
-  You should have received a copy of the GNU Affero General Public License
-  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 #include "tune.h"
 
-std::vector<EngineParameter *> engineParameter;
+#include <sstream>
+#include <vector>
 
-EngineParameter *findEngineParameterByName(std::string name)
+// Tuner taken from Obsidian
+// Thx gabe
+
+std::vector<EngineParam *> tuningParams;
+
+void registerParam(EngineParam *param)
 {
-    // Loop over the whole vector
-    for (EngineParameter *e : engineParameter)
-    {
-        if (e->name == name)
-        {
-            return e;
-        }
-    }
-    return nullptr;
+  tuningParams.push_back(param);
 }
 
-void addEngineParameter(EngineParameter *parameter)
+EngineParam *findParam(std::string name)
 {
-    engineParameter.push_back(parameter);
+  for (int i = 0; i < static_cast<int>(tuningParams.size()); i++)
+  {
+    if (tuningParams.at(i)->name == name)
+    {
+      return tuningParams.at(i);
+    }
+  }
+  return nullptr;
 }
 
-std::string engineParameterToUCI()
+std::string paramsToUci()
 {
-    std::stringstream stream;
-    for (EngineParameter *e : engineParameter)
-    {
-        stream << "option name " << e->name << " type spin default " << e->value << " min -999999999 max 999999999\n";
-    }
-    return stream.str();
+  std::ostringstream ss;
+
+  for (int i = 0; i < static_cast<int>(tuningParams.size()); i++)
+  {
+    EngineParam *p = tuningParams.at(i);
+
+    ss << "option name " << p->name << " type spin default " << p->value << " min -999999999 max 999999999\n";
+  }
+
+  return ss.str();
 }
 
-std::string engineParameterToSpsaInput()
+std::string paramsToSpsaInput()
 {
-    std::stringstream stream;
-    for (EngineParameter *e : engineParameter)
-    {
-        stream << e->name << ", " << "int" << ", " << double(e->value) << ", " << double(e->min) << ", " << double(e->max) << ", " << std::max(0.5, double(e->max - e->min) / 20.0) << ", " << 0.002 << "\n";
-    }
-    return stream.str();
+  std::ostringstream ss;
+
+  for (int i = 0; i < static_cast<int>(tuningParams.size()); i++)
+  {
+    EngineParam *p = tuningParams.at(i);
+
+    ss << p->name
+       << ", " << "int"
+       << ", " << double(p->value)
+       << ", " << double(p->min)
+       << ", " << double(p->max)
+       << ", " << std::max(0.5, double(p->max - p->min) / 20.0)
+       << ", " << 0.002
+       << "\n";
+  }
+
+  return ss.str();
 }
 
 
