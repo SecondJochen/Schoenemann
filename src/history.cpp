@@ -22,11 +22,11 @@
 #include "history.h"
 #include "tune.h"
 
-DEFINE_PARAM_B(quietHistoryDiv, 28711, 17000, 35000);
-DEFINE_PARAM_B(continuationHistoryDiv, 28156, 17000, 35000);
+DEFINE_PARAM_B(quietHistoryDiv, 28711, 17000, 32000);
+DEFINE_PARAM_B(continuationHistoryDiv, 28156, 17000, 32000);
 DEFINE_PARAM_B(correctionValueDiv, 280, 140, 560);
 DEFINE_PARAM_B(pawnCorrHistWeight, 50, 25, 100);
-DEFINE_PARAM_B(nonPawnCorrHistWeight, 54, 25, 100);
+DEFINE_PARAM_B(nonPawnCorrHistWeight, 54, 27, 100);
 
 int History::getQuietHistory(Board &board, Move move)
 {
