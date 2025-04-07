@@ -61,18 +61,18 @@ std::string paramsToSpsaInput()
 }
 
 
-DEFINE_PARAM_S(seePawn, 140, 10);
-DEFINE_PARAM_S(seeKnight, 287, 30);
-DEFINE_PARAM_S(seeBishop, 348, 30);
-DEFINE_PARAM_S(seeRook, 565, 50);
-DEFINE_PARAM_S(seeQueen, 1045, 90);
+DEFINE_PARAM_B(seePawn, 140, 70, 280);
+DEFINE_PARAM_B(seeKnight, 287, 143, 560);
+DEFINE_PARAM_B(seeBishop, 348, 170, 700);
+DEFINE_PARAM_B(seeRook, 565, 270, 1100);
+DEFINE_PARAM_B(seeQueen, 1045, 520, 2090);
 
 int SEE_PIECE_VALUES[7] = {seePawn, seeKnight, seeBishop, seeRook, seeQueen, 0, 0};
 
-DEFINE_PARAM_S(piecePawn, 73, 10);
-DEFINE_PARAM_S(pieceKnight, 258, 20);
-DEFINE_PARAM_S(pieceBishop, 217, 20);
-DEFINE_PARAM_S(pieceRook, 476, 50);
-DEFINE_PARAM_S(pieceQueen, 569, 90);
+DEFINE_PARAM_B(piecePawn, 73, 35, 140);
+DEFINE_PARAM_B(pieceKnight, 258, 125, 516);
+DEFINE_PARAM_B(pieceBishop, 217, 105, 440);
+DEFINE_PARAM_B(pieceRook, 476, 238, 952);
+DEFINE_PARAM_B(pieceQueen, 569, 285, 1138);
 
 int PIECE_VALUES[7] = {piecePawn, pieceKnight, pieceBishop, pieceRook, pieceQueen, 15000, 0};

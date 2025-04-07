@@ -25,7 +25,7 @@
 
 std::chrono::time_point start = std::chrono::steady_clock::now();
 
-DEFINE_PARAM_B(probeCutBetaAdd, 460, 25, 650);
+DEFINE_PARAM_B(probeCutBetaAdd, 460, 230, 900);
 DEFINE_PARAM_B(probeCuteSub, 4, 1, 8);
 
 DEFINE_PARAM_B(iidDepth, 3, 1, 5);
