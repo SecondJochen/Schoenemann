@@ -22,12 +22,15 @@
 
 #include "search.h"
 
-#include "chess.hpp"
-using namespace chess;
-
-//void transpositionTableTest(Board &board);
-void testCommand();
-void runBenchmark(Search& search, Board& benchBoard);
-void uciPrint();
+class Helper
+{
+private:
+public:
+    void transpositionTableTest(Board &board, tt &transpositionTable);
+    void runBenchmark(Search &search, Board &board);
+    void uciPrint();
+    void handleSetPosition(Board &board, std::istringstream  &is, std::string &token);
+    void handleGo(Search &search, Time &timeManagement, Board &board, std::istringstream &is, std::string &token);
+};
 
 #endif
