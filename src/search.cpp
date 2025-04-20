@@ -189,7 +189,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
     Move hashedMove = Move::NULL_MOVE;
 
     // Get some important search constants
-    const bool pvNode = (nodeType == NodeType::PV);
+    const bool pvNode = (nodeType == NodeType::PV) || (nodeType == NodeType::ROOT);
     const bool inCheck = board.inCheck();
     const bool isSingularSearch = stack[ply].exludedMove != Move::NULL_MOVE;
     stack[ply].inCheck = inCheck;
