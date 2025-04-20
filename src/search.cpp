@@ -113,6 +113,7 @@ DEFINE_PARAM_S(singularDepthSub, 1, 15);
 DEFINE_PARAM_B(singularDepthDiv, 2, 1, 20);
 DEFINE_PARAM_S(singularTTSub, 2, 10);
 
+template <NodeType nodeType>
 int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::int16_t ply, Board &board, bool isCutNode)
 {
     if (shouldStop)
@@ -172,10 +173,12 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
         }
     }
 
+    constexpr NodeType newNodeType = nodeType == NodeType::ROOT ? NodeType::PV : NodeType::NO_PV;
+
     // If depth is 0 we drop into qs to get a neutral position
     if (depth == 0)
     {
-        return qs(alpha, beta, board, ply);
+        return qs<newNodeType>(alpha, beta, board, ply);
     }
 
     const std::uint64_t zobristKey = board.zobrist();
@@ -186,7 +189,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
     Move hashedMove = Move::NULL_MOVE;
 
     // Get some important search constants
-    const bool pvNode = beta > alpha + 1;
+    const bool pvNode = (nodeType == NodeType::PV);
     const bool inCheck = board.inCheck();
     const bool isSingularSearch = stack[ply].exludedMove != Move::NULL_MOVE;
     stack[ply].inCheck = inCheck;
@@ -286,11 +289,11 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
             int qscore;
             if (depth == 1 && ralpha < alpha)
             {
-                qscore = qs(alpha, beta, board, ply);
+                qscore = qs<NodeType::NO_PV>(alpha, beta, board, ply);
                 return qscore;
             }
 
-            qscore = qs(ralpha, ralpha + 1, board, ply);
+            qscore = qs<NodeType::NO_PV>(ralpha, ralpha + 1, board, ply);
 
             if (qscore <= ralpha)
             {
@@ -331,7 +334,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
 
             board.makeMove(move);
 
-            int score = -pvs(-probCutMargin, -probCutMargin + 1, depth - depth / winningDepthDiv - winningDepthSub, ply + 1, board, false);
+            int score = -pvs<NodeType::NO_PV>(-probCutMargin, -probCutMargin + 1, depth - depth / winningDepthDiv - winningDepthSub, ply + 1, board, false);
 
             board.unmakeMove(move);
 
@@ -354,7 +357,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
         stack[ply].previousMovedPiece = PieceType::NONE;
         stack[ply].previousMove = Move::NULL_MOVE;
 
-        int score = -pvs(-beta, -alpha, depth - depthReduction, ply + 1, board, !isCutNode);
+        int score = -pvs<NodeType::NO_PV>(-beta, -alpha, depth - depthReduction, ply + 1, board, !isCutNode);
         board.unmakeNullMove();
         if (score >= beta)
         {
@@ -362,7 +365,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
             {
                 return score;
             }
-            score = pvs(beta - 1, beta, depth - depthReduction, ply, board, false);
+            score = pvs<NodeType::NO_PV>(beta - 1, beta, depth - depthReduction, ply, board, false);
 
             if (score >= beta)
             {
@@ -430,7 +433,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
             const std::uint8_t singularDepth = (depth - singularDepthSub) / singularDepthDiv;
 
             stack[ply].exludedMove = move;
-            int singularScore = pvs(singularBeta - 1, singularBeta, singularDepth, ply, board, isCutNode);
+            int singularScore = pvs<NodeType::NO_PV>(singularBeta - 1, singularBeta, singularDepth, ply, board, isCutNode);
             stack[ply].exludedMove = Move::NULL_MOVE;
 
             if (singularScore < singularBeta)
@@ -476,7 +479,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
 
         if (moveCounter == 1)
         {
-            score = -pvs(-beta, -alpha, depth - 1 + extensions, ply + 1, board, false);
+            score = -pvs<NodeType::NO_PV>(-beta, -alpha, depth - 1 + extensions, ply + 1, board, false);
         }
         else
         {
@@ -489,10 +492,10 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
                 lmr = std::clamp(lmr, static_cast<std::uint8_t>(0), static_cast<std::uint8_t>(depth - 1));
             }
 
-            score = -pvs(-alpha - 1, -alpha, depth - lmr - 1 + extensions, ply + 1, board, true);
+            score = -pvs<NodeType::NO_PV>(-alpha - 1, -alpha, depth - lmr - 1 + extensions, ply + 1, board, true);
             if (score > alpha && (score < beta || lmr > 0))
             {
-                score = -pvs(-beta, -alpha, depth - 1 + extensions, ply + 1, board, false);
+                score = -pvs<NodeType::PV>(-beta, -alpha, depth - 1 + extensions, ply + 1, board, false);
                 isCutNode = false;
             }
         }
@@ -605,6 +608,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
     return bestScore;
 }
 
+template <NodeType nodeType>
 int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t ply)
 {
     if (shouldStop)
@@ -643,7 +647,7 @@ int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t
         return 0;
     }
 
-    const bool pvNode = beta > alpha + 1;
+    const bool pvNode = nodeType == NodeType::PV;
     const std::uint64_t zobristKey = board.zobrist();
 
     Hash *entry = transpositionTabel.getHash(zobristKey);
@@ -723,7 +727,7 @@ int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t
 
         board.makeMove(move);
 
-        int score = -qs(-beta, -alpha, board, ply + 1);
+        int score = -qs<nodeType>(-beta, -alpha, board, ply + 1);
 
         board.unmakeMove(move);
         // Our current Score is better than the previous bestScore so we update it
@@ -779,7 +783,7 @@ int Search::aspiration(std::int16_t depth, std::int16_t score, Board &board)
 
     while (true)
     {
-        score = pvs(alpha, beta, depth, 0, board, false);
+        score = pvs<NodeType::ROOT>(alpha, beta, depth, 0, board, false);
         if (timeManagement.shouldStopID(start))
         {
             shouldStop = true;
@@ -829,7 +833,7 @@ void Search::iterativeDeepening(Board &board, bool isInfinite)
             previousBestScore = scoreData;
         }
         
-        scoreData = i >= aspDepth ? aspiration(i, scoreData, board) : pvs(-infinity, infinity, i, 0, board, false);
+        scoreData = i >= aspDepth ? aspiration(i, scoreData, board) : pvs<NodeType::ROOT>(-infinity, infinity, i, 0, board, false);
 
         if (i > 6)
         {

@@ -4,6 +4,13 @@
 #include "chess.hpp"
 using namespace chess;
 
+enum NodeType
+{
+	PV,
+	NO_PV,
+	ROOT
+};
+
 struct SearchStack
 {
 	int staticEval;

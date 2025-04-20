@@ -112,7 +112,7 @@ void Helper::runBenchmark(Search &search, Board &board)
 	for (const std::string &test : testStrings)
 	{
 		board.setFen(test);
-		search.pvs(-infinity, infinity, benchDepth, 0, board, false);
+		search.pvs<NodeType::ROOT>(-infinity, infinity, benchDepth, 0, board, false);
 	}
 
 	std::chrono::time_point end = std::chrono::high_resolution_clock::now();
@@ -206,7 +206,7 @@ void Helper::handleGo(Search &search, Time &timeManagement, Board &board, std::i
 		{
 			is >> token;
 			std::thread t1([&]
-						   { search.pvs(-infinity, infinity, std::stoi(token), 0, board, false); });
+						   { search.pvs<NodeType::ROOT>(-infinity, infinity, std::stoi(token), 0, board, false); });
 			t1.detach();
 
 			std::cout << "bestmove " << uci::moveToUci(search.rootBestMove) << std::endl;

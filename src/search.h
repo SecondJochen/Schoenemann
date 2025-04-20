@@ -54,8 +54,11 @@ public:
 
 	std::array<std::array<std::uint8_t, 218>, 255> reductions;
 	SearchStack stack[256];
-
+	
+	template <NodeType nodeType>
 	int pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::int16_t ply, Board &board, bool isCutNode);
+
+	template <NodeType nodeType>
 	int qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t ply);
 
 	int scaleOutput(int rawEval, Board &board);
