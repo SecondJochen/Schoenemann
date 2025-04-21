@@ -113,7 +113,7 @@ DEFINE_PARAM_S(singularDepthSub, 1, 15);
 DEFINE_PARAM_B(singularDepthDiv, 2, 1, 20);
 DEFINE_PARAM_S(singularTTSub, 2, 10);
 
-template <NodeType nodeType>
+template <NodeType nT>
 int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::int16_t ply, Board &board, bool isCutNode)
 {
     if (shouldStop)
@@ -173,7 +173,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
         }
     }
 
-    constexpr NodeType newNodeType = nodeType == NodeType::ROOT ? NodeType::PV : NodeType::NO_PV;
+    constexpr NodeType newNodeType = nT == NodeType::ROOT ? NodeType::PV : NodeType::NO_PV;
 
     // If depth is 0 we drop into qs to get a neutral position
     if (depth == 0)
@@ -189,7 +189,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
     Move hashedMove = Move::NULL_MOVE;
 
     // Get some important search constants
-    const bool pvNode = (nodeType == NodeType::PV) || (nodeType == NodeType::ROOT);
+    const bool pvNode = (nT == NodeType::PV) || (nT == NodeType::ROOT);
     const bool inCheck = board.inCheck();
     const bool isSingularSearch = stack[ply].exludedMove != Move::NULL_MOVE;
     stack[ply].inCheck = inCheck;
@@ -608,7 +608,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
     return bestScore;
 }
 
-template <NodeType nodeType>
+template <NodeType nT>
 int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t ply)
 {
     if (shouldStop)
@@ -647,7 +647,7 @@ int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t
         return 0;
     }
 
-    const bool pvNode = nodeType == NodeType::PV;
+    const bool pvNode = nT == NodeType::PV;
     const std::uint64_t zobristKey = board.zobrist();
 
     Hash *entry = transpositionTabel.getHash(zobristKey);
@@ -727,7 +727,7 @@ int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t
 
         board.makeMove(move);
 
-        int score = -qs<nodeType>(-beta, -alpha, board, ply + 1);
+        int score = -qs<nT>(-beta, -alpha, board, ply + 1);
 
         board.unmakeMove(move);
         // Our current Score is better than the previous bestScore so we update it
