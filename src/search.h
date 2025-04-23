@@ -63,6 +63,8 @@ public:
 	void iterativeDeepening(Board &board, bool isInfinite);
 	void initLMR();
 	void resetHistory();
+	
+	bool calculateGivesCheck(Board &board, Move &move);
 
 private:
 	int aspiration(std::int16_t maxDepth, std::int16_t score, Board &board);

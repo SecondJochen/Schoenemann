@@ -407,9 +407,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
 
         bool isQuiet = !board.isCapture(move);
 
-        board.makeMove(move);
-        givesCheck = board.inCheck();
-        board.unmakeMove(move);
+        givesCheck = calculateGivesCheck(board, move);
 
         if (!pvNode && move != hashedMove && bestScore > -infinity && depth <= pvsSSEDepth && !see(board, move, (isQuiet && !givesCheck ? -pvsSSENonCaptureCutoff : -pvsSSECaptureCutoff)))
         {
@@ -539,30 +537,30 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
                 {
                     stack[ply].killerMove = move;
                     int quietHistoryBonus = std::min(
-                        static_cast<int>(quietHistoryGravityBase) + 
-                        static_cast<int>(quietHistoryDepthMul) * depth, 
+                        static_cast<int>(quietHistoryGravityBase) +
+                            static_cast<int>(quietHistoryDepthMul) * depth,
                         static_cast<int>(quietHistoryBonusCap));
 
-                        history.updateQuietHistory(board, move, quietHistoryBonus);
+                    history.updateQuietHistory(board, move, quietHistoryBonus);
 
                     int continuationHistoryBonus = std::min(
-                        static_cast<int>(continuationHistoryGravityBase) + 
-                        static_cast<int>(continuationHistoryDepthMul) * depth, 
+                        static_cast<int>(continuationHistoryGravityBase) +
+                            static_cast<int>(continuationHistoryDepthMul) * depth,
                         static_cast<int>(continuationHistoryBonusCap));
 
                     // Update the continuation History
                     history.updateContinuationHistory(board.at(move.from()).type(), move, continuationHistoryBonus, ply, stack);
 
                     int quietHistoryMalus = std::min(
-                        static_cast<int>(quietHistoryMalusBase) + 
-                        static_cast<int>(quietHistoryMalusDepthMul) * depth, 
+                        static_cast<int>(quietHistoryMalusBase) +
+                            static_cast<int>(quietHistoryMalusDepthMul) * depth,
                         static_cast<int>(quietHistoryMalusMax));
 
                     int continuationHistoryMalus = std::min(
-                        static_cast<int>(continuationHistoryMalusBase) + 
-                        static_cast<int>(continuationHistoryMalusDepthMul) * depth, 
+                        static_cast<int>(continuationHistoryMalusBase) +
+                            static_cast<int>(continuationHistoryMalusDepthMul) * depth,
                         static_cast<int>(continuationHistoryMalusMax));
- 
+
                     // History malus
                     for (int x = 0; x < movesMadeCounter; x++)
                     {
@@ -834,7 +832,7 @@ void Search::iterativeDeepening(Board &board, bool isInfinite)
         {
             previousBestScore = scoreData;
         }
-        
+
         scoreData = i >= aspDepth ? aspiration(i, scoreData, board) : pvs(-infinity, infinity, i, 0, board, false);
 
         if (i > 6)
@@ -916,6 +914,30 @@ std::string Search::getPVLine()
         pvLine += uci::moveToUci(stack[0].pvLine[i]) + " ";
     }
     return pvLine;
+}
+
+bool Search::calculateGivesCheck(Board &board, Move &move)
+{
+    const Square toSquare = move.to();
+    const PieceType toPiece = board.at(move.from()).type();
+    const Color stm = board.sideToMove();
+    Bitboard kingBitboard = board.pieces(PieceType::KING, ~stm);
+
+    std::cout << attacks::pawn(stm, toSquare) << std::endl;
+    std::cout << kingBitboard << std::endl;
+    
+    switch (toPiece)
+    {
+        // Pawn
+    case 0:
+        if (attacks::pawn(stm, toSquare) & kingBitboard)
+        {
+            return true;
+        }
+
+        break;
+    }
+    return false;
 }
 
 void Search::resetHistory()

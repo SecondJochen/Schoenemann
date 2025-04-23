@@ -181,6 +181,13 @@ int main(int argc, char *argv[])
         {
             helper.handleGo(*search, timeManagement, board, is, token);
         }
+        else if (token == "t")
+        {
+            board.setFen("8/8/8/3k4/4P3/8/8/8 w - - 0 1");
+            Move m = uci::uciToMove(board, "e4e5");
+            search->calculateGivesCheck(board, m);
+        }
+        
         else if (token == "d")
         {
             std::cout << board << std::endl;
