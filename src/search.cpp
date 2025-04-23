@@ -389,7 +389,9 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
     int movesMadeCounter = 0;
     int moveCounter = 0;
 
-    short type = LOWER_BOUND;
+    std::uint8_t type = LOWER_BOUND;
+
+    bool givesCheck = false;
 
     Move bestMoveInPVS = Move::NULL_MOVE;
     std::array<Move, 218> movesMade;
@@ -405,7 +407,11 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
 
         bool isQuiet = !board.isCapture(move);
 
-        if (!pvNode && move != hashedMove && bestScore > -infinity && depth <= pvsSSEDepth && !see(board, move, (!isQuiet ? -pvsSSECaptureCutoff : -pvsSSENonCaptureCutoff)))
+        board.makeMove(move);
+        givesCheck = board.inCheck();
+        board.unmakeMove(move);
+
+        if (!pvNode && move != hashedMove && bestScore > -infinity && depth <= pvsSSEDepth && !see(board, move, (isQuiet && !givesCheck ? -pvsSSENonCaptureCutoff : -pvsSSECaptureCutoff)))
         {
             continue;
         }
