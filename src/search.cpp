@@ -941,6 +941,13 @@ bool Search::calculateGivesCheck(Board &board, Move &move)
         }
         break;
 
+         case 3:
+        if (attacks::knight(toSquare) & kingBitboard)
+        {
+            return true;
+        }
+        break;
+
         // Bishop
         case 2:
         if (attacks::bishop(toSquare, board.occ()) & kingBitboard)
@@ -949,15 +956,15 @@ bool Search::calculateGivesCheck(Board &board, Move &move)
         }
         break;
 
-        case 3:
-        if (attacks::knight(toSquare) & kingBitboard)
+        case 4:
+        if (attacks::rook(toSquare, board.occ()) & kingBitboard)
         {
             return true;
         }
         break;
 
-        case 4:
-        if (attacks::rook(toSquare, board.occ()) & kingBitboard)
+        case 5:
+        if (attacks::queen(toSquare, board.occ()) & kingBitboard)
         {
             return true;
         }
