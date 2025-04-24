@@ -923,9 +923,6 @@ bool Search::calculateGivesCheck(Board &board, Move &move)
     const Color stm = board.sideToMove();
     Bitboard kingBitboard = board.pieces(PieceType::KING, ~stm);
 
-    std::cout << attacks::pawn(stm, toSquare) << std::endl;
-    std::cout << kingBitboard << std::endl;
-    
     switch (toPiece)
     {
         // Pawn
@@ -935,7 +932,37 @@ bool Search::calculateGivesCheck(Board &board, Move &move)
             return true;
         }
 
+        // Knight
         break;
+    case 1:
+        if (attacks::knight(toSquare) & kingBitboard)
+        {
+            return true;
+        }
+        break;
+
+        // Bishop
+        case 2:
+        if (attacks::bishop(toSquare, board.occ()) & kingBitboard)
+        {
+            return true;
+        }
+        break;
+
+        case 3:
+        if (attacks::knight(toSquare) & kingBitboard)
+        {
+            return true;
+        }
+        break;
+
+        case 4:
+        if (attacks::rook(toSquare, board.occ()) & kingBitboard)
+        {
+            return true;
+        }
+        break;
+
     }
     return false;
 }
