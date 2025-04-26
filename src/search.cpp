@@ -923,7 +923,40 @@ bool Search::calculateGivesCheck(Board &board, Move &move)
     const Color stm = board.sideToMove();
     Bitboard kingBitboard = board.pieces(PieceType::KING, ~stm);
 
+    // Check if the moves puts the enemy king in check
     if (isAttackByPiece(kingBitboard, toSquare, toPiece, board, stm))
+    {
+        return true;
+    }
+
+    // Save the kingSquere to avoide multiple calculations
+    const Square kingSquare = board.kingSq(~stm);
+
+    // Set up a bitboard with only the squre of the from move set
+    Bitboard fromBitboard;
+    fromBitboard.set(move.from().index());
+
+    // Set up a bitboard with only the squre of the to move set
+    Bitboard toBitboard;
+    toBitboard.set(move.to().index());
+
+    const Bitboard newOcc = (board.occ() ^ (fromBitboard | toBitboard));
+    std::cout << fromBitboard << std::endl;
+    std::cout << newOcc << std::endl;
+
+    Bitboard newBishopAttacks = attacks::bishop(kingSquare, newOcc);
+    Bitboard newRookAttacks = attacks::rook(kingSquare, newOcc);
+
+    Bitboard bishop = board.pieces(PieceType::BISHOP, stm);
+    Bitboard rooks = board.pieces(PieceType::ROOK, stm);
+    Bitboard queens = board.pieces(PieceType::QUEEN, stm);
+
+    if ((bishop | queens) & newBishopAttacks)
+    {
+        return true;
+    }
+    
+    if ((rooks | queens) & newRookAttacks)
     {
         return true;
     }

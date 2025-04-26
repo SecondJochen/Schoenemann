@@ -183,8 +183,8 @@ int main(int argc, char *argv[])
         }
         else if (token == "t")
         {
-            board.setFen("8/8/8/3k4/4n3/7B/8/8 w - - 0 1");
-            Move m = uci::uciToMove(board, "h3g2");
+            board.setFen("8/8/8/3k4/4R3/8/6B1/8 w - - 0 1");
+            Move m = uci::uciToMove(board, "g2h1");
             std::cout << search->calculateGivesCheck(board, m) << std::endl;
         }
         
