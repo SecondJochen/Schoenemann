@@ -923,17 +923,28 @@ bool Search::calculateGivesCheck(Board &board, Move &move)
     const Color stm = board.sideToMove();
     Bitboard kingBitboard = board.pieces(PieceType::KING, ~stm);
 
+    if (isAttackByPiece(kingBitboard, toSquare, toPiece, board, stm))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+// This also takes blockers into account
+bool Search::isAttackByPiece(Bitboard &kingBitboard, const Square &toSquare, const PieceType toPiece, Board &board, const Color &stm)
+{
     switch (toPiece)
     {
-        // Pawn
+    // Pawn
     case 0:
         if (attacks::pawn(stm, toSquare) & kingBitboard)
         {
             return true;
         }
-
-        // Knight
         break;
+
+    // Knight
     case 1:
         if (attacks::knight(toSquare) & kingBitboard)
         {
@@ -941,36 +952,31 @@ bool Search::calculateGivesCheck(Board &board, Move &move)
         }
         break;
 
-         case 3:
-        if (attacks::knight(toSquare) & kingBitboard)
-        {
-            return true;
-        }
-        break;
-
-        // Bishop
-        case 2:
+    // Bishop
+    case 2:
         if (attacks::bishop(toSquare, board.occ()) & kingBitboard)
         {
             return true;
         }
         break;
 
-        case 4:
+    // Rook
+    case 3:
         if (attacks::rook(toSquare, board.occ()) & kingBitboard)
         {
             return true;
         }
         break;
 
-        case 5:
+    // Queen
+    case 4:
         if (attacks::queen(toSquare, board.occ()) & kingBitboard)
         {
             return true;
         }
         break;
-
     }
+
     return false;
 }
 
