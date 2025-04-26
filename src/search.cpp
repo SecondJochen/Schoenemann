@@ -940,23 +940,26 @@ bool Search::calculateGivesCheck(Board &board, Move &move)
     Bitboard toBitboard;
     toBitboard.set(move.to().index());
 
-    const Bitboard newOcc = (board.occ() ^ (fromBitboard | toBitboard));
-    std::cout << fromBitboard << std::endl;
-    std::cout << newOcc << std::endl;
+    // We make a new occ bitboard without the king
+    const Bitboard occ = (board.occ() ^ (fromBitboard | toBitboard));
 
-    Bitboard newBishopAttacks = attacks::bishop(kingSquare, newOcc);
-    Bitboard newRookAttacks = attacks::rook(kingSquare, newOcc);
+    // We get our new bishop and rook attacks with the new occ bitboard
+    Bitboard bishopAttacks = attacks::bishop(kingSquare, occ);
+    Bitboard rookAttacks = attacks::rook(kingSquare, occ);
 
+    // Get all the piece bitboards
     Bitboard bishop = board.pieces(PieceType::BISHOP, stm);
     Bitboard rooks = board.pieces(PieceType::ROOK, stm);
     Bitboard queens = board.pieces(PieceType::QUEEN, stm);
 
-    if ((bishop | queens) & newBishopAttacks)
+    // Check for a discovered diagonal check
+    if ((bishop | queens) & bishopAttacks)
     {
         return true;
     }
     
-    if ((rooks | queens) & newRookAttacks)
+    // Check for a discoverd orthogonal check
+    if ((rooks | queens) & rookAttacks)
     {
         return true;
     }
