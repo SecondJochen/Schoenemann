@@ -68,7 +68,7 @@ public:
 
 private:
 	int aspiration(std::int16_t maxDepth, std::int16_t score, Board &board);
-	bool isAttackByPiece(Bitboard &kingBitboard, const Square &toSquare, const PieceType toPiece, Board &board, const Color &stm);
+	bool isAttackByPiece(const Bitboard &kingBitboard, const Square &toSquare, const PieceType toPiece, Board &board, const Color &stm);
 	std::string getPVLine();
 	Time &timeManagement;
 	tt &transpositionTabel;

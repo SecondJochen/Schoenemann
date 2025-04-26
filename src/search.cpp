@@ -919,9 +919,10 @@ std::string Search::getPVLine()
 bool Search::calculateGivesCheck(Board &board, Move &move)
 {
     const Square toSquare = move.to();
-    const PieceType toPiece = board.at(move.from()).type();
+    const Square fromSquare = move.from();
+    const PieceType toPiece = board.at(fromSquare).type();
     const Color stm = board.sideToMove();
-    Bitboard kingBitboard = board.pieces(PieceType::KING, ~stm);
+    const Bitboard kingBitboard = board.pieces(PieceType::KING, ~stm);
 
     // Check if the moves puts the enemy king in check
     if (isAttackByPiece(kingBitboard, toSquare, toPiece, board, stm))
@@ -934,29 +935,33 @@ bool Search::calculateGivesCheck(Board &board, Move &move)
 
     // Set up a bitboard with only the squre of the from move set
     Bitboard fromBitboard;
-    fromBitboard.set(move.from().index());
+    fromBitboard.set(fromSquare.index());
 
     // Set up a bitboard with only the squre of the to move set
     Bitboard toBitboard;
-    toBitboard.set(move.to().index());
+    toBitboard.set(toSquare.index());
 
     // We make a new occ bitboard without the king
     const Bitboard occ = (board.occ() ^ (fromBitboard | toBitboard));
 
-    // We get our new bishop and rook attacks with the new occ bitboard
-    Bitboard bishopAttacks = attacks::bishop(kingSquare, occ);
-    Bitboard rookAttacks = attacks::rook(kingSquare, occ);
+    // We get our new bishop attacks with the new occ bitboard
+    const Bitboard bishopAttacks = attacks::bishop(kingSquare, occ);
 
-    // Get all the piece bitboards
-    Bitboard bishop = board.pieces(PieceType::BISHOP, stm);
-    Bitboard rooks = board.pieces(PieceType::ROOK, stm);
-    Bitboard queens = board.pieces(PieceType::QUEEN, stm);
+    // Get all the bishop and queens bitboard
+    const Bitboard bishop = board.pieces(PieceType::BISHOP, stm);
+    const Bitboard queens = board.pieces(PieceType::QUEEN, stm);
 
     // Check for a discovered diagonal check
     if ((bishop | queens) & bishopAttacks)
     {
         return true;
     }
+
+    // We get our rook attack bitboard
+    const Bitboard rooks = board.pieces(PieceType::ROOK, stm);
+
+    // We get our new bishop attacks with the new occ bitboard
+    const Bitboard rookAttacks = attacks::rook(kingSquare, occ);
     
     // Check for a discoverd orthogonal check
     if ((rooks | queens) & rookAttacks)
@@ -968,7 +973,7 @@ bool Search::calculateGivesCheck(Board &board, Move &move)
 }
 
 // This also takes blockers into account
-bool Search::isAttackByPiece(Bitboard &kingBitboard, const Square &toSquare, const PieceType toPiece, Board &board, const Color &stm)
+bool Search::isAttackByPiece(const Bitboard &kingBitboard, const Square &toSquare, const PieceType toPiece, Board &board, const Color &stm)
 {
     switch (toPiece)
     {
