@@ -409,7 +409,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
 
         givesCheck = calculateGivesCheck(board, move);
 
-        if (!pvNode && move != hashedMove && bestScore > -infinity && depth <= pvsSSEDepth && !see(board, move, (isQuiet && !givesCheck ? -pvsSSENonCaptureCutoff : -pvsSSECaptureCutoff)))
+        if (!pvNode && move != hashedMove && bestScore > -infinity && depth <= pvsSSEDepth && !see(board, move, (isQuiet && !givesCheck ? -pvsSSENonCaptureCutoff * depth : -pvsSSECaptureCutoff * depth)))
         {
             continue;
         }
