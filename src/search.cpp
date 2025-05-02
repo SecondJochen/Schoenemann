@@ -194,7 +194,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
     const bool pvNode = beta > alpha + 1;
     const bool inCheck = board.inCheck();
     const bool isSingularSearch = stack[ply].exludedMove != Move::NULL_MOVE;
-    
+
     stack[ply].inCheck = inCheck;
 
     // Get an potential hash entry
@@ -380,11 +380,6 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
     Movelist moveList;
     movegen::legalmoves(moveList, board);
 
-    if (moveList.size() == 0)
-    {
-        return inCheck ? -infinity + ply : 0;
-    }
-
     int scoreMoves[218] = {0};
     // Sort the list
     moveOrder.orderMoves(&history, moveList, entry, stack[ply].killerMove, stack, board, scoreMoves, ply);
@@ -430,7 +425,13 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
 
         int extensions = 0;
 
-        if (!isSingularSearch && hashedMove == move && depth >= singularMinDepth && hashedDepth >= depth - singularHashDepthReuction && (hashedType != UPPER_BOUND) && std::abs(hashedScore) < infinity && !(ply == 0))
+        if (!isSingularSearch &&
+            hashedMove == move &&
+            depth >= singularMinDepth &&
+            hashedDepth >= depth - singularHashDepthReuction &&
+            (hashedType != UPPER_BOUND) &&
+            std::abs(hashedScore) < infinity &&
+            !(ply == 0))
         {
             const int singularBeta = hashedScore - depth * singularBetaDepthMul;
             const std::uint8_t singularDepth = (depth - singularDepthSub) / singularDepthDiv;
@@ -583,6 +584,20 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
                 break;
             }
         }
+    }
+
+    if (moveCounter == 0)
+    {
+        if (isSingularSearch)
+        {
+            return alpha;
+        }
+
+        if (inCheck)
+        {
+            return -infinity + ply;
+        }
+        return 0;
     }
 
     std::uint8_t finalType;
@@ -911,7 +926,9 @@ int Search::scaleOutput(int rawEval, Board &board)
                     materialScaleRook * board.pieces(PieceType::ROOK).count() +
                     materialScaleQueen * board.pieces(PieceType::QUEEN).count();
 
-    return rawEval * (materialScaleGamePhaseAdd + gamePhase) / materialScaleGamePhaseDiv;
+    int finalEval = rawEval * (materialScaleGamePhaseAdd + gamePhase) / materialScaleGamePhaseDiv;
+
+    return std::clamp(finalEval, -infinity, static_cast<int>(infinity));
 }
 
 std::string Search::getPVLine()
