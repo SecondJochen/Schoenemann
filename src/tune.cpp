@@ -44,6 +44,11 @@ std::string engineParameterToUCI()
     std::stringstream stream;
     for (EngineParameter *e : engineParameter)
     {
+        if (e->max == e->min)
+        {
+            continue;
+        }
+        
         stream << "option name " << e->name << " type spin default " << e->value << " min -999999999 max 999999999\n";
     }
     return stream.str();
@@ -54,24 +59,51 @@ std::string engineParameterToSpsaInput()
     std::stringstream stream;
     for (EngineParameter *e : engineParameter)
     {
-        stream << e->name << ", " << "int" << ", " << double(e->value) << ", " << double(e->min) << ", " << double(e->max) << ", " << std::max(0.5, double(e->max - e->min) / 20.0) << ", " << 0.002 << "\n";
+        if (e->max == e->min)
+        {
+            continue;
+        }
+        stream << e->name << ", int, " << double(e->value) << ", " << double(e->min) << ", " << double(e->max) << ", " << std::max(0.5, double(e->max - e->min) / 20.0) << ", " << 0.002 << "\n";
     }
     return stream.str();
 }
 
 
-DEFINE_PARAM_S(seePawn, 140, 10);
-DEFINE_PARAM_S(seeKnight, 287, 30);
-DEFINE_PARAM_S(seeBishop, 348, 30);
-DEFINE_PARAM_S(seeRook, 565, 50);
-DEFINE_PARAM_S(seeQueen, 1045, 90);
+DEFINE_PARAM_B(seePawn, 140, 100, 180);
+DEFINE_PARAM_B(seeKnight, 287, 200, 350);
+DEFINE_PARAM_B(seeBishop, 348, 280, 400);
+DEFINE_PARAM_B(seeRook, 565, 500, 700);
+DEFINE_PARAM_B(seeQueen, 1045, 840, 1240);
+DEFINE_PARAM_B(seeEmpty, 0, 0, 0);
 
-int SEE_PIECE_VALUES[7] = {seePawn, seeKnight, seeBishop, seeRook, seeQueen, 0, 0};
+DEFINE_PARAM_B(piecePawn, 73, 53, 93);
+DEFINE_PARAM_B(pieceKnight, 258, 208, 288);
+DEFINE_PARAM_B(pieceBishop, 217, 208, 308);
+DEFINE_PARAM_B(pieceRook, 476, 430, 500);
+DEFINE_PARAM_B(pieceQueen, 569, 530, 700);
+DEFINE_PARAM_B(pieceKing, 15000, 15000, 15000);
+DEFINE_PARAM_B(pieceEmpty, 0, 0, 0);
 
-DEFINE_PARAM_S(piecePawn, 73, 10);
-DEFINE_PARAM_S(pieceKnight, 258, 20);
-DEFINE_PARAM_S(pieceBishop, 217, 20);
-DEFINE_PARAM_S(pieceRook, 476, 50);
-DEFINE_PARAM_S(pieceQueen, 569, 90);
+#ifdef DO_TUNING
 
-int PIECE_VALUES[7] = {piecePawn, pieceKnight, pieceBishop, pieceRook, pieceQueen, 15000, 0};
+EngineParameter* SEE_PIECE_VALUES[7] = {
+    &seePawn, &seeKnight, &seeBishop, &seeRook, &seeQueen, &seeEmpty, &seeEmpty
+};
+
+EngineParameter* PIECE_VALUES[7] = {
+    &piecePawn, &pieceKnight, &pieceBishop, &pieceRook, &pieceQueen, &pieceKing, &pieceEmpty
+};
+
+#else
+
+int* SEE_PIECE_VALUES[7] = {
+    (int*)&seePawn, (int*)&seeKnight, (int*)&seeBishop,
+    (int*)&seeRook, (int*)&seeQueen, (int*)&seeEmpty, (int*)&seeEmpty
+};
+
+int* PIECE_VALUES[7] = {
+    (int*)&piecePawn, (int*)&pieceKnight, (int*)&pieceBishop,
+    (int*)&pieceRook, (int*)&pieceQueen, (int*)&pieceKing, (int*)&pieceEmpty
+};
+
+#endif

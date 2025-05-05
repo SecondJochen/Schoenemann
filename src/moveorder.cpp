@@ -21,7 +21,7 @@
 #include "see.h"
 #include "tune.h"
 
-DEFINE_PARAM_S(mvaLvvMultiplyer, 103, 20);
+DEFINE_PARAM_B(mvaLvvMultiplyer, 103, 83, 123);
 
 void MoveOrder::orderMoves(History* history, Movelist &moveList, Hash *entry, Move& killer, SearchStack* stack, Board &board, int* scores, int ply)
 {
@@ -47,7 +47,7 @@ void MoveOrder::orderMoves(History* history, Movelist &moveList, Hash *entry, Mo
 			int captureScore = see(board, move, 0) ? goodCapture : badCapture;
 
 			// MVA - LVV
-			captureScore += mvaLvvMultiplyer * PIECE_VALUES[captured] - PIECE_VALUES[capturing];
+			captureScore += mvaLvvMultiplyer * (*PIECE_VALUES[captured]) - (*PIECE_VALUES[capturing]);
 
 			scores[i] = captureScore;
 		}
