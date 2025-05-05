@@ -451,11 +451,17 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
 
             if (singularScore < singularBeta)
             {
-                extensions++;
+                extensions = 1;
                 // If we aren't in a pvNode and our score plus some margin is still less then our singular beta when can extend furthur
                 if (!pvNode && singularScore + singularBetaDoubleExtensionMargin < singularBeta)
                 {
-                    extensions++;
+                    extensions = 2;
+
+                    // If the move is quiet and we still fail low with a larger margin we triple extend
+                    if (isQuiet && singularScore + 20 < singularBeta)
+                    {
+                        extensions = 3;
+                    }
                 }
             }
 
