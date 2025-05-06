@@ -65,13 +65,13 @@ int main(int argc, char *argv[])
     timeManagement.reset();
     search->resetHistory();
 
-    if (argc > 1 && strcmp(argv[1], "bench") == 0)
+    if (argc > 1 && std::strcmp(argv[1], "bench") == 0)
     {
         helper.runBenchmark(*search, board);
         return 0;
     }
 
-    if (argc > 1 && strcmp(argv[1], "datagen") == 0)
+    if (argc > 1 && std::strcmp(argv[1], "datagen") == 0)
     {
         // Vector to hold threads
         std::vector<std::thread> threads;
@@ -96,14 +96,16 @@ int main(int argc, char *argv[])
     // Main UCI-Loop
     do
     {
-        if (argc == 1 && !getline(std::cin, cmd))
+        if (argc == 1 && !std::getline(std::cin, cmd))
         {
             cmd = "quit";
         }
 
         std::istringstream is(cmd);
         cmd.clear();
-        is >> std::skipws >> token;
+
+        token.clear();
+        is >> token;
 
         if (token == "uci")
         {

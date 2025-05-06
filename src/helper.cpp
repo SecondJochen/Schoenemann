@@ -103,7 +103,7 @@ void Helper::uciPrint()
 void Helper::runBenchmark(Search &search, Board &board)
 {
 	// Setting up the clock
-	std::chrono::time_point start = std::chrono::high_resolution_clock::now();
+	std::chrono::time_point start = std::chrono::steady_clock::now();
 
 	// Reseting the nodes
 	search.nodes = 0;
@@ -115,7 +115,7 @@ void Helper::runBenchmark(Search &search, Board &board)
 		search.pvs(-infinity, infinity, benchDepth, 0, board, false);
 	}
 
-	std::chrono::time_point end = std::chrono::high_resolution_clock::now();
+	std::chrono::time_point end = std::chrono::steady_clock::now();
 
 	// Calculates the total time used
 	std::chrono::duration<double, std::milli> timeElapsed = end - start;
