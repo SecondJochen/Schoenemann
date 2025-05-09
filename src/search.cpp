@@ -19,6 +19,7 @@
 
 #include <cmath>
 #include <chrono>
+#include <cassert>
 
 #include "search.h"
 #include "see.h"
@@ -389,20 +390,20 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
     Movelist moveList;
     movegen::legalmoves(moveList, board);
 
-    int scoreMoves[218] = {0};
+    int scoreMoves[MAX_MOVES] = {0};
     // Sort the list
     moveOrder.orderMoves(&history, moveList, entry, stack[ply].killerMove, stack, board, scoreMoves, ply);
 
     // Set up values for the search
     int score = 0;
     int bestScore = -infinity;
-    int movesMadeCounter = 0;
-    int moveCounter = 0;
+    std::uint16_t movesMadeCounter = 0;
+    std::uint16_t moveCounter = 0;
 
     short type = LOWER_BOUND;
 
     Move bestMoveInPVS = Move::NULL_MOVE;
-    std::array<Move, 218> movesMade;
+    Move movesMade[MAX_MOVES];
 
     for (int i = 0; i < moveList.size(); i++)
     {
@@ -539,7 +540,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
                 // Update the pvLine
                 if (pvNode)
                 {
-                    if (stack[ply].pvLength < 245)
+                    if (stack[ply].pvLength < MAX_PLY)
                     {
                         stack[ply].pvLine[0] = move;
                         stack[ply].pvLength = stack[ply + 1].pvLength + 1;
@@ -558,29 +559,25 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
                 {
                     stack[ply].killerMove = move;
                     int quietHistoryBonus = std::min(
-                        static_cast<int>(quietHistoryGravityBase) +
-                            static_cast<int>(quietHistoryDepthMul) * depth,
-                        static_cast<int>(quietHistoryBonusCap));
+                        quietHistoryGravityBase + quietHistoryDepthMul * depth,
+                        quietHistoryBonusCap);
 
                     history.updateQuietHistory(board, move, quietHistoryBonus);
 
                     int continuationHistoryBonus = std::min(
-                        static_cast<int>(continuationHistoryGravityBase) +
-                            static_cast<int>(continuationHistoryDepthMul) * depth,
-                        static_cast<int>(continuationHistoryBonusCap));
+                        continuationHistoryGravityBase + continuationHistoryDepthMul * depth,
+                        continuationHistoryBonusCap);
 
                     // Update the continuation History
                     history.updateContinuationHistory(board.at(move.from()).type(), move, continuationHistoryBonus, ply, stack);
 
                     int quietHistoryMalus = std::min(
-                        static_cast<int>(quietHistoryMalusBase) +
-                            static_cast<int>(quietHistoryMalusDepthMul) * depth,
-                        static_cast<int>(quietHistoryMalusMax));
+                        quietHistoryMalusBase + quietHistoryMalusDepthMul * depth,
+                        quietHistoryMalusMax);
 
                     int continuationHistoryMalus = std::min(
-                        static_cast<int>(continuationHistoryMalusBase) +
-                            static_cast<int>(continuationHistoryMalusDepthMul) * depth,
-                        static_cast<int>(continuationHistoryMalusMax));
+                        continuationHistoryMalusBase + continuationHistoryMalusDepthMul * depth,
+                        continuationHistoryMalusMax);
 
                     // History malus
                     for (int x = 0; x < movesMadeCounter; x++)
@@ -776,7 +773,7 @@ int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t
                 alpha = score;
 
                 // Update pvLine
-                if (stack[ply].pvLength < 245)
+                if (stack[ply].pvLength < MAX_PLY)
                 {
                     stack[ply].pvLine[0] = move;
                     stack[ply].pvLength = stack[ply + 1].pvLength + 1;
@@ -864,7 +861,7 @@ void Search::iterativeDeepening(Board &board, bool isInfinite)
 
     nodes = 0;
 
-    for (std::uint8_t i = 1; i < 255; i++)
+    for (std::uint8_t i = 1; i < MAX_PLY; i++)
     {
         if (i > 7)
         {
@@ -898,8 +895,8 @@ void Search::iterativeDeepening(Board &board, bool isInfinite)
             std::chrono::duration<double, std::milli> elapsed = std::chrono::steady_clock::now() - start;
             std::cout
                 << "info depth "
-                << static_cast<int>(i) << " score cp "
-                << scoreData << " nodes "
+                << static_cast<int>(i)
+                << scoreToUci(scoreData) << " nodes "
                 << nodes << " nps "
                 << static_cast<std::uint64_t>(nodes / (elapsed.count() + 1) * 1000) << " pv "
                 << getPVLine()
@@ -908,7 +905,7 @@ void Search::iterativeDeepening(Board &board, bool isInfinite)
 
         // std::cout << "Time for this move: " << timeForMove << " | Time used: " << static_cast<int>(elapsed.count()) << " | Depth: " << i << " | bestmove: " << bestMove << std::endl;
 
-        if ((timeManagement.shouldStopID(start) && !isInfinite) || i == 254)
+        if ((timeManagement.shouldStopID(start) && !isInfinite) || i == MAX_PLY - 1)
         {
             if (!hasNodeLimit)
             {
@@ -919,6 +916,27 @@ void Search::iterativeDeepening(Board &board, bool isInfinite)
     }
     shouldStop = false;
     isNormalSearch = true;
+}
+
+std::string Search::scoreToUci(int &score)
+{
+    if (score < -infinity + MAX_PLY)
+    {
+        return " score mate " + std::to_string(-(infinity + score) / 2);
+    }
+
+    if (score > infinity - MAX_PLY)
+    {
+        return " score mate " + std::to_string(infinity - score);
+    }
+
+    if (score < infinity - MAX_PLY)
+    {
+        return " score cp " + std::to_string(score);
+    }
+    
+    assert(false);
+    return "";
 }
 
 void Search::initLMR()

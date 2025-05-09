@@ -52,8 +52,8 @@ public:
 	int scoreData = 0;
 	int previousBestScore = 0;
 
-	std::uint8_t reductions[255][218];
-	SearchStack stack[256];
+	std::uint8_t reductions[MAX_PLY][MAX_MOVES];
+	SearchStack stack[MAX_PLY];
 
 	int pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::int16_t ply, Board &board, bool isCutNode);
 	int qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t ply);
@@ -63,6 +63,8 @@ public:
 	void iterativeDeepening(Board &board, bool isInfinite);
 	void initLMR();
 	void resetHistory();
+
+	std::string scoreToUci(int &score);
 
 private:
 	int aspiration(std::int16_t maxDepth, std::int16_t score, Board &board);

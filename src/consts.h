@@ -38,7 +38,8 @@ constexpr int badCapture = -500000;
 
 constexpr std::int16_t infinity = 30000;
 constexpr std::uint16_t CORRHIST_LIMIT = 1024;
-constexpr std::uint8_t MAX_PLY = 255;
+constexpr std::uint8_t MAX_PLY = 246;
+constexpr std::uint8_t MAX_MOVES = 218;
 
 const std::string testStrings[] = {
 	STARTPOS,
