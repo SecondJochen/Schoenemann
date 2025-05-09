@@ -52,8 +52,8 @@ public:
 	int scoreData = 0;
 	int previousBestScore = 0;
 
-	std::uint8_t reductions[MAX_PLY][MAX_MOVES];
-	SearchStack stack[MAX_PLY];
+	std::uint8_t reductions[256][MAX_MOVES];
+	SearchStack stack[256];
 
 	int pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::int16_t ply, Board &board, bool isCutNode);
 	int qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t ply);
