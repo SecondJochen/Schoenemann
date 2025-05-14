@@ -808,7 +808,7 @@ int Search::aspiration(std::int16_t depth, std::int16_t score, Board &board)
     {
         score = pvs(alpha, beta, depth, 0, board, false);
 
-        if (timeManagement.shouldStopSoft(start) && !isNormalSearch || (hasNodeLimit && nodeLimit == nodes))
+        if ((timeManagement.shouldStopSoft(start) && !isNormalSearch) || (hasNodeLimit && nodeLimit == nodes))
         {
             break;
         }
