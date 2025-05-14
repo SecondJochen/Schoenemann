@@ -125,6 +125,8 @@ DEFINE_PARAM_B(ideaMoveCount, 3, 2, 4);
 
 int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::int16_t ply, Board &board, bool isCutNode)
 {
+    // Increment nodes by one
+    nodes++;
     if (shouldStop)
     {
         return beta;
@@ -630,6 +632,8 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
 
 int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t ply)
 {
+    // Increment nodes by one
+    nodes++;
     if (shouldStop)
     {
         return beta;
@@ -644,9 +648,6 @@ int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t
             return beta;
         }
     }
-
-    // Increment nodes by one
-    nodes++;
 
     // Set the pvLength to zero
     stack[ply].pvLength = 0;
