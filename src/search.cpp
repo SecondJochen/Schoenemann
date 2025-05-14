@@ -892,8 +892,6 @@ void Search::iterativeDeepening(Board &board, bool isInfinite)
             break;
         }
     }
-
-    std::cout << "bestmove " << uci::moveToUci(bestMoveThisIteration) << std::endl;
     shouldStop = false;
     isNormalSearch = true;
 }
