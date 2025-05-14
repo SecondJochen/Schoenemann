@@ -133,16 +133,15 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
     }
 
     // Every 128 we check for a timeout
-    if (true)
+    if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
     {
+        shouldStop = true;
+        return beta;
+    }
 
+    if (hasNodeLimit)
+    {
         if (nodes >= nodeLimit)
-        {
-            std::cout << nodeLimit << std::endl;
-            shouldStop = true;
-            return beta;
-        }
-        if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
         {
             shouldStop = true;
             return beta;
@@ -644,15 +643,15 @@ int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t
         return beta;
     }
 
-    if (true)
+    if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
     {
+        shouldStop = true;
+        return beta;
+    }
 
+    if (hasNodeLimit)
+    {
         if (nodes >= nodeLimit)
-        {
-            shouldStop = true;
-            return beta;
-        }
-        if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
         {
             shouldStop = true;
             return beta;
@@ -809,7 +808,7 @@ int Search::aspiration(std::int16_t depth, std::int16_t score, Board &board)
     {
         score = pvs(alpha, beta, depth, 0, board, false);
 
-        if (nodes == nodeLimit)
+        if (timeManagement.shouldStopSoft(start) && !isNormalSearch || (hasNodeLimit && nodeLimit == nodes))
         {
             break;
         }
