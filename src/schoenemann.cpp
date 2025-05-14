@@ -187,6 +187,10 @@ int main(int argc, char *argv[])
         {
             std::cout << board << std::endl;
         }
+        else if (token == "fen")
+        {
+            std::cout << board.getFen() << std::endl;
+        }
         else if (token == "datagen")
         {
             // generate(board);
