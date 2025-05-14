@@ -142,6 +142,11 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
             shouldStop = true;
             return beta;
         }
+        if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
+        {
+            shouldStop = true;
+            return beta;
+        }
     }
 
     // Increment nodes by one
@@ -643,6 +648,11 @@ int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t
     {
 
         if (nodes >= nodeLimit)
+        {
+            shouldStop = true;
+            return beta;
+        }
+        if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
         {
             shouldStop = true;
             return beta;
