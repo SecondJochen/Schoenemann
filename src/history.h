@@ -23,9 +23,9 @@
 
 class History
 {
-    int quietHistory[2][6][64];
-    int continuationHistory[64][6][64][6];
-    int pawnCorrectionHistory[16384][2];
+    int quietHistory[2][7][64];
+    int continuationHistory[7][64][7][64];
+    int pawnCorrectionHistory[2][16384];
 
 private:
     std::uint64_t getPieceKey(PieceType piece, const Board &board);

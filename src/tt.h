@@ -28,9 +28,9 @@
 
 using namespace chess;
 
-const std::uint8_t EXACT = 0;       // Exact bound
-const std::uint8_t UPPER_BOUND = 1; // Upper bound
-const std::uint8_t LOWER_BOUND = 2; // Lower bound
+constexpr std::uint8_t EXACT = 0;       // Exact bound
+constexpr std::uint8_t UPPER_BOUND = 1; // Upper bound
+constexpr std::uint8_t LOWER_BOUND = 2; // Lower bound
 
 struct alignas(16) Hash
 {

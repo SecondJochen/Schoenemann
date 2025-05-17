@@ -190,7 +190,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
     }
 
     // Make at least zero to avoid wrong depths in the transposition table
-    depth = std::max(static_cast<std::int16_t>(0), depth);
+    depth = std::clamp(depth, static_cast<std::int16_t>(0), static_cast<std::int16_t>(MAX_PLY));
 
     const std::uint64_t zobristKey = board.zobrist();
     int hashedScore = 0;
@@ -808,9 +808,13 @@ int Search::aspiration(std::int16_t depth, std::int16_t score, Board &board)
     {
         score = pvs(alpha, beta, depth, 0, board, false);
 
-        if ((timeManagement.shouldStopSoft(start) && !isNormalSearch) || (hasNodeLimit && nodeLimit == nodes))
+        if (nodeLimit == nodes  || ((nodeLimit - nodes) < -1))
         {
             break;
+        }
+        else
+        {
+            std::cout << (int) (nodeLimit - nodes) << std::endl;
         }
 
         if (score >= beta)
@@ -902,6 +906,7 @@ void Search::iterativeDeepening(Board &board, bool isInfinite)
             break;
         }
     }
+    std::cout << "bestmove " << uci::moveToUci(bestMoveThisIteration) << std::endl;
     shouldStop = false;
     isNormalSearch = true;
 }
