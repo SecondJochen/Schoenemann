@@ -127,29 +127,30 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
 {
     // Increment nodes by one
     nodes++;
+
     if (shouldStop)
     {
         return beta;
     }
 
     // Every 128 we check for a timeout
-    if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
+    if (nodes % 128 == 0)
     {
-        shouldStop = true;
-        return beta;
-    }
-
-    if (hasNodeLimit)
-    {
-        if (nodes >= nodeLimit)
+        if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
         {
             shouldStop = true;
             return beta;
         }
-    }
 
-    // Increment nodes by one
-    nodes++;
+        if (hasNodeLimit)
+        {
+            if (nodes >= nodeLimit)
+            {
+                shouldStop = true;
+                return beta;
+            }
+        }
+    }
 
     // Set the pvLength to zero
     stack[ply].pvLength = 0;
@@ -638,23 +639,28 @@ int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t
 {
     // Increment nodes by one
     nodes++;
+
     if (shouldStop)
     {
         return beta;
     }
 
-    if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
+    // Every 128 we check for a timeout
+    if (nodes % 128 == 0)
     {
-        shouldStop = true;
-        return beta;
-    }
-
-    if (hasNodeLimit)
-    {
-        if (nodes >= nodeLimit)
+        if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
         {
             shouldStop = true;
             return beta;
+        }
+
+        if (hasNodeLimit)
+        {
+            if (nodes >= nodeLimit)
+            {
+                shouldStop = true;
+                return beta;
+            }
         }
     }
 
@@ -807,14 +813,10 @@ int Search::aspiration(std::int16_t depth, std::int16_t score, Board &board)
     while (true)
     {
         score = pvs(alpha, beta, depth, 0, board, false);
-
-        if (nodeLimit == nodes  || ((nodeLimit - nodes) < -1))
+        if (timeManagement.shouldStopID(start) || nodes == nodeLimit)
         {
-            break;
-        }
-        else
-        {
-            std::cout << (int) (nodeLimit - nodes) << std::endl;
+            shouldStop = true;
+            return score;
         }
 
         if (score >= beta)
@@ -881,32 +883,25 @@ void Search::iterativeDeepening(Board &board, bool isInfinite)
             timeManagement.updateEvalStability(scoreData, previousBestScore);
         }
 
-        // Only report statistic if we are not in a fixed node search beacuse of datagen
-        if (true)
-        {
-            std::chrono::duration<double, std::milli> elapsed = std::chrono::steady_clock::now() - start;
-            std::cout
-                << "info depth "
-                << static_cast<int>(i)
-                << scoreToUci(scoreData) << " nodes "
-                << nodes << " nps "
-                << static_cast<std::uint64_t>(nodes / (elapsed.count() + 1) * 1000) << " pv "
-                << getPVLine()
-                << std::endl;
-        }
+        std::chrono::duration<double, std::milli> elapsed = std::chrono::steady_clock::now() - start;
+        std::cout
+            << "info depth "
+            << static_cast<int>(i)
+            << scoreToUci(scoreData) << " nodes "
+            << nodes << " nps "
+            << static_cast<std::uint64_t>(nodes / (elapsed.count() + 1) * 1000) << " pv "
+            << getPVLine()
+            << std::endl;
 
         // std::cout << "Time for this move: " << timeForMove << " | Time used: " << static_cast<int>(elapsed.count()) << " | Depth: " << i << " | bestmove: " << bestMove << std::endl;
 
         if ((timeManagement.shouldStopID(start) && !isInfinite) || i == MAX_PLY - 1 || nodes == nodeLimit)
         {
-            if (true)
-            {
-                std::cout << "bestmove " << uci::moveToUci(bestMoveThisIteration) << std::endl;
-            }
+            std::cout << "bestmove " << uci::moveToUci(bestMoveThisIteration) << std::endl;
+
             break;
         }
     }
-    std::cout << "bestmove " << uci::moveToUci(bestMoveThisIteration) << std::endl;
     shouldStop = false;
     isNormalSearch = true;
 }
