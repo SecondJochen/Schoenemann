@@ -827,6 +827,7 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite)
             alpha = std::max(scoreData - delta, -infinity);
             beta = std::min(scoreData + delta, infinity);
         }
+
         while (true) {
             const int aspirationScore = pvs(alpha, beta, i, 0, board, false);
 
@@ -834,9 +835,8 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite)
                 scoreData = aspirationScore;
                 break;
             }
-
             // Our aspiration failed low so we need to search with a wider window
-            if (aspirationScore <= alpha) {
+            else if (aspirationScore <= alpha) {
                 beta = (alpha + beta) / 2;
                 alpha = std::max(alpha - delta, -infinity);
             }
