@@ -162,32 +162,25 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
     }
 
     // Mate distance Pruning
-    if (const int mateValueUpper = infinity - ply; mateValueUpper < beta)
+    if (ply > 0)
     {
-        beta = mateValueUpper;
-        if (alpha >= mateValueUpper)
-        {
-            return mateValueUpper;
-        }
-    }
+        alpha = std::max(alpha, -infinity + ply);
+        beta = std::min(beta, infinity - ply - 1);
 
-    if (int mateValueLower = -infinity + ply; mateValueLower > alpha)
-    {
-        alpha = mateValueLower;
-        if (beta <= mateValueLower)
+        if (alpha >= beta)
         {
-            return mateValueLower;
+            return alpha;
         }
     }
 
     // If depth is 0 we drop into qs to get a neutral position
-    if (depth <= 0)
+    if (depth <= 0 || ply >= MAX_PLY)
     {
         return qs(alpha, beta, board, ply);
     }
 
     // Make at least zero to avoid wrong depths in the transposition table
-    depth = std::clamp(depth, 0, static_cast<int>(MAX_PLY));
+    depth = std::clamp(depth, 0, MAX_PLY - 1);
 
     const std::uint64_t zobristKey = board.zobrist();
     int hashedScore = 0;
@@ -254,7 +247,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
     // we perform a static evaluation
     if (staticEval == NO_VALUE)
     {
-        staticEval = scaleOutput(net.evaluate((int)board.sideToMove(), board.occ().count()), board);
+        staticEval = scaleOutput(net.evaluate(board.sideToMove(), board.occ().count()), board);
     }
 
     int rawEval = staticEval;
@@ -691,6 +684,10 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
         }
     }
 
+    if (ply >= MAX_PLY) {
+        return scaleOutput(net.evaluate(board.sideToMove(), board.occ().count()), board);
+    }
+
     if (!inCheck && tt::checkForMoreInformation(hashedType, hashedScore, standPat))
     {
         standPat = hashedScore;
@@ -702,7 +699,7 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
     }
 
     const int rawEval = standPat;
-    standPat = std::clamp(history.correctEval(standPat, board), -infinity + MAX_PLY, infinity - MAX_PLY);
+    standPat = std::clamp(history.correctEval(standPat, board), -infinity, infinity);
 
     if (standPat >= beta)
     {
