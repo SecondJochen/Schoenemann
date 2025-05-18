@@ -156,7 +156,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
     stack[ply].pvLength = 0;
 
     // Check for a draw
-    if (board.isHalfMoveDraw() || board.isRepetition() || board.isInsufficientMaterial())
+    if (ply > 0 && (board.isHalfMoveDraw() || board.isRepetition() || board.isInsufficientMaterial()))
     {
         return 0;
     }
@@ -821,6 +821,7 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite)
         }
 
         if (i > 4) {
+            delta = 26;
             alpha = std::max(scoreData - delta, -infinity);
             beta = std::min(scoreData + delta, infinity);
         }
