@@ -162,9 +162,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
     }
 
     // Mate distance Pruning
-    std::int16_t mateValueUpper = infinity - ply;
-
-    if (mateValueUpper < beta)
+    if (const int mateValueUpper = infinity - ply; mateValueUpper < beta)
     {
         beta = mateValueUpper;
         if (alpha >= mateValueUpper)
@@ -173,9 +171,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
         }
     }
 
-    std::int16_t mateValueLower = -infinity + ply;
-
-    if (mateValueLower > alpha)
+    if (int mateValueLower = -infinity + ply; mateValueLower > alpha)
     {
         alpha = mateValueLower;
         if (beta <= mateValueLower)
@@ -220,7 +216,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
         // is the same as the hash entry zobrist key
         if (zobristKey == entry->key)
         {
-            hashedScore = transpositionTabel.scoreFromTT(entry->score, ply);
+            hashedScore = tt::scoreFromTT(entry->score, ply);
             hashedType = entry->type;
             hashedDepth = entry->depth;
             staticEval = entry->eval;
@@ -805,10 +801,10 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
 
 int Search::aspiration(int depth, int score, Board &board)
 {
-    std::int16_t delta = aspDelta;
-    std::int16_t alpha = std::max(-infinity, score - delta);
-    std::int16_t beta = std::min(static_cast<int>(infinity), score + delta);
-    double finalASPMultiplier = aspMul / 100.0;
+    int delta = aspDelta;
+    int alpha = std::max(-infinity, score - delta);
+    int beta = std::min(infinity, score + delta);
+    constexpr double finalASPMultiplier = aspMul / 100.0;
 
     while (true)
     {
@@ -821,7 +817,7 @@ int Search::aspiration(int depth, int score, Board &board)
 
         if (score >= beta)
         {
-            beta = std::min(beta + delta, static_cast<int>(infinity));
+            beta = std::min(beta + delta, infinity);
         }
         else if (score <= alpha)
         {
@@ -929,8 +925,8 @@ std::string Search::scoreToUci(const int &score)
 
 void Search::initLMR()
 {
-    double lmrBaseFinal = lmrBase / 100.0;
-    double lmrDivisorFinal = lmrDivisor / 100.0;
+    constexpr double lmrBaseFinal = lmrBase / 100.0;
+    constexpr double lmrDivisorFinal = lmrDivisor / 100.0;
     for (int depth = 1; depth < MAX_PLY; depth++)
     {
         for (int moveCount = 1; moveCount < 218; moveCount++)
@@ -947,13 +943,12 @@ int Search::scaleOutput(const int rawEval, const Board &board)
                     materialScaleRook * board.pieces(PieceType::ROOK).count() +
                     materialScaleQueen * board.pieces(PieceType::QUEEN).count();
 
-    int finalEval = rawEval * (materialScaleGamePhaseAdd + gamePhase) / materialScaleGamePhaseDiv;
+    const int finalEval = rawEval * (materialScaleGamePhaseAdd + gamePhase) / materialScaleGamePhaseDiv;
 
-    return std::clamp(finalEval, -infinity, static_cast<int>(infinity));
+    return std::clamp(finalEval, -infinity, infinity);
 }
 
-std::string Search::getPVLine()
-{
+std::string Search::getPVLine() const {
     std::string pvLine;
     for (std::uint16_t i = 0; i < stack[0].pvLength; i++)
     {

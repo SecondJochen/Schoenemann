@@ -67,7 +67,7 @@ public:
 
 private:
 	int aspiration(int maxDepth, int score, Board &board);
-	std::string getPVLine();
+	std::string getPVLine() const;
 	Time &timeManagement;
 	tt &transpositionTabel;
 	History history;

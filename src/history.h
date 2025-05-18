@@ -23,21 +23,21 @@
 
 class History
 {
-    int quietHistory[2][7][64];
-    int continuationHistory[7][64][7][64];
-    int pawnCorrectionHistory[2][16384];
+    int quietHistory[2][7][64] = {};
+    int continuationHistory[7][64][7][64] = {};
+    int pawnCorrectionHistory[2][16384] = {};
 
 private:
-    std::uint64_t getPieceKey(PieceType piece, const Board &board);
+    static std::uint64_t getPieceKey(PieceType piece, const Board &board);
     const std::uint16_t pawnCorrectionHistorySize = 16384;
 
 public:
-    int getQuietHistory(Board &board, Move move);
-    int getContinuationHistory(PieceType piece, Move move, std::int16_t ply, SearchStack *stack);
-    int correctEval(int rawEval, Board &board);
-    void updateQuietHistory(Board &board, Move move, int bonus);
-    void updatePawnCorrectionHistory(int bonus, Board &board, int div);
-    void updateContinuationHistory(PieceType piece, Move move, int bonus, std::int16_t ply, SearchStack *stack);
+    [[nodiscard]] int getQuietHistory(const Board &board, Move move) const;
+    int getContinuationHistory(PieceType piece, Move move, int ply, const SearchStack *stack) const;
+    int correctEval(int rawEval, const Board &board) const;
+    void updateQuietHistory(const Board &board, Move move, int bonus);
+    void updatePawnCorrectionHistory(int bonus, const Board &board, int div);
+    void updateContinuationHistory(PieceType piece, Move move, int bonus, int ply, const SearchStack *stack);
     void resetHistorys();
 };
 

@@ -19,23 +19,25 @@
 
 #include "see.h"
 
-int getPieceValue(const Board &board, Move &move)
-{
-    std::uint16_t moveType = move.typeOf();
+#include "tune.h"
 
-    if (moveType == move.CASTLING)
+int getPieceValue(const Board &board, const Move &move)
+{
+    const std::uint16_t moveType = move.typeOf();
+
+    if (moveType == Move::CASTLING)
     {
         return 0;
     }
 
-    if (moveType == move.ENPASSANT)
+    if (moveType == Move::ENPASSANT)
     {
         return *SEE_PIECE_VALUES[0];
     }
 
     int score = *SEE_PIECE_VALUES[board.at<PieceType>(move.to())];
 
-    if (moveType == move.PROMOTION)
+    if (moveType == Move::PROMOTION)
     {
         score += *SEE_PIECE_VALUES[move.promotionType()] - *SEE_PIECE_VALUES[0];
     }
@@ -44,7 +46,7 @@ int getPieceValue(const Board &board, Move &move)
 }
 
 // SEE prunning by Starzix
-bool see(const Board &board, Move &move, int cutoff)
+bool see(const Board &board, const Move &move, const int cutoff)
 {
     int score = getPieceValue(board, move) - cutoff;
     if (score < 0)
@@ -52,7 +54,7 @@ bool see(const Board &board, Move &move, int cutoff)
         return false;
     }
 
-    PieceType next = (move.typeOf() == move.PROMOTION) ? move.promotionType() : board.at<PieceType>(move.from());
+    PieceType next = (move.typeOf() == Move::PROMOTION) ? move.promotionType() : board.at<PieceType>(move.from());
     score -= *SEE_PIECE_VALUES[next];
 
     if (score >= 0)
@@ -60,15 +62,15 @@ bool see(const Board &board, Move &move, int cutoff)
         return true;
     }
 
-    int from = move.from().index();
-    int to = move.to().index();
+    const int from = move.from().index();
+    const int to = move.to().index();
 
     Bitboard occupancy = board.occ() ^ (1ULL << from) ^ (1ULL << to);
-    Bitboard queens = board.pieces(PieceType::QUEEN);
-    Bitboard bishops = queens | board.pieces(PieceType::BISHOP);
-    Bitboard rooks = queens | board.pieces(PieceType::ROOK);
+    const Bitboard queens = board.pieces(PieceType::QUEEN);
+    const Bitboard bishops = queens | board.pieces(PieceType::BISHOP);
+    const Bitboard rooks = queens | board.pieces(PieceType::ROOK);
 
-    Square square = move.to();
+    const Square square = move.to();
 
     Bitboard attackers = 0;
     attackers |= rooks & attacks::rook(square, occupancy);
@@ -117,15 +119,14 @@ bool see(const Board &board, Move &move, int cutoff)
     return board.sideToMove() != us;
 }
 
-PieceType getLeastValuableAttacker(const Board &board, Bitboard &occ, Bitboard attackers, Color color)
+PieceType getLeastValuableAttacker(const Board &board, Bitboard &occ, const Bitboard attackers, const Color color)
 {
     for (int piece = 0; piece <= 5; piece++)
     {
-        Bitboard bitboard = attackers & board.pieces((PieceType)piece, color);
-        if (bitboard.getBits() > 0)
+        if (Bitboard bitboard = attackers & board.pieces(static_cast<PieceType>(piece), color); bitboard.getBits() > 0)
         {
             occ ^= (1ULL << bitboard.lsb());
-            return (PieceType)piece;
+            return static_cast<PieceType>(piece);
         }
     }
 

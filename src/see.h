@@ -22,11 +22,9 @@
 
 #include "chess.hpp"
 using namespace chess;
-#include "consts.h"
-#include "tune.h"
 
-int getPieceValue(const Board &board, Move &move);
-bool see(const Board &board, Move &move, int cutoff);
+int getPieceValue(const Board &board, const Move &move);
+bool see(const Board &board, const Move &move, int cutoff);
 PieceType getLeastValuableAttacker(const Board &board, Bitboard &occ, Bitboard attackers, Color color);
 
 #endif

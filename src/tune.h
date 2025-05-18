@@ -21,13 +21,12 @@
 #define TUNE_H
 
 #include <iostream>
-#include <vector>
 #include <string>
 #include <sstream>
 
 struct EngineParameter;
 
-EngineParameter *findEngineParameterByName(std::string name);
+EngineParameter *findEngineParameterByName(const std::string &name);
 void addEngineParameter(EngineParameter *parameter);
 
 // UCI Stuff
@@ -41,7 +40,7 @@ struct EngineParameter
     int min;
     int max;
 
-    inline operator int() const
+    explicit operator int() const
     {
         return value;
     }
