@@ -123,7 +123,7 @@ DEFINE_PARAM_B(lmpDepth, 3, 2, 3);
 DEFINE_PARAM_B(ideaAlpha, 500, 400, 600);
 DEFINE_PARAM_B(ideaMoveCount, 3, 2, 4);
 
-int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::int16_t ply, Board &board, bool isCutNode)
+int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCutNode)
 {
     // Increment nodes by one
     nodes++;
@@ -191,7 +191,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
     }
 
     // Make at least zero to avoid wrong depths in the transposition table
-    depth = std::clamp(depth, static_cast<std::int16_t>(0), static_cast<std::int16_t>(MAX_PLY));
+    depth = std::clamp(depth, 0, static_cast<int>(MAX_PLY));
 
     const std::uint64_t zobristKey = board.zobrist();
     int hashedScore = 0;
@@ -211,7 +211,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
     Hash *entry = transpositionTabel.getHash(zobristKey);
 
     // Check if we this stored position is valid
-    const bool isNullptr = entry == nullptr ? true : false;
+    const bool isNullptr = entry == nullptr;
 
     if (!isNullptr && !isSingularSearch)
     {
@@ -326,7 +326,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
         Movelist moveList;
         movegen::legalmoves(moveList, board);
 
-        int scoreMoves[218] = {0};
+        int scoreMoves[218] = {};
         // Sort the list
         moveOrder.orderMoves(&history, moveList, entry, stack[ply].killerMove, stack, board, scoreMoves, ply);
 
@@ -635,7 +635,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
     return bestScore;
 }
 
-int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t ply)
+int Search::qs(int alpha, int beta, Board &board, int ply)
 {
     // Increment nodes by one
     nodes++;
@@ -676,8 +676,8 @@ int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t
     const bool pvNode = beta > alpha + 1;
     const std::uint64_t zobristKey = board.zobrist();
 
-    Hash *entry = transpositionTabel.getHash(zobristKey);
-    const bool isNullptr = entry == nullptr ? true : false;
+    const Hash *entry = transpositionTabel.getHash(zobristKey);
+    const bool isNullptr = entry == nullptr;
     const bool inCheck = board.inCheck();
 
     int hashedScore = 0;
@@ -711,10 +711,10 @@ int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t
 
     if (standPat == NO_VALUE)
     {
-        standPat = scaleOutput(net.evaluate((int)board.sideToMove(), board.occ().count()), board);
+        standPat = scaleOutput(net.evaluate(board.sideToMove(), board.occ().count()), board);
     }
 
-    int rawEval = standPat;
+    const int rawEval = standPat;
     standPat = std::clamp(history.correctEval(standPat, board), -infinity + MAX_PLY, infinity - MAX_PLY);
 
     if (standPat >= beta)
@@ -803,7 +803,7 @@ int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t
     return bestScore;
 }
 
-int Search::aspiration(const std::int16_t depth, std::int16_t score, Board &board)
+int Search::aspiration(int depth, int score, Board &board)
 {
     std::int16_t delta = aspDelta;
     std::int16_t alpha = std::max(-infinity, score - delta);

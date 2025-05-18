@@ -40,8 +40,8 @@ public:
     void updateEvalStability(int score, int previousScore);
     void reset();
 
-    bool shouldStopSoft(std::chrono::steady_clock::time_point start);
-    bool shouldStopID(std::chrono::steady_clock::time_point start);
+    bool shouldStopSoft(std::chrono::steady_clock::time_point start) const;
+    bool shouldStopID(std::chrono::steady_clock::time_point start) const;
 
     int timeLeft = 0;
     int increment = 0;

@@ -63,22 +63,23 @@ public:
     void clear() const;
     void storeEvaluation(std::uint64_t key, std::uint8_t depth, std::uint8_t type, std::int16_t score, Move move, std::int16_t eval) const noexcept;
 
-    int estimateHashfull() const noexcept;
-    std::int16_t scoreToTT(int score, std::int16_t ply)
+    [[nodiscard]] int estimateHashfull() const noexcept;
+
+    static int scoreToTT(const int score, const int ply)
     {
         return score >= infinity    ? score + ply
                : score <= -infinity ? score - ply
                                     : score;
     }
 
-    std::int16_t scoreFromTT(int score, std::int16_t ply)
+    static int scoreFromTT(const int score, const int ply)
     {
         return score >= infinity    ? score - ply
                : score <= -infinity ? score + ply
                                     : score;
     }
 
-    static bool checkForMoreInformation(std::uint8_t type, int ttScore, int score)
+    static bool checkForMoreInformation(const std::uint8_t type, const int ttScore, const int score)
     {
         std::uint8_t tempType;
         if (ttScore >= score)

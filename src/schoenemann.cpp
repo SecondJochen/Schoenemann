@@ -201,8 +201,8 @@ int main(int argc, char *argv[])
         }
         else if (token == "eval")
         {
-            std::cout << "The raw eval is: " << net.evaluate((int)board.sideToMove(), board.occ().count()) << std::endl;
-            std::cout << "The scaled evaluation is: " << search->scaleOutput(net.evaluate((int)board.sideToMove(), board.occ().count()), board) << " cp" << std::endl;
+            std::cout << "The raw eval is: " << net.evaluate(board.sideToMove(), board.occ().count()) << std::endl;
+            std::cout << "The scaled evaluation is: " << Search::scaleOutput(net.evaluate(board.sideToMove(), board.occ().count()), board) << " cp" << std::endl;
         }
         else if (token == "spsa")
         {

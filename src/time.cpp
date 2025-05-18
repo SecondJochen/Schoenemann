@@ -31,19 +31,19 @@ void Time::calculateTimeForMove()
     int maxTime = (int)(timeLeft * 0.76);
 
     // Calculate the hard limit when we need to stop
-    hardLimit = std::min(maxTime, (int)(baseTime * 3.04));
+    hardLimit = std::min(maxTime, static_cast<int>(baseTime * 3.04));
 
     // Calculate our soft limit
     double bmFactor = 1.3 - 0.05 * bestMoveStabilityCount;
     double evalFactor = 1.3 - 0.05 * bestEvalStabilityCount;
-    softLimit = std::min(maxTime, (int)((baseTime * 0.76 * bmFactor * evalFactor)));
+    softLimit = std::min(maxTime, static_cast<int>(baseTime * 0.76 * bmFactor * evalFactor));
 
     // Make sure that out time doesn't get below 1
     softLimit = std::max(softLimit, 1.0);
     hardLimit = std::max(hardLimit, 1.0);
 }
 
-void Time::updateBestMoveStability(Move bestMove, Move previousBestMove)
+void Time::updateBestMoveStability(const Move bestMove, const Move previousBestMove)
 {
     if (bestMove == previousBestMove && bestMoveStabilityCount < 10)
     {
@@ -76,14 +76,12 @@ void Time::reset()
     softLimit = 0;
 }
 
-bool Time::shouldStopSoft(std::chrono::steady_clock::time_point start)
-{
-    std::chrono::duration<double, std::milli> elapsed = std::chrono::steady_clock::now() - start;
+bool Time::shouldStopSoft(const std::chrono::steady_clock::time_point start) const {
+    const std::chrono::duration<double, std::milli> elapsed = std::chrono::steady_clock::now() - start;
     return elapsed.count() > hardLimit;
 }
 
-bool Time::shouldStopID(std::chrono::steady_clock::time_point start)
-{
-    std::chrono::duration<double, std::milli> elapsed = std::chrono::steady_clock::now() - start;
+bool Time::shouldStopID(const std::chrono::steady_clock::time_point start) const {
+    const std::chrono::duration<double, std::milli> elapsed = std::chrono::steady_clock::now() - start;
     return elapsed.count() > softLimit;
 }

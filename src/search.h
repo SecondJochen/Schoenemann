@@ -20,8 +20,6 @@
 #ifndef SEARCH_H
 #define SEARCH_H
 
-#include <iostream>
-
 #include "time.h"
 #include "tt.h"
 #include "moveorder.h"
@@ -33,10 +31,11 @@ public:
 	Search(Time &timeManagement,
 		   tt &transpositionTabel,
 		   MoveOrder &moveOrder,
-		   Network &net) : timeManagement(timeManagement),
-						   transpositionTabel(transpositionTabel),
-						   moveOrder(moveOrder),
-						   net(net) {}
+		   Network &net) : reductions{}, stack{}, timeManagement(timeManagement),
+		                   transpositionTabel(transpositionTabel), history(),
+		                   moveOrder(moveOrder),
+		                   net(net) {
+	}
 
 	Move rootBestMove = Move::NULL_MOVE;
 	Move previousBestMove = Move::NULL_MOVE;
@@ -55,8 +54,8 @@ public:
 	std::uint8_t reductions[MAX_PLY][MAX_MOVES];
 	SearchStack stack[MAX_PLY];
 
-	int pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::int16_t ply, Board &board, bool isCutNode);
-	int qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t ply);
+	int pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCutNode);
+	int qs(int alpha, int beta, Board &board, int ply);
 
 	static int scaleOutput(int rawEval, const Board &board);
 
@@ -64,10 +63,10 @@ public:
 	void initLMR();
 	void resetHistory();
 
-	std::string scoreToUci(const int &score);
+	static std::string scoreToUci(const int &score);
 
 private:
-	int aspiration(std::int16_t maxDepth, std::int16_t score, Board &board);
+	int aspiration(int maxDepth, int score, Board &board);
 	std::string getPVLine();
 	Time &timeManagement;
 	tt &transpositionTabel;
