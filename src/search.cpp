@@ -386,7 +386,12 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
     Movelist moveList;
     movegen::legalmoves(moveList, board);
 
-    int scoreMoves[MAX_MOVES] = {0};
+    if (moveList.size() == 0)
+    {
+        return inCheck ? -infinity + ply : 0;
+    }
+
+    int scoreMoves[MAX_MOVES] = {};
     // Sort the list
     moveOrder.orderMoves(&history, moveList, entry, stack[ply].killerMove, stack, board, scoreMoves, ply);
 
@@ -586,20 +591,6 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
                 break;
             }
         }
-    }
-
-    if (moveCounter == 0)
-    {
-        if (isSingularSearch)
-        {
-            return alpha;
-        }
-
-        if (inCheck)
-        {
-            return -infinity + ply;
-        }
-        return 0;
     }
 
     std::uint8_t finalType;
