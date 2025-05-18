@@ -6,5 +6,4 @@ null.lib
 null.pdb
 null
 
-# Ignore everything in .idea except certain files
 .idea/*

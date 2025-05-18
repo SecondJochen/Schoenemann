@@ -19,6 +19,8 @@
 
 #include "tune.h"
 
+#include <vector>
+
 std::vector<EngineParameter *> engineParameter;
 
 EngineParameter *findEngineParameterByName(const std::string &name)
