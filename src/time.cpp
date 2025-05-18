@@ -27,8 +27,8 @@ void Time::calculateTimeForMove()
     hardLimit = softLimit = timeLeft;
 
     // Calculate the base and the max time
-    int baseTime = (int)(timeLeft * 0.054 + increment * 0.85);
-    int maxTime = (int)(timeLeft * 0.76);
+    int baseTime = static_cast<int>(timeLeft * 0.054 + increment * 0.85);
+    int maxTime = static_cast<int>(timeLeft * 0.76);
 
     // Calculate the hard limit when we need to stop
     hardLimit = std::min(maxTime, static_cast<int>(baseTime * 3.04));

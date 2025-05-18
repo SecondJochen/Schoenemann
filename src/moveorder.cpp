@@ -23,9 +23,9 @@
 
 DEFINE_PARAM_B(mvaLvvMultiplyer, 103, 83, 123);
 
-void MoveOrder::orderMoves(History* history, Movelist &moveList, Hash *entry, Move& killer, SearchStack* stack, Board &board, int* scores, int ply)
+void MoveOrder::orderMoves(const History* history, Movelist &moveList, const Hash *entry, const Move& killer, const SearchStack* stack, const Board &board, int* scores, const int &ply)
 {
-	const bool isNullptr = entry == nullptr ? true : false;
+	const bool isNullptr = entry == nullptr;
 	const std::uint64_t key = board.zobrist();
 
 	for (int i = 0; i < moveList.size(); i++)
@@ -41,8 +41,8 @@ void MoveOrder::orderMoves(History* history, Movelist &moveList, Hash *entry, Mo
 		}
 		if (board.isCapture(move))
 		{
-			PieceType captured = board.at<PieceType>(move.to());
-			PieceType capturing = board.at<PieceType>(move.from());
+			const PieceType captured = board.at<PieceType>(move.to());
+			const PieceType capturing = board.at<PieceType>(move.from());
 
 			int captureScore = see(board, move, 0) ? goodCapture : badCapture;
 
@@ -70,7 +70,7 @@ void MoveOrder::orderMoves(History* history, Movelist &moveList, Hash *entry, Mo
 	}
 }
 
-Move MoveOrder::sortByScore(Movelist &moveList, int scores[], int i)
+Move MoveOrder::sortByScore(Movelist &moveList, int scores[], const int &i)
 {
 	for (int j = i + 1; j < moveList.size(); j++)
 	{

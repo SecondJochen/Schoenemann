@@ -66,7 +66,6 @@ public:
 	static std::string scoreToUci(const int &score);
 
 private:
-	int aspiration(int maxDepth, int score, Board &board);
 	std::string getPVLine() const;
 	Time &timeManagement;
 	tt &transpositionTabel;

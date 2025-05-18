@@ -46,7 +46,7 @@ DEFINE_PARAM_B(winningDepthDiv, 3, 3, 4);
 DEFINE_PARAM_B(winningDepthSub, 4, 3, 5);
 DEFINE_PARAM_B(winningCount, 2, 2, 3);
 
-// Null Move Prunning
+// Null Move Pruning
 DEFINE_PARAM_B(nmpDepth, 3, 3, 4);
 DEFINE_PARAM_B(nmpDepthAdd, 2, 1, 3);
 DEFINE_PARAM_B(nmpDepthDiv, 3, 3, 4);
@@ -64,7 +64,7 @@ DEFINE_PARAM_B(pvsSSENonCaptureCutoff, 18, 11, 25);
 
 // Aspiration Window
 DEFINE_PARAM_B(aspDelta, 26, 18, 36);
-// DEFINE_PARAM_B(aspDivisor, 2, 2, 8); When tuned this triggers crashes for some reason :(
+// DEFINE_PARAM_B(aspDivisor, 2, 2, 8); When tuned this triggers crashes :(
 DEFINE_PARAM_B(aspMul, 134, 100, 163);
 DEFINE_PARAM_B(aspDepth, 7, 6, 8);
 
@@ -85,7 +85,7 @@ DEFINE_PARAM_B(quietHistoryMalusBase, 15, 10, 20);
 DEFINE_PARAM_B(quietHistoryMalusMax, 1900, 1700, 2100);
 DEFINE_PARAM_B(quietHistoryMalusDepthMul, 171, 121, 221);
 
-// Continuation Hisotry
+// Continuation History
 DEFINE_PARAM_B(continuationHistoryMalusBase, 25, 18, 32);
 DEFINE_PARAM_B(continuationHistoryMalusMax, 2172, 1800, 2400);
 DEFINE_PARAM_B(continuationHistoryMalusDepthMul, 185, 120, 240);
@@ -114,7 +114,7 @@ DEFINE_PARAM_B(singularDepthSub, 1, 1, 2);
 DEFINE_PARAM_B(singularDepthDiv, 2, 2, 3);
 DEFINE_PARAM_B(singularTTSub, 2, 2, 3);
 
-// Late Move Prunnig
+// Late Move Pruning
 DEFINE_PARAM_B(lmpBase, 6, 5, 7);
 DEFINE_PARAM_B(lmpDepthMargin, 2, 2, 3);
 DEFINE_PARAM_B(lmpDepth, 3, 2, 3);
@@ -428,7 +428,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
             continue;
         }
 
-        // Late move prunning
+        // Late move pruning
         if (!pvNode && isQuiet && bestScore > -infinity && moveCounter > (lmpBase + lmpDepthMargin * depth * depth) && depth <= lmpDepth)
         {
             break;
@@ -454,14 +454,14 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
             if (singularScore < singularBeta)
             {
                 extensions = 1;
-                // If we aren't in a pvNode and our score plus some margin is still less then our singular beta when can extend furthur
+                // If we aren't in a pvNode and our score plus some margin is still less than our singular beta when can extend further
                 if (!pvNode && singularScore + singularBetaDoubleExtensionMargin < singularBeta)
                 {
                     extensions = 2;
                 }
             }
 
-            // Multicut
+            // Multi-cut
             else if (singularBeta >= beta)
             {
                 return singularBeta;
@@ -722,7 +722,7 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
 
     for (Move &move : moveList)
     {
-        // Fultiy Prunning
+        // Futility Pruning
         if (!see(board, move, fpCutoff) && standPat + *SEE_PIECE_VALUES[board.at(move.to()).type()] <= alpha)
         {
             continue;
@@ -790,46 +790,16 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
     return bestScore;
 }
 
-int Search::aspiration(int depth, int score, Board &board)
-{
-    int delta = aspDelta;
-    int alpha = std::max(-infinity, score - delta);
-    int beta = std::min(infinity, score + delta);
-    constexpr double finalASPMultiplier = aspMul / 100.0;
-
-    while (true)
-    {
-        score = pvs(alpha, beta, depth, 0, board, false);
-        if (timeManagement.shouldStopID(start) || nodes == nodeLimit)
-        {
-            shouldStop = true;
-            return score;
-        }
-
-        if (score >= beta)
-        {
-            beta = std::min(beta + delta, infinity);
-        }
-        else if (score <= alpha)
-        {
-            beta = (alpha + beta) / 2;
-            alpha = std::max(alpha - delta, -infinity);
-        }
-        else
-        {
-            break;
-        }
-
-        delta *= finalASPMultiplier;
-    }
-
-    return score;
-}
-
 void Search::iterativeDeepening(Board &board, const bool isInfinite)
 {
     start = std::chrono::steady_clock::now();
     timeManagement.calculateTimeForMove();
+
+    if (hasNodeLimit) {
+        timeManagement.hardLimit = 99999999;
+        timeManagement.softLimit = 99999999;
+    }
+
     rootBestMove = Move::NULL_MOVE;
     Move bestMoveThisIteration = Move::NULL_MOVE;
 
@@ -842,14 +812,40 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite)
 
     nodes = 0;
 
-    for (std::uint8_t i = 1; i < MAX_PLY; i++)
+    int alpha = -infinity;
+    int beta = infinity;
+    int delta = 26;
+
+    for (int i = 1; i < MAX_PLY; i++)
     {
         if (i > 7)
         {
             previousBestScore = scoreData;
         }
 
-        scoreData = i >= aspDepth ? aspiration(i, scoreData, board) : pvs(-infinity, infinity, i, 0, board, false);
+        if (i > 4) {
+            alpha = std::max(scoreData - delta, -infinity);
+            beta = std::min(scoreData + delta, infinity);
+        }
+        while (true) {
+            const int aspirationScore = pvs(alpha, beta, i, 0, board, false);
+
+            if (aspirationScore > alpha && aspirationScore < beta) {
+                scoreData = aspirationScore;
+                break;
+            }
+
+            // Our aspiration failed low so we need to search with a wider window
+            if (aspirationScore <= alpha) {
+                beta = (alpha + beta) / 2;
+                alpha = std::max(alpha - delta, -infinity);
+            }
+            else {
+                beta = std::min(beta + delta, infinity);
+            }
+
+            delta += delta * 3;
+        }
 
         if (i > 6)
         {
@@ -873,7 +869,7 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite)
         std::chrono::duration<double, std::milli> elapsed = std::chrono::steady_clock::now() - start;
         std::cout
             << "info depth "
-            << static_cast<int>(i)
+            << i
             << scoreToUci(scoreData) << " nodes "
             << nodes << " nps "
             << static_cast<std::uint64_t>(nodes / (elapsed.count() + 1) * 1000) << " pv "
@@ -885,7 +881,6 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite)
         if ((timeManagement.shouldStopID(start) && !isInfinite) || i == MAX_PLY - 1 || nodes == nodeLimit)
         {
             std::cout << "bestmove " << uci::moveToUci(bestMoveThisIteration) << std::endl;
-
             break;
         }
     }
@@ -911,7 +906,6 @@ std::string Search::scoreToUci(const int &score)
     }
 
     assert(false);
-    return "";
 }
 
 void Search::initLMR()
@@ -929,7 +923,7 @@ void Search::initLMR()
 
 int Search::scaleOutput(const int rawEval, const Board &board)
 {
-    int gamePhase = materialScaleKnight * board.pieces(PieceType::KNIGHT).count() +
+    const int gamePhase = materialScaleKnight * board.pieces(PieceType::KNIGHT).count() +
                     materialScaleBishop * board.pieces(PieceType::BISHOP).count() +
                     materialScaleRook * board.pieces(PieceType::ROOK).count() +
                     materialScaleQueen * board.pieces(PieceType::QUEEN).count();

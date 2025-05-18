@@ -26,11 +26,15 @@ class Helper
 {
 private:
 public:
-    void transpositionTableTest(Board &board, tt &transpositionTable);
-    void runBenchmark(Search &search, Board &board);
-    void uciPrint();
-    void handleSetPosition(Board &board, std::istringstream  &is, std::string &token);
-    void handleGo(Search &search, Time &timeManagement, Board &board, std::istringstream &is, std::string &token);
+    static void transpositionTableTest(Board &board, const tt &transpositionTable);
+
+    static void runBenchmark(Search &search, Board &board);
+
+    static void uciPrint();
+
+    static void handleSetPosition(Board &board, std::istringstream  &is, std::string &token);
+
+    static void handleGo(Search &search, Time &timeManagement, Board &board, std::istringstream &is, std::string &token);
 };
 
 #endif

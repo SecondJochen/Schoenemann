@@ -23,22 +23,22 @@
 #include <chrono>
 #include <thread>
 
-void Helper::transpositionTableTest(Board &board, tt &transpositionTabel)
+void Helper::transpositionTableTest(Board &board, const tt &transpositionTable)
 {
 	// Set up a unique position
 	board.setFen("3N4/2p5/5K2/k1PB3p/3Pr3/1b5p/6p1/5nB1 w - - 0 1");
-	std::uint64_t key = board.hash();
+	const std::uint64_t key = board.hash();
 
 	// Store some placeholder information
-	transpositionTabel.storeEvaluation(key, 2, LOWER_BOUND, transpositionTabel.scoreToTT(200, 1), uci::uciToMove(board, "d5e4"), 1);
+	transpositionTable.storeEvaluation(key, 2, LOWER_BOUND, transpositionTable.scoreToTT(200, 1), uci::uciToMove(board, "d5e4"), 1);
 
 	// Try to get the information out of the table
-	Hash *entry = transpositionTabel.getHash(key);
+	const Hash *entry = transpositionTable.getHash(key);
 
 	assert(entry != nullptr);
 
-	std::uint64_t hashedKey = entry->key;
-	short hashedDepth = entry->depth;
+	const std::uint64_t hashedKey = entry->key;
+	const std::uint8_t hashedDepth = entry->depth;
 	short hashedType = entry->type;
 	int hashedScore = entry->score;
 	Move hashedMove = entry->move;
@@ -103,9 +103,9 @@ void Helper::uciPrint()
 void Helper::runBenchmark(Search &search, Board &board)
 {
 	// Setting up the clock
-	std::chrono::time_point start = std::chrono::steady_clock::now();
+	const std::chrono::time_point start = std::chrono::steady_clock::now();
 
-	// Reseting the nodes
+	// Resting the nodes
 	search.nodes = 0;
 
 	// Looping over all bench positions
@@ -115,14 +115,14 @@ void Helper::runBenchmark(Search &search, Board &board)
 		search.pvs(-infinity, infinity, benchDepth, 0, board, false);
 	}
 
-	std::chrono::time_point end = std::chrono::steady_clock::now();
+	const std::chrono::time_point end = std::chrono::steady_clock::now();
 
 	// Calculates the total time used
-	std::chrono::duration<double, std::milli> timeElapsed = end - start;
-	int timeInMs = static_cast<int>(timeElapsed.count());
+	const std::chrono::duration<double, std::milli> timeElapsed = end - start;
+	const int timeInMs = static_cast<int>(timeElapsed.count());
 
 	// calculates the Nodes per Second
-	int NPS = static_cast<int>(search.nodes / timeElapsed.count() * 1000);
+	const int NPS = static_cast<int>(search.nodes / timeElapsed.count() * 1000);
 
 	// Prints out the final bench
 	std::cout << "Time  : " << timeInMs << " ms\nNodes : " << search.nodes << "\nNPS   : " << NPS << std::endl;

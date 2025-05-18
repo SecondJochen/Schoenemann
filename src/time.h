@@ -30,10 +30,6 @@ class Time
 private:
     std::uint16_t bestMoveStabilityCount = 0;
     std::uint16_t bestEvalStabilityCount = 0;
-
-    double hardLimit = 0;
-    double softLimit = 0;
-
 public:
     void calculateTimeForMove();
     void updateBestMoveStability(Move bestMove, Move previousBestMove);
@@ -45,6 +41,8 @@ public:
 
     int timeLeft = 0;
     int increment = 0;
+    double hardLimit = 0;
+    double softLimit = 0;
 };
 
 #endif
