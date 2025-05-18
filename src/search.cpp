@@ -162,7 +162,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
     }
 
     // Mate distance Pruning
-    int mateValueUpper = infinity - ply;
+    std::int16_t mateValueUpper = infinity - ply;
 
     if (mateValueUpper < beta)
     {
@@ -173,7 +173,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
         }
     }
 
-    int mateValueLower = -infinity + ply;
+    std::int16_t mateValueLower = -infinity + ply;
 
     if (mateValueLower > alpha)
     {
@@ -207,7 +207,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
 
     stack[ply].inCheck = inCheck;
 
-    // Get an potential hash entry
+    // Get a potential hash entry
     Hash *entry = transpositionTabel.getHash(zobristKey);
 
     // Check if we this stored position is valid
@@ -341,7 +341,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
                 continue;
             }
 
-            // Update the the piece and the move for continuationHistory
+            // Update the piece and the move for continuationHistory
             stack[ply].previousMovedPiece = board.at(move.from()).type();
             stack[ply].previousMove = move;
 
@@ -366,7 +366,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
         // Small tweak
         depthReduction += nmpTweak;
 
-        // Update the the piece and the move for continuationHistory
+        // Update the piece and the move for continuationHistory
         stack[ply].previousMovedPiece = PieceType::NONE;
         stack[ply].previousMove = Move::NULL_MOVE;
 
@@ -441,7 +441,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
             hashedDepth >= depth - singularHashDepthReuction &&
             (hashedType != UPPER_BOUND) &&
             std::abs(hashedScore) < infinity &&
-            !(ply == 0))
+            ply != 0)
         {
             const int singularBeta = hashedScore - depth * singularBetaDepthMul;
             const std::uint8_t singularDepth = (depth - singularDepthSub) / singularDepthDiv;
@@ -472,7 +472,7 @@ int Search::pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::
             }
         }
 
-        // Update the the piece and the move for continuationHistory
+        // Update the piece and the move for continuationHistory
         stack[ply].previousMovedPiece = board.at(move.from()).type();
         stack[ply].previousMove = move;
 
@@ -693,7 +693,7 @@ int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t
             standPat = entry->eval;
         }
 
-        if (!pvNode && transpositionTabel.checkForMoreInformation(hashedType, hashedScore, beta))
+        if (!pvNode && tt::checkForMoreInformation(hashedType, hashedScore, beta))
         {
             if ((hashedType == EXACT) ||
                 (hashedType == UPPER_BOUND && hashedScore <= alpha) ||
@@ -704,7 +704,7 @@ int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t
         }
     }
 
-    if (!inCheck && transpositionTabel.checkForMoreInformation(hashedType, hashedScore, standPat))
+    if (!inCheck && tt::checkForMoreInformation(hashedType, hashedScore, standPat))
     {
         standPat = hashedScore;
     }
@@ -747,13 +747,13 @@ int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t
             continue;
         }
 
-        // Update the the piece and the move for continuationHistory
+        // Update the piece and the move for continuationHistory
         stack[ply].previousMovedPiece = board.at(move.from()).type();
         stack[ply].previousMove = move;
 
         board.makeMove(move);
 
-        int score = -qs(-beta, -alpha, board, ply + 1);
+        const int score = -qs(-beta, -alpha, board, ply + 1);
 
         board.unmakeMove(move);
         // Our current Score is better than the previous bestScore so we update it
@@ -789,7 +789,7 @@ int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t
     }
 
     // Checks for checkmate
-    if (inCheck && bestScore == -infinity)
+    if (bestScore == -infinity)
     {
         return -infinity + ply;
     }
@@ -803,10 +803,10 @@ int Search::qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t
     return bestScore;
 }
 
-int Search::aspiration(std::int16_t depth, std::int16_t score, Board &board)
+int Search::aspiration(const std::int16_t depth, std::int16_t score, Board &board)
 {
     std::int16_t delta = aspDelta;
-    std::int16_t alpha = std::max(static_cast<int>(-infinity), score - delta);
+    std::int16_t alpha = std::max(-infinity, score - delta);
     std::int16_t beta = std::min(static_cast<int>(infinity), score + delta);
     double finalASPMultiplier = aspMul / 100.0;
 
@@ -826,7 +826,7 @@ int Search::aspiration(std::int16_t depth, std::int16_t score, Board &board)
         else if (score <= alpha)
         {
             beta = (alpha + beta) / 2;
-            alpha = std::max(alpha - delta, static_cast<int>(-infinity));
+            alpha = std::max(alpha - delta, -infinity);
         }
         else
         {
@@ -839,7 +839,7 @@ int Search::aspiration(std::int16_t depth, std::int16_t score, Board &board)
     return score;
 }
 
-void Search::iterativeDeepening(Board &board, bool isInfinite)
+void Search::iterativeDeepening(Board &board, const bool isInfinite)
 {
     start = std::chrono::steady_clock::now();
     timeManagement.calculateTimeForMove();
@@ -906,7 +906,7 @@ void Search::iterativeDeepening(Board &board, bool isInfinite)
     isNormalSearch = true;
 }
 
-std::string Search::scoreToUci(int &score)
+std::string Search::scoreToUci(const int &score)
 {
     if (score < -infinity + MAX_PLY)
     {
@@ -940,7 +940,7 @@ void Search::initLMR()
     }
 }
 
-int Search::scaleOutput(int rawEval, Board &board)
+int Search::scaleOutput(const int rawEval, const Board &board)
 {
     int gamePhase = materialScaleKnight * board.pieces(PieceType::KNIGHT).count() +
                     materialScaleBishop * board.pieces(PieceType::BISHOP).count() +

@@ -21,7 +21,6 @@
 #define TT_H
 
 #include <iostream>
-#include <cstring>
 
 #include "consts.h"
 #include "chess.hpp"
@@ -34,12 +33,12 @@ constexpr std::uint8_t LOWER_BOUND = 2; // Lower bound
 
 struct alignas(16) Hash
 {
-    std::uint64_t key;         // The zobrist Key of the position           (8 Byte)
+    std::uint64_t key{};         // The zobrist Key of the position           (8 Byte)
     Move move = Move::NO_MOVE; // The bestmove that we currently have       (2 Byte)
-    std::int16_t score;        // The current score                         (2 Byte)
-    std::int16_t eval;         // The static eval                           (2 Byte)
-    std::int8_t depth;         // The current depth                         (1 Byte)
-    std::uint8_t type;         // Ether EXACT, UPPER_BOUND or LOWER_BOUND   (1 Byte)
+    std::int16_t score{};        // The current score                         (2 Byte)
+    std::int16_t eval{};         // The static eval                           (2 Byte)
+    std::int8_t depth{};         // The current depth                         (1 Byte)
+    std::uint8_t type{};         // Either EXACT, UPPER_BOUND or LOWER_BOUND   (1 Byte)
 
     void setEntry(std::uint64_t _key, std::uint8_t _depth, std::uint8_t _type, std::int16_t _score, Move _move, std::int16_t _eval)
     {
@@ -55,31 +54,31 @@ struct alignas(16) Hash
 class tt
 {
 public:
-    tt(std::uint64_t MB);
+    explicit tt(std::uint64_t MB);
     ~tt();
 
-    Hash *getHash(std::uint64_t zobristKey) noexcept;
+    [[nodiscard]] Hash *getHash(std::uint64_t zobristKey) const noexcept;
 
     void setSize(std::uint64_t MB);
-    void clear();
-    void storeEvaluation(std::uint64_t key, std::uint8_t depth, std::uint8_t type, std::int16_t score, Move move, std::int16_t eval) noexcept;
+    void clear() const;
+    void storeEvaluation(std::uint64_t key, std::uint8_t depth, std::uint8_t type, std::int16_t score, Move move, std::int16_t eval) const noexcept;
 
     int estimateHashfull() const noexcept;
-    int scoreToTT(int score, std::int16_t ply)
+    std::int16_t scoreToTT(int score, std::int16_t ply)
     {
         return score >= infinity    ? score + ply
                : score <= -infinity ? score - ply
                                     : score;
     }
 
-    int scoreFromTT(int score, std::int16_t ply)
+    std::int16_t scoreFromTT(int score, std::int16_t ply)
     {
         return score >= infinity    ? score - ply
                : score <= -infinity ? score + ply
                                     : score;
     }
 
-    bool checkForMoreInformation(std::uint8_t type, int ttScore, int score)
+    static bool checkForMoreInformation(std::uint8_t type, int ttScore, int score)
     {
         std::uint8_t tempType;
         if (ttScore >= score)
@@ -95,8 +94,8 @@ public:
     }
 
 private:
-    std::uint64_t size;
-    Hash *table;
+    std::uint64_t size{};
+    Hash *table{};
     void init(std::uint64_t MB);
 };
 

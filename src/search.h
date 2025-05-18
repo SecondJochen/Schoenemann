@@ -58,13 +58,13 @@ public:
 	int pvs(std::int16_t alpha, std::int16_t beta, std::int16_t depth, std::int16_t ply, Board &board, bool isCutNode);
 	int qs(std::int16_t alpha, std::int16_t beta, Board &board, std::int16_t ply);
 
-	int scaleOutput(int rawEval, Board &board);
+	static int scaleOutput(int rawEval, const Board &board);
 
 	void iterativeDeepening(Board &board, bool isInfinite);
 	void initLMR();
 	void resetHistory();
 
-	std::string scoreToUci(int &score);
+	std::string scoreToUci(const int &score);
 
 private:
 	int aspiration(std::int16_t maxDepth, std::int16_t score, Board &board);

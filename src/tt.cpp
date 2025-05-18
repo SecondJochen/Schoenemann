@@ -19,7 +19,9 @@
 
 #include "tt.h"
 
-void tt::storeEvaluation(std::uint64_t key, std::uint8_t depth, std::uint8_t type, std::int16_t score, Move move, std::int16_t eval) noexcept
+#include <cstring>
+
+void tt::storeEvaluation(std::uint64_t key, std::uint8_t depth, std::uint8_t type, std::int16_t score, Move move, std::int16_t eval) const noexcept
 {
 	const std::uint64_t index = key % size;
 
@@ -30,16 +32,13 @@ void tt::storeEvaluation(std::uint64_t key, std::uint8_t depth, std::uint8_t typ
 	node->setEntry(key, depth, type, score, move, eval);
 }
 
-Hash *tt::getHash(std::uint64_t zobristKey) noexcept
+Hash *tt::getHash(std::uint64_t zobristKey) const noexcept
 {
 	// Gets the index based on the zobrist key
 	const std::uint64_t index = zobristKey % size;
 
-	// Getting the node by the index
-	Hash *node = table + index;
-
 	// Check if we got the key in our Hash
-	if (node->key == zobristKey)
+	if (Hash *node = table + index; node->key == zobristKey)
 	{
 		return node;
 	}
@@ -48,15 +47,14 @@ Hash *tt::getHash(std::uint64_t zobristKey) noexcept
 	return nullptr;
 }
 
-void tt::clear()
-{
-	memset(static_cast<void *>(table), 0, size * sizeof(Hash));
+void tt::clear() const {
+	memset(table, 0, size * sizeof(Hash));
 }
 
-void tt::init(std::uint64_t MB)
+void tt::init(const std::uint64_t MB)
 {
-	std::uint64_t bytes = MB << 20;
-	std::uint64_t maxSize = bytes / sizeof(Hash);
+	const std::uint64_t bytes = MB << 20;
+	const std::uint64_t maxSize = bytes / sizeof(Hash);
 
 	size = 1;
 	while (size <= maxSize)
@@ -66,7 +64,7 @@ void tt::init(std::uint64_t MB)
 
 	size >>= 1;
 
-	table = (Hash *)calloc(size, sizeof(Hash));
+	table = static_cast<Hash *>(calloc(size, sizeof(Hash)));
 	clear();
 }
 
@@ -88,7 +86,7 @@ int tt::estimateHashfull() const noexcept
 	return used;
 }
 
-tt::tt(std::uint64_t MB)
+tt::tt(const std::uint64_t MB)
 {
 	init(MB);
 }

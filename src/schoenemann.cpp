@@ -21,6 +21,7 @@
 #include <chrono>
 #include <thread>
 #include <memory>
+#include <cstring>
 
 #include "consts.h"
 #include "helper.h"
@@ -28,7 +29,6 @@
 #include "datagen.h"
 #include "tune.h"
 #include "search.h"
-#include "history.h"
 #include "tt.h"
 #include "time.h"
 #include "moveorder.h"
