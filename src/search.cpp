@@ -176,11 +176,12 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
     // Every 128 we check for a timeout
     if (!root)
     {
+        assert(alpha >= -EVAL_INFINITE && alpha < beta && beta <= EVAL_INFINITE);
         if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
         {
             shouldStop = true;
         }
-        if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1 || (board.isHalfMoveDraw() || board.isRepetition() || board.isInsufficientMaterial())) {
+        if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1 || board.isHalfMoveDraw() || board.isRepetition() || board.isInsufficientMaterial()) {
             return ply >= MAX_PLY - 1 && board.inCheck() ? std::clamp(net.evaluate(board.sideToMove(), board.occ().count()), -EVAL_MATE, EVAL_MATE) : 0;
         }
     }
@@ -204,12 +205,15 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
 
     int bestScore = standPat;
     Move bestMoveInQs = Move::NULL_MOVE;
+    int moveCount = 0;
 
     for (const Move &move : moveList)
     {
         board.makeMove(move);
+        moveCount++;
 
         const int score = -qs(-beta, -alpha, board, ply + 1);
+        assert(score < EVAL_INFINITE && score > -EVAL_INFINITE);
 
         board.unmakeMove(move);
         // Our current Score is better than the previous bestScore so we update it
@@ -247,7 +251,8 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
     // Checks for checkmate
     if (bestScore == -EVAL_INFINITE)
     {
-        bestScore = inCheck ? matedIn(ply) : 0;
+        assert(moveCount == 0);
+        bestScore = matedIn(ply);
     }
 
     return bestScore;
