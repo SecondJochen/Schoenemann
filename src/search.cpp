@@ -27,71 +27,15 @@
 
 std::chrono::time_point start = std::chrono::steady_clock::now();
 
-DEFINE_PARAM_B(probeCutBetaAdd, 460, 380, 540);
-DEFINE_PARAM_B(probeCuteSub, 4, 3, 5);
-
-DEFINE_PARAM_B(iidDepth, 3, 3, 4);
-
-DEFINE_PARAM_B(rfpDepth, 5, 4, 6);
-DEFINE_PARAM_B(rfpEvalSub, 80, 50, 120);
-DEFINE_PARAM_B(rfpDivisory, 2, 2, 3);
-
-DEFINE_PARAM_B(winningDepth, 6, 6, 7);
-DEFINE_PARAM_B(winningEvalSub, 97, 80, 120);
-DEFINE_PARAM_B(winningDepthMul, 24, 16, 30);
-
-DEFINE_PARAM_B(probeCutMarginAdd, 76, 50, 100);
-
-DEFINE_PARAM_B(winningDepthDiv, 3, 3, 4);
-DEFINE_PARAM_B(winningDepthSub, 4, 3, 5);
-DEFINE_PARAM_B(winningCount, 2, 2, 3);
-
-// Null Move Pruning
-DEFINE_PARAM_B(nmpDepth, 3, 3, 4);
-DEFINE_PARAM_B(nmpDepthAdd, 2, 1, 3);
-DEFINE_PARAM_B(nmpDepthDiv, 3, 3, 4);
-DEFINE_PARAM_B(nmpTweak, 1, 1, 2);
-
-// Razoring
-DEFINE_PARAM_B(razorDepth, 1, 1, 2);
-DEFINE_PARAM_B(razorAlpha, 247, 220, 270);
-DEFINE_PARAM_B(razorDepthMul, 50, 35, 65);
-
-// PVS - SEE
-DEFINE_PARAM_B(pvsSSEDepth, 2, 2, 3);
-DEFINE_PARAM_B(pvsSSECaptureCutoff, 92, 60, 120);
-DEFINE_PARAM_B(pvsSSENonCaptureCutoff, 18, 11, 25);
-
 // Aspiration Window
 //DEFINE_PARAM_B(aspDelta, 26, 18, 36);
 // DEFINE_PARAM_B(aspDivisor, 2, 2, 8); When tuned this triggers crashes :(
 //DEFINE_PARAM_B(aspMul, 134, 100, 163);
 //DEFINE_PARAM_B(aspDepth, 7, 6, 8);
 
-// Late Move Reductions
+
 DEFINE_PARAM_B(lmrBase, 78, 50, 105);
 DEFINE_PARAM_B(lmrDivisor, 240, 200, 280);
-DEFINE_PARAM_B(lmrDepth, 2, 2, 3);
-DEFINE_PARAM_B(lmrCutNodeMul, 2, 2, 3);
-
-DEFINE_PARAM_B(iirReduction, 2, 1, 2);
-DEFINE_PARAM_B(fpCutoff, 2, 1, 3);
-
-// Quiet History
-DEFINE_PARAM_B(quietHistoryGravityBase, 31, 21, 41);
-DEFINE_PARAM_B(quietHistoryDepthMul, 204, 150, 250);
-DEFINE_PARAM_B(quietHistoryBonusCap, 1734, 1500, 2000);
-DEFINE_PARAM_B(quietHistoryMalusBase, 15, 10, 20);
-DEFINE_PARAM_B(quietHistoryMalusMax, 1900, 1700, 2100);
-DEFINE_PARAM_B(quietHistoryMalusDepthMul, 171, 121, 221);
-
-// Continuation History
-DEFINE_PARAM_B(continuationHistoryMalusBase, 25, 18, 32);
-DEFINE_PARAM_B(continuationHistoryMalusMax, 2172, 1800, 2400);
-DEFINE_PARAM_B(continuationHistoryMalusDepthMul, 185, 120, 240);
-DEFINE_PARAM_B(continuationHistoryGravityBase, 26, 20, 32);
-DEFINE_PARAM_B(continuationHistoryDepthMul, 208, 150, 258);
-DEFINE_PARAM_B(continuationHistoryBonusCap, 1959, 1700, 2300);
 
 // Material Scaling
 DEFINE_PARAM_B(materialScaleKnight, 3, 2, 4);
@@ -101,31 +45,9 @@ DEFINE_PARAM_B(materialScaleQueen, 18, 12, 24);
 DEFINE_PARAM_B(materialScaleGamePhaseAdd, 169, 120, 220);
 DEFINE_PARAM_B(materialScaleGamePhaseDiv, 269, 220, 320);
 
-// Pawn CorrectionHistory
-DEFINE_PARAM_B(pawnCorrectionHistoryDepthAdd, 180, 120, 240);
-DEFINE_PARAM_B(pawnCorrectionHistoryDepthDiv, 768, 600, 936);
-
-// Singular Extension
-DEFINE_PARAM_B(singularMinDepth, 6, 6, 7);
-DEFINE_PARAM_B(singularHashDepthReuction, 3, 2, 4);
-DEFINE_PARAM_B(singularBetaDepthMul, 2, 2, 3);
-DEFINE_PARAM_B(singularBetaDoubleExtensionMargin, 5, 3, 8);
-DEFINE_PARAM_B(singularDepthSub, 1, 1, 2);
-DEFINE_PARAM_B(singularDepthDiv, 2, 2, 3);
-DEFINE_PARAM_B(singularTTSub, 2, 2, 3);
-
-// Late Move Pruning
-DEFINE_PARAM_B(lmpBase, 6, 5, 7);
-DEFINE_PARAM_B(lmpDepthMargin, 2, 2, 3);
-DEFINE_PARAM_B(lmpDepth, 3, 2, 3);
-
-// Idea
-DEFINE_PARAM_B(ideaAlpha, 500, 400, 600);
-DEFINE_PARAM_B(ideaMoveCount, 3, 2, 4);
-
-int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCutNode)
+int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
 {
-    //assert(-infinity <= alpha && alpha < beta && beta <= infinity);
+    assert(-EVAL_INFINITE <= alpha && alpha < beta && beta <= EVAL_INFINITE);
     // Increment nodes by one
     nodes++;
 
@@ -156,362 +78,54 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
     // Set the pvLength to zero
     stack[ply].pvLength = 0;
 
+    // If depth is 0 we drop into qs to get a neutral position
+    if (depth <= 0)
+    {
+        return net.evaluate(board.sideToMove(), board.occ().count());
+    }
+
+    // Make sure that depth is always lower than MAX_PLY
+    if (depth >= MAX_PLY - 1) {
+        depth = MAX_PLY - 1;
+    }
+
     // Check for a draw
     if (ply > 0 && (board.isHalfMoveDraw() || board.isRepetition() || board.isInsufficientMaterial()))
     {
         return 0;
     }
 
-    // Mate distance Pruning
-    if (ply > 0)
-    {
-        alpha = std::max(alpha, -infinity + ply);
-        beta = std::min(beta, infinity - ply - 1);
-
-        if (alpha >= beta)
-        {
-            return alpha;
-        }
-    }
-
-    // If depth is 0 we drop into qs to get a neutral position
-    if (depth <= 0 || ply >= MAX_PLY)
-    {
-        return qs(alpha, beta, board, ply);
-    }
-
-    // Make at least zero to avoid wrong depths in the transposition table
-    depth = std::clamp(depth, 0, MAX_PLY - 1);
-
-    const std::uint64_t zobristKey = board.zobrist();
-    int hashedScore = 0;
-    short hashedType = 0;
-    int hashedDepth = 0;
-    int staticEval = NO_VALUE;
-    Move hashedMove = Move::NULL_MOVE;
-
     // Get some important search constants
     const bool pvNode = beta > alpha + 1;
     const bool inCheck = board.inCheck();
-    const bool isSingularSearch = stack[ply].exludedMove != Move::NULL_MOVE;
 
-    stack[ply].inCheck = inCheck;
-
-    // Get a potential hash entry
-    Hash *entry = transpositionTabel.getHash(zobristKey);
-
-    // Check if we this stored position is valid
-    const bool isNullptr = entry == nullptr;
-
-    if (!isNullptr && !isSingularSearch)
-    {
-        // If we have a transposition
-        // That means that the current board zobrist key
-        // is the same as the hash entry zobrist key
-        if (zobristKey == entry->key)
-        {
-            hashedScore = tt::scoreFromTT(entry->score, ply);
-            hashedType = entry->type;
-            hashedDepth = entry->depth;
-            staticEval = entry->eval;
-            hashedMove = entry->move;
-        }
-
-        // Check if we can return a stored score
-        if (!pvNode && hashedDepth >= depth && ply > 0 && zobristKey == entry->key)
-        {
-            if ((hashedType == EXACT) ||
-                (hashedType == UPPER_BOUND && hashedScore <= alpha) ||
-                (hashedType == LOWER_BOUND && hashedScore >= beta))
-            {
-                return hashedScore;
-            }
-        }
-    }
-
-    // Initial Iterative Deepening
-    if (!isNullptr && zobristKey != entry->key && !inCheck && depth >= iidDepth)
-    {
-        depth -= iirReduction;
-    }
-
-    if (!isSingularSearch && !isNullptr)
-    {
-        int probCutBeta = beta + probeCutBetaAdd;
-        if (hashedDepth >= depth - probeCuteSub && hashedScore >= probCutBeta && std::abs(beta) < infinity)
-        {
-            return probCutBeta;
-        }
-    }
-
-    // If no evaluation was found in the transposition table
-    // we perform a static evaluation
-    if (staticEval == NO_VALUE)
-    {
-        staticEval = scaleOutput(net.evaluate(board.sideToMove(), board.occ().count()), board);
-    }
-
-    int rawEval = staticEval;
-    staticEval = std::clamp(history.correctEval(staticEval, board), -infinity + MAX_PLY, infinity - MAX_PLY);
-
-    // Update the static Eval on the stack
-    stack[ply].staticEval = staticEval;
-
-    bool improving = false;
-
-    if (inCheck)
-    {
-        improving = false;
-    }
-    else if (ply > 1 && !stack[ply - 2].inCheck)
-    {
-        improving = staticEval > stack[ply - 2].staticEval;
-    }
-    else if (ply > 3 && !stack[ply - 4].inCheck)
-    {
-        improving = staticEval > stack[ply - 4].staticEval;
-    }
-    else
-    {
-        improving = true;
-    }
-
-    // Reverse futility pruning
-    if (!isSingularSearch && !inCheck && depth <= rfpDepth && staticEval - rfpEvalSub * (depth - improving) >= beta)
-    {
-        return (staticEval + beta) / rfpDivisory;
-    }
-
-    // Razoring
-    if (!isSingularSearch && !pvNode && !board.inCheck() && depth <= razorDepth)
-    {
-        const int ralpha = alpha - razorAlpha - depth * razorDepthMul;
-
-        if (staticEval < ralpha)
-        {
-            int qscore;
-            if (depth == 1 && ralpha < alpha)
-            {
-                qscore = qs(alpha, beta, board, ply);
-                return qscore;
-            }
-
-            qscore = qs(ralpha, ralpha + 1, board, ply);
-
-            if (qscore <= ralpha)
-            {
-                return qscore;
-            }
-        }
-    }
-
-    // Idea by Laser
-    // If we can make a winning move and can confirm that when we do a lower depth search
-    // it causes a beta cutoff we can make that beta cutoff
-    if (!isSingularSearch && !pvNode && !inCheck && depth >= winningDepth && staticEval >= beta - winningEvalSub - winningDepthMul * depth && std::abs(beta) < infinity)
-    {
-        int probCutMargin = beta + probeCutMarginAdd;
-        int probCutCount = 0;
-
-        Movelist moveList;
-        movegen::legalmoves(moveList, board);
-
-        int scoreMoves[218] = {};
-        // Sort the list
-        moveOrder.orderMoves(&history, moveList, entry, stack[ply].killerMove, stack, board, scoreMoves, ply);
-
-        for (int i = 0; i < moveList.size() && probCutCount < winningCount; i++)
-        {
-            probCutCount++;
-            Move move = moveOrder.sortByScore(moveList, scoreMoves, i);
-
-            // We don't want to prune the hashed move
-            if (move == hashedMove)
-            {
-                continue;
-            }
-
-            // Update the piece and the move for continuationHistory
-            stack[ply].previousMovedPiece = board.at(move.from()).type();
-            stack[ply].previousMove = move;
-
-            board.makeMove(move);
-
-            int score = -pvs(-probCutMargin, -probCutMargin + 1, depth - depth / winningDepthDiv - winningDepthSub, ply + 1, board, false);
-
-            board.unmakeMove(move);
-
-            if (score >= probCutMargin)
-            {
-                return score;
-            }
-        }
-    }
-
-    if (!isSingularSearch && !pvNode && !inCheck && depth >= nmpDepth && staticEval >= beta)
-    {
-        board.makeNullMove();
-        int depthReduction = nmpDepthAdd + depth / nmpDepthDiv;
-
-        // Small tweak
-        depthReduction += nmpTweak;
-
-        // Update the piece and the move for continuationHistory
-        stack[ply].previousMovedPiece = PieceType::NONE;
-        stack[ply].previousMove = Move::NULL_MOVE;
-
-        int score = -pvs(-beta, -alpha, depth - depthReduction, ply + 1, board, !isCutNode);
-        board.unmakeNullMove();
-        if (score >= beta)
-        {
-            if (depth < 12)
-            {
-                return score;
-            }
-            score = pvs(beta - 1, beta, depth - depthReduction, ply, board, false);
-
-            if (score >= beta)
-            {
-                return score;
-            }
-        }
-    }
+    //const int staticEval = net.evaluate(board.sideToMove(), board.occ().count());
 
     Movelist moveList;
     movegen::legalmoves(moveList, board);
 
-    if (moveList.size() == 0)
-    {
-        return inCheck ? -infinity + ply + 1 : 0;
-    }
-
     int scoreMoves[MAX_MOVES] = {};
     // Sort the list
-    MoveOrder::orderMoves(&history, moveList, entry, stack[ply].killerMove, stack, board, scoreMoves, ply);
+    //MoveOrder::orderMoves(&history, moveList, nullptr, stack[ply].killerMove, stack, board, scoreMoves, ply);
 
     // Set up values for the search
     int score = 0;
-    int bestScore = -infinity;
-    std::uint16_t movesMadeCounter = 0;
-    std::uint16_t moveCounter = 0;
-
-    short type = LOWER_BOUND;
-
+    int bestScore = -EVAL_INFINITE;
+    int moveCount = 0;
     Move bestMoveInPVS = Move::NULL_MOVE;
-    Move movesMade[MAX_MOVES];
 
     for (int i = 0; i < moveList.size(); i++)
     {
         Move move = moveOrder.sortByScore(moveList, scoreMoves, i);
 
-        if (move == stack[ply].exludedMove)
-        {
-            continue;
-        }
-
-        bool isQuiet = !board.isCapture(move);
-
-        if (!pvNode && move != hashedMove && bestScore > -infinity && depth <= pvsSSEDepth && !see(board, move, (!isQuiet ? -pvsSSECaptureCutoff : -pvsSSENonCaptureCutoff)))
-        {
-            continue;
-        }
-
-        // Idea
-        if (!pvNode && bestScore > -infinity && moveCounter >= ideaMoveCount * depth && staticEval < alpha - ideaAlpha)
-        {
-            continue;
-        }
-
-        // Late move pruning
-        if (!pvNode && isQuiet && bestScore > -infinity && moveCounter > (lmpBase + lmpDepthMargin * depth * depth) && depth <= lmpDepth)
-        {
-            break;
-        }
-
-        std::int8_t extensions = 0;
-
-        if (!isSingularSearch &&
-            hashedMove == move &&
-            depth >= singularMinDepth &&
-            hashedDepth >= depth - singularHashDepthReuction &&
-            (hashedType != UPPER_BOUND) &&
-            std::abs(hashedScore) < infinity &&
-            ply != 0)
-        {
-            const int singularBeta = hashedScore - depth * singularBetaDepthMul;
-            const std::uint8_t singularDepth = (depth - singularDepthSub) / singularDepthDiv;
-
-            stack[ply].exludedMove = move;
-            int singularScore = pvs(singularBeta - 1, singularBeta, singularDepth, ply, board, isCutNode);
-            stack[ply].exludedMove = Move::NULL_MOVE;
-
-            if (singularScore < singularBeta)
-            {
-                extensions = 1;
-                // If we aren't in a pvNode and our score plus some margin is still less than our singular beta when can extend further
-                if (!pvNode && singularScore + singularBetaDoubleExtensionMargin < singularBeta)
-                {
-                    extensions = 2;
-                }
-            }
-
-            // Multi-cut
-            else if (singularBeta >= beta)
-            {
-                return singularBeta;
-            }
-
-            else if (hashedScore >= beta)
-            {
-                extensions -= singularTTSub;
-            }
-        }
-
-        // Update the piece and the move for continuationHistory
-        stack[ply].previousMovedPiece = board.at(move.from()).type();
-        stack[ply].previousMove = move;
-
         board.makeMove(move);
+        moveCount++;
 
-        if (isQuiet)
-        {
-            movesMade[movesMadeCounter] = move;
-            movesMadeCounter++;
-        }
-
-        moveCounter++;
-
-        if (board.inCheck())
-        {
-            extensions++;
-        }
-
-        if (moveCounter == 1)
-        {
-            score = -pvs(-beta, -alpha, depth - 1 + extensions, ply + 1, board, false);
-        }
-        else
-        {
-            std::uint8_t lmr = 0;
-            if (depth > lmrDepth)
-            {
-                lmr = reductions[depth][moveCounter];
-                lmr -= pvNode;
-                lmr += isCutNode * lmrCutNodeMul;
-                lmr = std::clamp(lmr, static_cast<std::uint8_t>(0), static_cast<std::uint8_t>(depth - 1));
-            }
-
-            score = -pvs(-alpha - 1, -alpha, depth - lmr - 1 + extensions, ply + 1, board, true);
-            if (score > alpha && (score < beta || lmr > 0))
-            {
-                score = -pvs(-beta, -alpha, depth - 1 + extensions, ply + 1, board, false);
-                isCutNode = false;
-            }
-        }
+        score = -pvs(-beta, -alpha, depth - 1, ply + 1, board);
 
         board.unmakeMove(move);
 
-        //assert(score > -infinity && score < infinity);
+        assert(score > -EVAL_INFINITE && score < EVAL_INFINITE);
 
         if (score > bestScore)
         {
@@ -519,7 +133,6 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
             if (score > alpha)
             {
                 alpha = score;
-                type = EXACT;
                 bestMoveInPVS = move;
 
                 // If we are ate the root we set the bestMove
@@ -546,76 +159,16 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
             // Beta cutoff
             if (score >= beta)
             {
-                if (isQuiet)
-                {
-                    stack[ply].killerMove = move;
-                    int quietHistoryBonus = std::min(
-                        quietHistoryGravityBase + quietHistoryDepthMul * depth,
-                        quietHistoryBonusCap);
-
-                    history.updateQuietHistory(board, move, quietHistoryBonus);
-
-                    int continuationHistoryBonus = std::min(
-                        continuationHistoryGravityBase + continuationHistoryDepthMul * depth,
-                        continuationHistoryBonusCap);
-
-                    // Update the continuation History
-                    history.updateContinuationHistory(board.at(move.from()).type(), move, continuationHistoryBonus, ply, stack);
-
-                    int quietHistoryMalus = std::min(
-                        quietHistoryMalusBase + quietHistoryMalusDepthMul * depth,
-                        quietHistoryMalusMax);
-
-                    int continuationHistoryMalus = std::min(
-                        continuationHistoryMalusBase + continuationHistoryMalusDepthMul * depth,
-                        continuationHistoryMalusMax);
-
-                    // History malus
-                    for (int x = 0; x < movesMadeCounter; x++)
-                    {
-                        Move madeMove = movesMade[x];
-                        if (madeMove == bestMoveInPVS)
-                        {
-                            continue;
-                        }
-
-                        history.updateQuietHistory(board, madeMove, -quietHistoryMalus);
-                        history.updateContinuationHistory(board.at(madeMove.from()).type(), madeMove, -continuationHistoryMalus, ply, stack);
-                    }
-                }
-
                 break;
             }
         }
     }
 
-    //assert(bestScore > -infinity && bestScore < infinity);
-
-    std::uint8_t finalType;
-    // Calculate the node type
-    if (bestScore >= beta)
-    {
-        finalType = LOWER_BOUND;
-    }
-    else if (pvNode && (type == EXACT))
-    {
-        finalType = EXACT;
-    }
-    else
-    {
-        finalType = UPPER_BOUND;
+    if (moveCount == 0) {
+        bestScore = inCheck ? matedIn(ply) : 0;
     }
 
-    if (!isSingularSearch)
-    {
-        transpositionTabel.storeEvaluation(zobristKey, depth, finalType, tt::scoreToTT(bestScore, ply), bestMoveInPVS, rawEval);
-    }
-
-    if (!inCheck && (bestMoveInPVS == Move::NULL_MOVE || !board.isCapture(bestMoveInPVS)) && (finalType == EXACT || (finalType == UPPER_BOUND && bestScore <= staticEval) || (finalType == LOWER_BOUND && bestScore > staticEval)))
-    {
-        int bonus = std::clamp((int)(bestScore - staticEval) * depth * pawnCorrectionHistoryDepthAdd / pawnCorrectionHistoryDepthDiv, -CORRHIST_LIMIT / 4, CORRHIST_LIMIT / 4);
-        history.updatePawnCorrectionHistory(bonus, board, pawnCorrectionHistoryDepthDiv);
-    }
+    assert(bestScore > -EVAL_INFINITE && bestScore < EVAL_INFINITE);
 
     return bestScore;
 }
@@ -666,7 +219,7 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
     const bool inCheck = board.inCheck();
 
     int hashedScore = 0;
-    int standPat = NO_VALUE;
+    int standPat = EVAL_NONE;
     std::uint8_t hashedType = 0;
 
     if (!isNullptr)
@@ -698,13 +251,13 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
         standPat = hashedScore;
     }
 
-    if (standPat == NO_VALUE)
+    if (standPat == EVAL_NONE)
     {
         standPat = scaleOutput(net.evaluate(board.sideToMove(), board.occ().count()), board);
     }
 
     const int rawEval = standPat;
-    standPat = std::clamp(history.correctEval(standPat, board), -infinity, infinity);
+    standPat = std::clamp(history.correctEval(standPat, board), -EVAL_INFINITE, EVAL_INFINITE);
 
     if (standPat >= beta)
     {
@@ -724,11 +277,6 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
 
     for (Move &move : moveList)
     {
-        // Futility Pruning
-        if (!see(board, move, fpCutoff) && standPat + *SEE_PIECE_VALUES[board.at(move.to()).type()] <= alpha)
-        {
-            continue;
-        }
 
         // Static Exchange Evaluation
         if (!see(board, move, 0))
@@ -778,9 +326,9 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
     }
 
     // Checks for checkmate
-    if (bestScore == -infinity)
+    if (bestScore == -EVAL_INFINITE)
     {
-        return -infinity + ply + 1;
+        return -EVAL_INFINITE + ply + 1;
     }
 
     if (stack[ply].exludedMove == Move::NULL_MOVE)
@@ -814,8 +362,8 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite)
 
     nodes = 0;
 
-    int alpha = -infinity;
-    int beta = infinity;
+    int alpha = -EVAL_INFINITE;
+    int beta = EVAL_INFINITE;
     int delta = 26;
 
     for (int i = 1; i < MAX_PLY; i++)
@@ -827,12 +375,12 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite)
 
         if (i > 4) {
             delta = 26;
-            alpha = std::max(scoreData - delta, -infinity);
-            beta = std::min(scoreData + delta, infinity);
+            alpha = std::max(scoreData - delta, -EVAL_INFINITE);
+            beta = std::min(scoreData + delta, EVAL_INFINITE);
         }
 
         while (true) {
-            const int aspirationScore = pvs(alpha, beta, i, 0, board, false);
+            const int aspirationScore = pvs(alpha, beta, i, 0, board);
 
             if (aspirationScore > alpha && aspirationScore < beta) {
                 scoreData = aspirationScore;
@@ -841,10 +389,10 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite)
             // Our aspiration failed low so we need to search with a wider window
             else if (aspirationScore <= alpha) {
                 beta = (alpha + beta) / 2;
-                alpha = std::max(alpha - delta, -infinity);
+                alpha = std::max(alpha - delta, -EVAL_INFINITE);
             }
             else {
-                beta = std::min(beta + delta, infinity);
+                beta = std::min(beta + delta, EVAL_INFINITE);
             }
             delta += delta * 3;
         }
@@ -892,22 +440,13 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite)
 
 std::string Search::scoreToUci(const int &score)
 {
-    if (score < -infinity + MAX_PLY)
-    {
-        return " score mate " + std::to_string(-(infinity + score) / 2);
+    if (score >= EVAL_MATE_IN_MAX_PLY) {
+        return " mate " + std::to_string((EVAL_MATE - score) / 2 + 1);
     }
-
-    if (score > infinity - MAX_PLY)
-    {
-        return " score mate " + std::to_string(infinity - score);
+    if (score <= -EVAL_MATE_IN_MAX_PLY) {
+        return " mate " + std::to_string(-(EVAL_MATE + score) / 2);
     }
-
-    if (score < infinity - MAX_PLY)
-    {
-        return " score cp " + std::to_string(score);
-    }
-
-    assert(false);
+    return " cp " + std::to_string(score);
 }
 
 void Search::initLMR()
@@ -932,7 +471,7 @@ int Search::scaleOutput(const int rawEval, const Board &board)
 
     const int finalEval = rawEval * (materialScaleGamePhaseAdd + gamePhase) / materialScaleGamePhaseDiv;
 
-    return std::clamp(finalEval, -infinity, infinity);
+    return std::clamp(finalEval, -EVAL_INFINITE, EVAL_INFINITE);
 }
 
 std::string Search::getPVLine() const {

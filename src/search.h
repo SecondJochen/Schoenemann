@@ -54,7 +54,7 @@ public:
 	std::uint8_t reductions[MAX_PLY][MAX_MOVES];
 	SearchStack stack[MAX_PLY];
 
-	int pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCutNode);
+	int pvs(int alpha, int beta, int depth, int ply, Board &board);
 	int qs(int alpha, int beta, Board &board, int ply);
 
 	static int scaleOutput(int rawEval, const Board &board);

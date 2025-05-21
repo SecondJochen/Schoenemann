@@ -67,15 +67,15 @@ public:
 
     static int scoreToTT(const int score, const int ply)
     {
-        return score >= infinity    ? score + ply
-               : score <= -infinity ? score - ply
+        return score >= EVAL_INFINITE    ? score + ply
+               : score <= -EVAL_INFINITE ? score - ply
                                     : score;
     }
 
     static int scoreFromTT(const int score, const int ply)
     {
-        return score >= infinity    ? score - ply
-               : score <= -infinity ? score + ply
+        return score >= EVAL_INFINITE    ? score - ply
+               : score <= -EVAL_INFINITE ? score + ply
                                     : score;
     }
 

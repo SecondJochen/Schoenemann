@@ -21,14 +21,11 @@
 #define CONSTS_H
 
 #include <iostream>
-#include <cstdint>
 
 const std::string STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 // Bench depth
-constexpr std::uint8_t benchDepth = 10;
-
-constexpr std::uint16_t NO_VALUE = 50000;
+constexpr int benchDepth = 4;
 
 constexpr int hashMoveScore = 500000;
 constexpr int killerScore = 300000;
@@ -36,10 +33,23 @@ constexpr int promotion = 200000;
 constexpr int goodCapture = 400000;
 constexpr int badCapture = -500000;
 
-constexpr int infinity = 30000;
-constexpr std::uint16_t CORRHIST_LIMIT = 1024;
-constexpr std::uint8_t MAX_PLY = 246;
-constexpr std::uint8_t MAX_MOVES = 218;
+constexpr int CORRHIST_LIMIT = 1024;
+constexpr int MAX_PLY = 246;
+constexpr int MAX_MOVES = 218;
+
+constexpr int EVAL_MATE = 30000;
+constexpr int EVAL_INFINITE = 31000;
+constexpr int EVAL_NONE = 31100;
+constexpr int EVAL_MATE_IN_MAX_PLY = EVAL_MATE - MAX_PLY;
+
+constexpr int mateIn(const int ply) {
+	return EVAL_MATE - ply;
+}
+
+constexpr int matedIn(const int ply) {
+	return -EVAL_MATE + ply;
+}
+
 
 const std::string testStrings[] = {
 	STARTPOS,
