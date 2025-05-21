@@ -14,7 +14,7 @@ struct alignas(1024) SearchStack
 	Move killerMove = Move::NULL_MOVE;				// (4 Byte)
 	PieceType previousMovedPiece = PieceType::NONE; // (1 Byte)
 	Move previousMove = Move::NULL_MOVE;			// (4 Byte)
-	Move exludedMove = Move::NULL_MOVE;				// (4 Byte)
+	Move excludedMove = Move::NULL_MOVE;				// (4 Byte)
 };
 
 #endif

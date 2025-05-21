@@ -75,7 +75,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
     // If depth is 0 we drop into qs to get a neutral position
     if (depth <= 0)
     {
-        return qs(alpha, beta, board, ply);
+        return evaluate(board);
     }
 
     // Make sure that depth is always lower than MAX_PLY
@@ -92,7 +92,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
 
     int scoreMoves[MAX_MOVES] = {};
     // Sort the list
-    //MoveOrder::orderMoves(&history, moveList, nullptr, stack[ply].killerMove, stack, board, scoreMoves, ply);
+    MoveOrder::orderMoves(&history, moveList, nullptr, stack[ply].killerMove, stack, board, scoreMoves, ply);
 
     // Set up values for the search
     int score = 0;
