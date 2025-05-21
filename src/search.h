@@ -58,6 +58,7 @@ public:
 	int qs(int alpha, int beta, Board &board, int ply);
 
 	static int scaleOutput(int rawEval, const Board &board);
+	int evaluate(const Board &board) const;
 
 	void iterativeDeepening(Board &board, bool isInfinite);
 	void initLMR();

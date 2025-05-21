@@ -59,22 +59,23 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
         stack[ply].pvLength = 0;
     }
 
-    // Every 128 we check for a timeout
     if (!root)
     {
+        // We check for a timeout
         if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
         {
             shouldStop = true;
         }
-        if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1 || (board.isHalfMoveDraw() || board.isRepetition() || board.isInsufficientMaterial())) {
-            return ply >= MAX_PLY - 1 && board.inCheck() ? std::clamp(net.evaluate(board.sideToMove(), board.occ().count()), -EVAL_MATE, EVAL_MATE) : 0;
+
+        if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1 || board.isHalfMoveDraw() || board.isRepetition() || board.isInsufficientMaterial()) {
+            return ply >= MAX_PLY - 1 && board.inCheck() ? evaluate(board) : 0;
         }
     }
 
     // If depth is 0 we drop into qs to get a neutral position
     if (depth <= 0)
     {
-        return std::clamp(net.evaluate(board.sideToMove(), board.occ().count()), -EVAL_MATE, EVAL_MATE);
+        return qs(alpha, beta, board, ply);
     }
 
     // Make sure that depth is always lower than MAX_PLY
@@ -101,7 +102,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
 
     for (int i = 0; i < moveList.size(); i++)
     {
-        Move move = moveOrder.sortByScore(moveList, scoreMoves, i);
+        const Move move = moveOrder.sortByScore(moveList, scoreMoves, i);
 
         board.makeMove(move);
         moveCount++;
@@ -163,64 +164,30 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
     // Increment nodes by one
     nodes++;
 
-    if (shouldStop)
-    {
-        return beta;
+    const bool pvNode = beta > alpha + 1;
+
+    // Set the pvLength to zero
+    if (pvNode) {
+        stack[ply].pvLength = 0;
     }
 
+    const bool root = ply == 0;
+
     // Every 128 we check for a timeout
-    if (nodes % 128 == 0)
+    if (!root)
     {
         if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
         {
             shouldStop = true;
-            return beta;
         }
-
-        if (hasNodeLimit)
-        {
-            if (nodes >= nodeLimit)
-            {
-                shouldStop = true;
-                return beta;
-            }
+        if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1 || (board.isHalfMoveDraw() || board.isRepetition() || board.isInsufficientMaterial())) {
+            return ply >= MAX_PLY - 1 && board.inCheck() ? std::clamp(net.evaluate(board.sideToMove(), board.occ().count()), -EVAL_MATE, EVAL_MATE) : 0;
         }
     }
-
-    // Set the pvLength to zero
-    stack[ply].pvLength = 0;
-
-    // Check for a draw
-    if (board.isHalfMoveDraw() || board.isRepetition() || board.isInsufficientMaterial())
-    {
-        return 0;
-    }
-
-    const bool pvNode = beta > alpha + 1;
 
     const bool inCheck = board.inCheck();
 
-    int hashedScore = 0;
-    int standPat = EVAL_NONE;
-    std::uint8_t hashedType = 0;
-
-
-    if (ply >= MAX_PLY) {
-        return scaleOutput(net.evaluate(board.sideToMove(), board.occ().count()), board);
-    }
-
-    if (!inCheck && tt::checkForMoreInformation(hashedType, hashedScore, standPat))
-    {
-        standPat = hashedScore;
-    }
-
-    if (standPat == EVAL_NONE)
-    {
-        standPat = scaleOutput(net.evaluate(board.sideToMove(), board.occ().count()), board);
-    }
-
-    const int rawEval = standPat;
-    standPat = std::clamp(history.correctEval(standPat, board), -EVAL_INFINITE, EVAL_INFINITE);
+    const int standPat = evaluate(board);
 
     if (standPat >= beta)
     {
@@ -238,7 +205,7 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
     int bestScore = standPat;
     Move bestMoveInQs = Move::NULL_MOVE;
 
-    for (Move &move : moveList)
+    for (const Move &move : moveList)
     {
         board.makeMove(move);
 
@@ -395,6 +362,10 @@ int Search::scaleOutput(const int rawEval, const Board &board)
     const int finalEval = rawEval * (materialScaleGamePhaseAdd + gamePhase) / materialScaleGamePhaseDiv;
 
     return std::clamp(finalEval, -EVAL_MATE, EVAL_MATE);
+}
+
+int Search::evaluate(const Board &board) const {
+    return std::clamp(net.evaluate(board.sideToMove(), board.occ().count()), -EVAL_MATE, EVAL_MATE);
 }
 
 std::string Search::getPVLine() const {
