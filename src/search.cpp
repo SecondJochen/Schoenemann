@@ -83,7 +83,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
     // If depth is 0 we drop into qs to get a neutral position
     if (depth <= 0)
     {
-        return net.evaluate(board.sideToMove(), board.occ().count());
+        return std::clamp(net.evaluate(board.sideToMove(), board.occ().count()), -EVAL_MATE, EVAL_MATE);
     }
 
     // Make sure that depth is always lower than MAX_PLY
@@ -411,7 +411,7 @@ int Search::scaleOutput(const int rawEval, const Board &board)
 
     const int finalEval = rawEval * (materialScaleGamePhaseAdd + gamePhase) / materialScaleGamePhaseDiv;
 
-    return std::clamp(finalEval, -EVAL_INFINITE, EVAL_INFINITE);
+    return std::clamp(finalEval, -EVAL_MATE, EVAL_MATE);
 }
 
 std::string Search::getPVLine() const {
