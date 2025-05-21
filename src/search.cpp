@@ -63,10 +63,10 @@ DEFINE_PARAM_B(pvsSSECaptureCutoff, 92, 60, 120);
 DEFINE_PARAM_B(pvsSSENonCaptureCutoff, 18, 11, 25);
 
 // Aspiration Window
-DEFINE_PARAM_B(aspDelta, 26, 18, 36);
+//DEFINE_PARAM_B(aspDelta, 26, 18, 36);
 // DEFINE_PARAM_B(aspDivisor, 2, 2, 8); When tuned this triggers crashes :(
-DEFINE_PARAM_B(aspMul, 134, 100, 163);
-DEFINE_PARAM_B(aspDepth, 7, 6, 8);
+//DEFINE_PARAM_B(aspMul, 134, 100, 163);
+//DEFINE_PARAM_B(aspDepth, 7, 6, 8);
 
 // Late Move Reductions
 DEFINE_PARAM_B(lmrBase, 78, 50, 105);
@@ -125,6 +125,7 @@ DEFINE_PARAM_B(ideaMoveCount, 3, 2, 4);
 
 int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCutNode)
 {
+    //assert(-infinity <= alpha && alpha < beta && beta <= infinity);
     // Increment nodes by one
     nodes++;
 
@@ -381,12 +382,12 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
 
     if (moveList.size() == 0)
     {
-        return inCheck ? -infinity + ply : 0;
+        return inCheck ? -infinity + ply + 1 : 0;
     }
 
     int scoreMoves[MAX_MOVES] = {};
     // Sort the list
-    moveOrder.orderMoves(&history, moveList, entry, stack[ply].killerMove, stack, board, scoreMoves, ply);
+    MoveOrder::orderMoves(&history, moveList, entry, stack[ply].killerMove, stack, board, scoreMoves, ply);
 
     // Set up values for the search
     int score = 0;
@@ -510,6 +511,8 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
 
         board.unmakeMove(move);
 
+        //assert(score > -infinity && score < infinity);
+
         if (score > bestScore)
         {
             bestScore = score;
@@ -586,6 +589,8 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
         }
     }
 
+    //assert(bestScore > -infinity && bestScore < infinity);
+
     std::uint8_t finalType;
     // Calculate the node type
     if (bestScore >= beta)
@@ -603,7 +608,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board, bool isCu
 
     if (!isSingularSearch)
     {
-        transpositionTabel.storeEvaluation(zobristKey, depth, finalType, transpositionTabel.scoreToTT(bestScore, ply), bestMoveInPVS, rawEval);
+        transpositionTabel.storeEvaluation(zobristKey, depth, finalType, tt::scoreToTT(bestScore, ply), bestMoveInPVS, rawEval);
     }
 
     if (!inCheck && (bestMoveInPVS == Move::NULL_MOVE || !board.isCapture(bestMoveInPVS)) && (finalType == EXACT || (finalType == UPPER_BOUND && bestScore <= staticEval) || (finalType == LOWER_BOUND && bestScore > staticEval)))
@@ -668,7 +673,7 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
     {
         if (zobristKey == entry->key)
         {
-            hashedScore = transpositionTabel.scoreFromTT(entry->score, ply);
+            hashedScore = tt::scoreFromTT(entry->score, ply);
             hashedType = entry->type;
             standPat = entry->eval;
         }
@@ -775,14 +780,14 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
     // Checks for checkmate
     if (bestScore == -infinity)
     {
-        return -infinity + ply;
+        return -infinity + ply + 1;
     }
 
     if (stack[ply].exludedMove == Move::NULL_MOVE)
     {
-        transpositionTabel.storeEvaluation(zobristKey, 0, bestScore >= beta ? LOWER_BOUND : UPPER_BOUND, transpositionTabel.scoreToTT(bestScore, ply), bestMoveInQs, standPat);
+        transpositionTabel.storeEvaluation(zobristKey, 0, bestScore >= beta ? LOWER_BOUND : UPPER_BOUND, tt::scoreToTT(bestScore, ply), bestMoveInQs, standPat);
     }
-    transpositionTabel.storeEvaluation(zobristKey, 0, bestScore >= beta ? LOWER_BOUND : UPPER_BOUND, transpositionTabel.scoreToTT(bestScore, ply), bestMoveInQs, rawEval);
+    transpositionTabel.storeEvaluation(zobristKey, 0, bestScore >= beta ? LOWER_BOUND : UPPER_BOUND, tt::scoreToTT(bestScore, ply), bestMoveInQs, rawEval);
 
     return bestScore;
 }
@@ -841,7 +846,6 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite)
             else {
                 beta = std::min(beta + delta, infinity);
             }
-
             delta += delta * 3;
         }
 
