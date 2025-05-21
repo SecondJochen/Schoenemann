@@ -51,7 +51,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
     // Increment nodes by one
     nodes++;
 
-    const bool root = ply > 0;
+    const bool root = ply == 0;
     const bool pvNode = beta > alpha + 1;
 
     // Set the pvLength to zero
