@@ -163,9 +163,7 @@ int Search::qs(int alpha, int beta, Board &board, int ply) {
         }
         if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1 || board.isHalfMoveDraw() || board.
             isRepetition() || board.isInsufficientMaterial()) {
-            return ply >= MAX_PLY - 1 && board.inCheck()
-                       ? std::clamp(net.evaluate(board.sideToMove(), board.occ().count()), -EVAL_MATE, EVAL_MATE)
-                       : 0;
+            return ply >= MAX_PLY - 1 && board.inCheck() ? evaluate(board) : 0;
         }
     }
 
