@@ -59,7 +59,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
     const bool root = ply > 0;
 
     // Every 128 we check for a timeout
-    if (nodes % 128 == 0)
+    if (ply > 0)
     {
         if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
         {
