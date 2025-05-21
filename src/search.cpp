@@ -51,11 +51,6 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
     // Increment nodes by one
     nodes++;
 
-    if (shouldStop)
-    {
-        return beta;
-    }
-
     const bool root = ply > 0;
 
     // Every 128 we check for a timeout
@@ -64,16 +59,9 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
         if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
         {
             shouldStop = true;
-            return beta;
         }
-
-        if (hasNodeLimit)
-        {
-            if (nodes >= nodeLimit)
-            {
-                shouldStop = true;
-                return beta;
-            }
+        if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1 || (board.isHalfMoveDraw() || board.isRepetition() || board.isInsufficientMaterial())) {
+            return ply >= MAX_PLY - 1 && board.inCheck() ? std::clamp(net.evaluate(board.sideToMove(), board.occ().count()), -EVAL_MATE, EVAL_MATE) : 0;
         }
     }
 
@@ -89,12 +77,6 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
     // Make sure that depth is always lower than MAX_PLY
     if (depth >= MAX_PLY - 1) {
         depth = MAX_PLY - 1;
-    }
-
-    // Check for a draw
-    if (!root && (board.isHalfMoveDraw() || board.isRepetition() || board.isInsufficientMaterial()))
-    {
-        return 0;
     }
 
     // Get some important search constants
