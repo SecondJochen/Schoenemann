@@ -52,9 +52,15 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
     nodes++;
 
     const bool root = ply > 0;
+    const bool pvNode = beta > alpha + 1;
+
+    // Set the pvLength to zero
+    if (pvNode) {
+        stack[ply].pvLength = 0;
+    }
 
     // Every 128 we check for a timeout
-    if (ply > 0)
+    if (!root)
     {
         if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
         {
@@ -64,9 +70,6 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
             return ply >= MAX_PLY - 1 && board.inCheck() ? std::clamp(net.evaluate(board.sideToMove(), board.occ().count()), -EVAL_MATE, EVAL_MATE) : 0;
         }
     }
-
-    // Set the pvLength to zero
-    stack[ply].pvLength = 0;
 
     // If depth is 0 we drop into qs to get a neutral position
     if (depth <= 0)
@@ -79,8 +82,6 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
         depth = MAX_PLY - 1;
     }
 
-    // Get some important search constants
-    const bool pvNode = beta > alpha + 1;
     const bool inCheck = board.inCheck();
 
     //const int staticEval = net.evaluate(board.sideToMove(), board.occ().count());
