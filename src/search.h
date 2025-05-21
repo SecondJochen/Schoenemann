@@ -25,54 +25,60 @@
 #include "moveorder.h"
 #include "search_fwd.h"
 
-class Search
-{
+class Search {
 public:
-	Search(Time &timeManagement,
-		   tt &transpositionTabel,
-		   MoveOrder &moveOrder,
-		   Network &net) : reductions{}, stack{}, timeManagement(timeManagement),
-		                   transpositionTabel(transpositionTabel), history(),
-		                   moveOrder(moveOrder),
-		                   net(net) {
-	}
+    Search(Time &timeManagement,
+           tt &transpositionTabel,
+           MoveOrder &moveOrder,
+           Network &net) : reductions{}, stack{}, timeManagement(timeManagement),
+                           transpositionTabel(transpositionTabel), history(),
+                           moveOrder(moveOrder),
+                           net(net) {
+    }
 
-	Move rootBestMove = Move::NULL_MOVE;
-	Move previousBestMove = Move::NULL_MOVE;
+    Move rootBestMove = Move::NULL_MOVE;
+    Move previousBestMove = Move::NULL_MOVE;
 
-	bool shouldStop = false;
-	bool isNormalSearch = true;
-	bool hasNodeLimit = false;
+    bool shouldStop = false;
+    bool isNormalSearch = true;
+    bool hasNodeLimit = false;
 
-	std::uint64_t nodeLimit = 0;
-	std::uint64_t timeForMove = 0;
-	std::uint64_t nodes = 0;
+    std::uint64_t nodeLimit = 0;
+    std::uint64_t timeForMove = 0;
+    std::uint64_t nodes = 0;
 
-	int scoreData = 0;
-	int previousBestScore = 0;
+    int scoreData = 0;
+    int previousBestScore = 0;
 
-	std::uint8_t reductions[MAX_PLY][MAX_MOVES];
-	SearchStack stack[MAX_PLY];
+    std::uint8_t reductions[MAX_PLY][MAX_MOVES];
+    SearchStack stack[MAX_PLY];
 
-	int pvs(int alpha, int beta, int depth, int ply, Board &board);
-	int qs(int alpha, int beta, Board &board, int ply);
+    int pvs(int alpha, int beta, int depth, int ply, Board &board);
 
-	static int scaleOutput(int rawEval, const Board &board);
-	int evaluate(const Board &board) const;
+    int qs(int alpha, int beta, Board &board, int ply);
 
-	void iterativeDeepening(Board &board, bool isInfinite);
-	void initLMR();
-	void resetHistory();
+    static int scaleOutput(int rawEval, const Board &board);
 
-	static std::string scoreToUci(const int &score);
+    int evaluate(const Board &board) const;
+
+    void updatePv(int ply, const Move &move);
+
+    void iterativeDeepening(Board &board, bool isInfinite);
+
+    void initLMR();
+
+    void resetHistory();
+
+    static std::string scoreToUci(const int &score);
 
 private:
-	std::string getPVLine() const;
-	Time &timeManagement;
-	tt &transpositionTabel;
-	History history;
-	MoveOrder &moveOrder;
-	Network &net;
+    std::string getPVLine() const;
+
+    Time &timeManagement;
+    tt &transpositionTabel;
+    History history;
+    MoveOrder &moveOrder;
+    Network &net;
 };
 
 #endif

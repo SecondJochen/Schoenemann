@@ -27,29 +27,27 @@
 struct EngineParameter;
 
 EngineParameter *findEngineParameterByName(const std::string &name);
+
 void addEngineParameter(EngineParameter *parameter);
 
 // UCI Stuff
 std::string engineParameterToUCI();
+
 std::string engineParameterToSpsaInput();
 
-struct EngineParameter
-{
+struct EngineParameter {
     std::string name;
     int value;
     int min;
     int max;
 
-    explicit operator int() const
-    {
+    explicit operator int() const {
         return value;
     }
 
     EngineParameter(std::string parameterName, int startValue, int minValue, int maxValue)
-        : name(parameterName), value(startValue), min(minValue), max(maxValue)
-    {
-        if (this->max < this->min)
-        {
+        : name(parameterName), value(startValue), min(minValue), max(maxValue) {
+        if (this->max < this->min) {
             std::cout << "Max Value is smaller than the Min value" << std::endl;
         }
 

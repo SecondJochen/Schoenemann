@@ -23,49 +23,41 @@
 
 std::vector<EngineParameter *> engineParameter;
 
-EngineParameter *findEngineParameterByName(const std::string &name)
-{
+EngineParameter *findEngineParameterByName(const std::string &name) {
     // Loop over the whole vector
-    for (EngineParameter *e : engineParameter)
-    {
-        if (e->name == name)
-        {
+    for (EngineParameter *e: engineParameter) {
+        if (e->name == name) {
             return e;
         }
     }
     return nullptr;
 }
 
-void addEngineParameter(EngineParameter *parameter)
-{
+void addEngineParameter(EngineParameter *parameter) {
     engineParameter.push_back(parameter);
 }
 
-std::string engineParameterToUCI()
-{
+std::string engineParameterToUCI() {
     std::stringstream stream;
-    for (EngineParameter *e : engineParameter)
-    {
-        if (e->max == e->min)
-        {
+    for (EngineParameter *e: engineParameter) {
+        if (e->max == e->min) {
             continue;
         }
-        
+
         stream << "option name " << e->name << " type spin default " << e->value << " min -999999999 max 999999999\n";
     }
     return stream.str();
 }
 
-std::string engineParameterToSpsaInput()
-{
+std::string engineParameterToSpsaInput() {
     std::stringstream stream;
-    for (EngineParameter *e : engineParameter)
-    {
-        if (e->max == e->min)
-        {
+    for (EngineParameter *e: engineParameter) {
+        if (e->max == e->min) {
             continue;
         }
-        stream << e->name << ", int, " << static_cast<double>(e->value) << ", " << static_cast<double>(e->min) << ", " << static_cast<double>(e->max) << ", " << std::max(0.5, static_cast<double>(e->max - e->min) / 20.0) << ", " << 0.002 << "\n";
+        stream << e->name << ", int, " << static_cast<double>(e->value) << ", " << static_cast<double>(e->min) << ", "
+                << static_cast<double>(e->max) << ", " << std::max(0.5, static_cast<double>(e->max - e->min) / 20.0) <<
+                ", " << 0.002 << "\n";
     }
     return stream.str();
 }
@@ -98,14 +90,16 @@ EngineParameter* PIECE_VALUES[7] = {
 
 #else
 
-int* SEE_PIECE_VALUES[7] = {
+int *SEE_PIECE_VALUES[7] = {
     const_cast<int *>(&seePawn), const_cast<int *>(&seeKnight), const_cast<int *>(&seeBishop),
-    const_cast<int *>(&seeRook), const_cast<int *>(&seeQueen), const_cast<int *>(&seeEmpty), const_cast<int *>(&seeEmpty)
+    const_cast<int *>(&seeRook), const_cast<int *>(&seeQueen), const_cast<int *>(&seeEmpty),
+    const_cast<int *>(&seeEmpty)
 };
 
-int* PIECE_VALUES[7] = {
+int *PIECE_VALUES[7] = {
     const_cast<int *>(&piecePawn), const_cast<int *>(&pieceKnight), const_cast<int *>(&pieceBishop),
-    const_cast<int *>(&pieceRook), const_cast<int *>(&pieceQueen), const_cast<int *>(&pieceKing), const_cast<int *>(&pieceEmpty)
+    const_cast<int *>(&pieceRook), const_cast<int *>(&pieceQueen), const_cast<int *>(&pieceKing),
+    const_cast<int *>(&pieceEmpty)
 };
 
 #endif

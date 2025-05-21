@@ -45,8 +45,7 @@ DEFINE_PARAM_B(materialScaleQueen, 18, 12, 24);
 DEFINE_PARAM_B(materialScaleGamePhaseAdd, 169, 120, 220);
 DEFINE_PARAM_B(materialScaleGamePhaseDiv, 269, 220, 320);
 
-int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
-{
+int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
     assert(-EVAL_INFINITE <= alpha && alpha < beta && beta <= EVAL_INFINITE);
     // Increment nodes by one
     nodes++;
@@ -59,23 +58,21 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
         stack[ply].pvLength = 0;
     }
 
-    if (!root)
-    {
+    if (!root) {
         // We check for a timeout
-        if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
-        {
+        if (timeManagement.shouldStopSoft(start) && !isNormalSearch) {
             shouldStop = true;
         }
 
-        if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1 || board.isHalfMoveDraw() || board.isRepetition() || board.isInsufficientMaterial()) {
+        if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1 || board.isHalfMoveDraw() || board.
+            isRepetition() || board.isInsufficientMaterial()) {
             return ply >= MAX_PLY - 1 && board.inCheck() ? evaluate(board) : 0;
         }
     }
 
     // If depth is 0 we drop into qs to get a neutral position
-    if (depth <= 0)
-    {
-        return evaluate(board);
+    if (depth <= 0) {
+        return qs(alpha, beta, board, ply);
     }
 
     // Make sure that depth is always lower than MAX_PLY
@@ -100,8 +97,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
     int moveCount = 0;
     Move bestMoveInPVS = Move::NULL_MOVE;
 
-    for (int i = 0; i < moveList.size(); i++)
-    {
+    for (int i = 0; i < moveList.size(); i++) {
         const Move move = moveOrder.sortByScore(moveList, scoreMoves, i);
 
         board.makeMove(move);
@@ -113,38 +109,25 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
 
         assert(score > -EVAL_INFINITE && score < EVAL_INFINITE);
 
-        if (score > bestScore)
-        {
+        if (score > bestScore) {
             bestScore = score;
-            if (score > alpha)
-            {
+            if (score > alpha) {
                 alpha = score;
                 bestMoveInPVS = move;
 
                 // If we are ate the root we set the bestMove
-                if (ply == 0)
-                {
+                if (ply == 0) {
                     rootBestMove = move;
                 }
 
                 // Update the pvLine
-                if (pvNode)
-                {
-                    if (stack[ply].pvLength < MAX_PLY)
-                    {
-                        stack[ply].pvLine[0] = move;
-                        stack[ply].pvLength = stack[ply + 1].pvLength + 1;
-                        for (std::uint16_t x = 0; x < stack[ply + 1].pvLength; x++)
-                        {
-                            stack[ply].pvLine[x + 1] = stack[ply + 1].pvLine[x];
-                        }
-                    }
+                if (pvNode) {
+                    updatePv(ply, move);
                 }
             }
 
             // Beta cutoff
-            if (score >= beta)
-            {
+            if (score >= beta) {
                 break;
             }
         }
@@ -159,8 +142,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
     return bestScore;
 }
 
-int Search::qs(int alpha, int beta, Board &board, int ply)
-{
+int Search::qs(int alpha, int beta, Board &board, int ply) {
     // Increment nodes by one
     nodes++;
 
@@ -174,15 +156,16 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
     const bool root = ply == 0;
 
     // Every 128 we check for a timeout
-    if (!root)
-    {
+    if (!root) {
         assert(alpha >= -EVAL_INFINITE && alpha < beta && beta <= EVAL_INFINITE);
-        if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
-        {
+        if (timeManagement.shouldStopSoft(start) && !isNormalSearch) {
             shouldStop = true;
         }
-        if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1 || board.isHalfMoveDraw() || board.isRepetition() || board.isInsufficientMaterial()) {
-            return ply >= MAX_PLY - 1 && board.inCheck() ? std::clamp(net.evaluate(board.sideToMove(), board.occ().count()), -EVAL_MATE, EVAL_MATE) : 0;
+        if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1 || board.isHalfMoveDraw() || board.
+            isRepetition() || board.isInsufficientMaterial()) {
+            return ply >= MAX_PLY - 1 && board.inCheck()
+                       ? std::clamp(net.evaluate(board.sideToMove(), board.occ().count()), -EVAL_MATE, EVAL_MATE)
+                       : 0;
         }
     }
 
@@ -190,13 +173,11 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
 
     const int standPat = evaluate(board);
 
-    if (standPat >= beta)
-    {
+    if (standPat >= beta) {
         return standPat;
     }
 
-    if (alpha < standPat)
-    {
+    if (alpha < standPat) {
         alpha = standPat;
     }
 
@@ -207,8 +188,7 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
     Move bestMoveInQs = Move::NULL_MOVE;
     int moveCount = 0;
 
-    for (const Move &move : moveList)
-    {
+    for (const Move &move: moveList) {
         board.makeMove(move);
         moveCount++;
 
@@ -217,40 +197,30 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
 
         board.unmakeMove(move);
         // Our current Score is better than the previous bestScore so we update it
-        if (score > bestScore)
-        {
+        if (score > bestScore) {
             bestScore = score;
 
             // Score is greater than alpha so we update alpha to the score
-            if (score > alpha)
-            {
+            if (score > alpha) {
                 alpha = score;
 
                 // Update pvLine
-                if (stack[ply].pvLength < MAX_PLY)
-                {
-                    stack[ply].pvLine[0] = move;
-                    stack[ply].pvLength = stack[ply + 1].pvLength + 1;
-                    for (std::uint16_t i = 0; i < stack[ply + 1].pvLength; i++)
-                    {
-                        stack[ply].pvLine[i + 1] = stack[ply + 1].pvLine[i];
-                    }
+                if (pvNode) {
+                    updatePv(ply, move);
                 }
 
                 bestMoveInQs = move;
             }
 
             // Beta cutoff
-            if (score >= beta)
-            {
+            if (score >= beta) {
                 break;
             }
         }
     }
 
     // Checks for checkmate
-    if (bestScore == -EVAL_INFINITE)
-    {
+    if (bestScore == -EVAL_INFINITE) {
         assert(moveCount == 0);
         bestScore = matedIn(ply);
     }
@@ -258,8 +228,7 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
     return bestScore;
 }
 
-void Search::iterativeDeepening(Board &board, const bool isInfinite)
-{
+void Search::iterativeDeepening(Board &board, const bool isInfinite) {
     start = std::chrono::steady_clock::now();
     timeManagement.calculateTimeForMove();
 
@@ -273,8 +242,7 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite)
 
     isNormalSearch = false;
 
-    if (isInfinite)
-    {
+    if (isInfinite) {
         isNormalSearch = true;
     }
 
@@ -283,17 +251,14 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite)
     int alpha = -EVAL_INFINITE;
     int beta = EVAL_INFINITE;
 
-    for (int i = 1; i < MAX_PLY; i++)
-    {
-        if (i > 7)
-        {
+    for (int i = 1; i < MAX_PLY; i++) {
+        if (i > 7) {
             previousBestScore = scoreData;
         }
 
         scoreData = pvs(alpha, beta, i, 0, board);
 
-        if (i > 6)
-        {
+        if (i > 6) {
             // Update the previous best move
             previousBestMove = bestMoveThisIteration;
         }
@@ -301,30 +266,27 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite)
         // Get the new best move
         bestMoveThisIteration = rootBestMove;
 
-        if (i > 6)
-        {
+        if (i > 6) {
             timeManagement.updateBestMoveStability(bestMoveThisIteration, previousBestMove);
         }
 
-        if (i > 7)
-        {
+        if (i > 7) {
             timeManagement.updateEvalStability(scoreData, previousBestScore);
         }
 
         std::chrono::duration<double, std::milli> elapsed = std::chrono::steady_clock::now() - start;
         std::cout
-            << "info depth "
-            << i
-            << scoreToUci(scoreData) << " nodes "
-            << nodes << " nps "
-            << static_cast<std::uint64_t>(nodes / (elapsed.count() + 1) * 1000) << " pv "
-            << getPVLine()
-            << std::endl;
+                << "info depth "
+                << i
+                << scoreToUci(scoreData) << " nodes "
+                << nodes << " nps "
+                << static_cast<std::uint64_t>(nodes / (elapsed.count() + 1) * 1000) << " pv "
+                << getPVLine()
+                << std::endl;
 
         // std::cout << "Time for this move: " << timeForMove << " | Time used: " << static_cast<int>(elapsed.count()) << " | Depth: " << i << " | bestmove: " << bestMove << std::endl;
 
-        if ((timeManagement.shouldStopID(start) && !isInfinite) || i == MAX_PLY - 1 || nodes == nodeLimit)
-        {
+        if ((timeManagement.shouldStopID(start) && !isInfinite) || i == MAX_PLY - 1 || nodes == nodeLimit) {
             std::cout << "bestmove " << uci::moveToUci(bestMoveThisIteration) << std::endl;
             break;
         }
@@ -333,8 +295,7 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite)
     isNormalSearch = true;
 }
 
-std::string Search::scoreToUci(const int &score)
-{
+std::string Search::scoreToUci(const int &score) {
     if (score >= EVAL_MATE_IN_MAX_PLY) {
         return " mate " + std::to_string((EVAL_MATE - score) / 2 + 1);
     }
@@ -344,25 +305,22 @@ std::string Search::scoreToUci(const int &score)
     return " cp " + std::to_string(score);
 }
 
-void Search::initLMR()
-{
+void Search::initLMR() {
     constexpr double lmrBaseFinal = lmrBase / 100.0;
     constexpr double lmrDivisorFinal = lmrDivisor / 100.0;
-    for (int depth = 1; depth < MAX_PLY; depth++)
-    {
-        for (int moveCount = 1; moveCount < 218; moveCount++)
-        {
-            reductions[depth][moveCount] = static_cast<std::uint8_t>(std::clamp(lmrBaseFinal + std::log(depth) * std::log(moveCount) / lmrDivisorFinal, 0.0, 255.0));
+    for (int depth = 1; depth < MAX_PLY; depth++) {
+        for (int moveCount = 1; moveCount < 218; moveCount++) {
+            reductions[depth][moveCount] = static_cast<std::uint8_t>(std::clamp(
+                lmrBaseFinal + std::log(depth) * std::log(moveCount) / lmrDivisorFinal, 0.0, 255.0));
         }
     }
 }
 
-int Search::scaleOutput(const int rawEval, const Board &board)
-{
+int Search::scaleOutput(const int rawEval, const Board &board) {
     const int gamePhase = materialScaleKnight * board.pieces(PieceType::KNIGHT).count() +
-                    materialScaleBishop * board.pieces(PieceType::BISHOP).count() +
-                    materialScaleRook * board.pieces(PieceType::ROOK).count() +
-                    materialScaleQueen * board.pieces(PieceType::QUEEN).count();
+                          materialScaleBishop * board.pieces(PieceType::BISHOP).count() +
+                          materialScaleRook * board.pieces(PieceType::ROOK).count() +
+                          materialScaleQueen * board.pieces(PieceType::QUEEN).count();
 
     const int finalEval = rawEval * (materialScaleGamePhaseAdd + gamePhase) / materialScaleGamePhaseDiv;
 
@@ -373,16 +331,22 @@ int Search::evaluate(const Board &board) const {
     return std::clamp(net.evaluate(board.sideToMove(), board.occ().count()), -EVAL_MATE, EVAL_MATE);
 }
 
+void Search::updatePv(const int ply, const Move &move) {
+    stack[ply].pvLine[0] = move;
+    stack[ply].pvLength = stack[ply + 1].pvLength + 1;
+    for (std::uint16_t i = 0; i < stack[ply + 1].pvLength; i++) {
+        stack[ply].pvLine[i + 1] = stack[ply + 1].pvLine[i];
+    }
+}
+
 std::string Search::getPVLine() const {
     std::string pvLine;
-    for (std::uint16_t i = 0; i < stack[0].pvLength; i++)
-    {
+    for (std::uint16_t i = 0; i < stack[0].pvLength; i++) {
         pvLine += uci::moveToUci(stack[0].pvLine[i]) + " ";
     }
     return pvLine;
 }
 
-void Search::resetHistory()
-{
+void Search::resetHistory() {
     history.resetHistorys();
 }

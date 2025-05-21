@@ -19,11 +19,10 @@
 
 #include "time.h"
 
-void Time::calculateTimeForMove()
-{
+void Time::calculateTimeForMove() {
     // Only use half of out time as maximum
     timeLeft -= timeLeft / 2;
-    
+
     hardLimit = softLimit = timeLeft;
 
     // Calculate the base and the max time
@@ -43,32 +42,23 @@ void Time::calculateTimeForMove()
     hardLimit = std::max(hardLimit, 1.0);
 }
 
-void Time::updateBestMoveStability(const Move bestMove, const Move previousBestMove)
-{
-    if (bestMove == previousBestMove && bestMoveStabilityCount < 10)
-    {
+void Time::updateBestMoveStability(const Move bestMove, const Move previousBestMove) {
+    if (bestMove == previousBestMove && bestMoveStabilityCount < 10) {
         bestMoveStabilityCount++;
-    }
-    else
-    {
+    } else {
         bestMoveStabilityCount = 0;
     }
 }
 
-void Time::updateEvalStability(int score, int previousScore)
-{
-    if (score > (previousScore - 10) && bestEvalStabilityCount < 10)
-    {
+void Time::updateEvalStability(int score, int previousScore) {
+    if (score > (previousScore - 10) && bestEvalStabilityCount < 10) {
         bestMoveStabilityCount++;
-    }
-    else
-    {
+    } else {
         bestMoveStabilityCount = 0;
     }
 }
 
-void Time::reset()
-{
+void Time::reset() {
     bestMoveStabilityCount = 0;
     bestEvalStabilityCount = 0;
 

@@ -21,77 +21,68 @@
 
 #include <cstring>
 
-void tt::storeEvaluation(std::uint64_t key, std::uint8_t depth, std::uint8_t type, std::int16_t score, Move move, std::int16_t eval) const noexcept
-{
-	const std::uint64_t index = key % size;
+void tt::storeEvaluation(std::uint64_t key, std::uint8_t depth, std::uint8_t type, std::int16_t score, Move move,
+                         std::int16_t eval) const noexcept {
+    const std::uint64_t index = key % size;
 
-	// Get the HashNode
-	Hash *node = table + index;
+    // Get the HashNode
+    Hash *node = table + index;
 
-	// Store the entry
-	node->setEntry(key, depth, type, score, move, eval);
+    // Store the entry
+    node->setEntry(key, depth, type, score, move, eval);
 }
 
-Hash *tt::getHash(std::uint64_t zobristKey) const noexcept
-{
-	// Gets the index based on the zobrist key
-	const std::uint64_t index = zobristKey % size;
+Hash *tt::getHash(std::uint64_t zobristKey) const noexcept {
+    // Gets the index based on the zobrist key
+    const std::uint64_t index = zobristKey % size;
 
-	// Check if we got the key in our Hash
-	if (Hash *node = table + index; node->key == zobristKey)
-	{
-		return node;
-	}
+    // Check if we got the key in our Hash
+    if (Hash *node = table + index; node->key == zobristKey) {
+        return node;
+    }
 
-	// Returns a nullptr if nothing was found in the hash
-	return nullptr;
+    // Returns a nullptr if nothing was found in the hash
+    return nullptr;
 }
 
 void tt::clear() const {
-	memset(table, 0, size * sizeof(Hash));
+    memset(table, 0, size * sizeof(Hash));
 }
 
-void tt::init(const std::uint64_t MB)
-{
-	const std::uint64_t bytes = MB << 20;
-	const std::uint64_t maxSize = bytes / sizeof(Hash);
+void tt::init(const std::uint64_t MB) {
+    const std::uint64_t bytes = MB << 20;
+    const std::uint64_t maxSize = bytes / sizeof(Hash);
 
-	size = 1;
-	while (size <= maxSize)
-	{
-		size <<= 1;
-	}
+    size = 1;
+    while (size <= maxSize) {
+        size <<= 1;
+    }
 
-	size >>= 1;
+    size >>= 1;
 
-	table = static_cast<Hash *>(calloc(size, sizeof(Hash)));
-	clear();
+    table = static_cast<Hash *>(calloc(size, sizeof(Hash)));
+    clear();
 }
 
-void tt::setSize(std::uint64_t MB)
-{
-	free(table);
-	init(MB);
+void tt::setSize(std::uint64_t MB) {
+    free(table);
+    init(MB);
 }
 
-int tt::estimateHashfull() const noexcept
-{
-	int used = 0;
+int tt::estimateHashfull() const noexcept {
+    int used = 0;
 
-	for (std::uint16_t i = 0; i < 1000; i++)
-	{
-		used += (table[i].move == Move::NO_MOVE);
-	}
+    for (std::uint16_t i = 0; i < 1000; i++) {
+        used += (table[i].move == Move::NO_MOVE);
+    }
 
-	return used;
+    return used;
 }
 
-tt::tt(const std::uint64_t MB)
-{
-	init(MB);
+tt::tt(const std::uint64_t MB) {
+    init(MB);
 }
 
-tt::~tt()
-{
-	free(table);
+tt::~tt() {
+    free(table);
 }

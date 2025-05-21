@@ -22,8 +22,7 @@
 
 #include "search.h"
 
-class Helper
-{
+class Helper {
 private:
 public:
     static void transpositionTableTest(Board &board, const tt &transpositionTable);
@@ -32,9 +31,10 @@ public:
 
     static void uciPrint();
 
-    static void handleSetPosition(Board &board, std::istringstream  &is, std::string &token);
+    static void handleSetPosition(Board &board, std::istringstream &is, std::string &token);
 
-    static void handleGo(Search &search, Time &timeManagement, Board &board, std::istringstream &is, std::string &token);
+    static void handleGo(Search &search, Time &timeManagement, Board &board, std::istringstream &is,
+                         std::string &token);
 };
 
 #endif

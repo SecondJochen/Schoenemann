@@ -265,8 +265,7 @@
 /* Style lookup: returning string literal */
 #define INCBIN_STYLE_STRING(TYPE) \
     INCBIN_STRINGIZE( \
-        INCBIN_STYLE_IDENT(TYPE)) \
-
+        INCBIN_STYLE_IDENT(TYPE))
 /* Generate the global labels by indirectly invoking the macro with our style
  * type and concatenating the name against them. */
 #define INCBIN_GLOBAL_LABELS(NAME, TYPE) \

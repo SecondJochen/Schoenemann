@@ -27,21 +27,20 @@
 
 using namespace chess;
 
-constexpr std::uint8_t EXACT = 0;       // Exact bound
+constexpr std::uint8_t EXACT = 0; // Exact bound
 constexpr std::uint8_t UPPER_BOUND = 1; // Upper bound
 constexpr std::uint8_t LOWER_BOUND = 2; // Lower bound
 
-struct alignas(16) Hash
-{
-    std::uint64_t key{};         // The zobrist Key of the position           (8 Byte)
+struct alignas(16) Hash {
+    std::uint64_t key{}; // The zobrist Key of the position           (8 Byte)
     Move move = Move::NO_MOVE; // The bestmove that we currently have       (2 Byte)
-    std::int16_t score{};        // The current score                         (2 Byte)
-    std::int16_t eval{};         // The static eval                           (2 Byte)
-    std::int8_t depth{};         // The current depth                         (1 Byte)
-    std::uint8_t type{};         // Either EXACT, UPPER_BOUND or LOWER_BOUND   (1 Byte)
+    std::int16_t score{}; // The current score                         (2 Byte)
+    std::int16_t eval{}; // The static eval                           (2 Byte)
+    std::int8_t depth{}; // The current depth                         (1 Byte)
+    std::uint8_t type{}; // Either EXACT, UPPER_BOUND or LOWER_BOUND   (1 Byte)
 
-    void setEntry(std::uint64_t _key, std::uint8_t _depth, std::uint8_t _type, std::int16_t _score, Move _move, std::int16_t _eval)
-    {
+    void setEntry(std::uint64_t _key, std::uint8_t _depth, std::uint8_t _type, std::int16_t _score, Move _move,
+                  std::int16_t _eval) {
         key = _key;
         depth = _depth;
         type = _type;
@@ -51,43 +50,44 @@ struct alignas(16) Hash
     }
 };
 
-class tt
-{
+class tt {
 public:
     explicit tt(std::uint64_t MB);
+
     ~tt();
 
     [[nodiscard]] Hash *getHash(std::uint64_t zobristKey) const noexcept;
 
     void setSize(std::uint64_t MB);
+
     void clear() const;
-    void storeEvaluation(std::uint64_t key, std::uint8_t depth, std::uint8_t type, std::int16_t score, Move move, std::int16_t eval) const noexcept;
+
+    void storeEvaluation(std::uint64_t key, std::uint8_t depth, std::uint8_t type, std::int16_t score, Move move,
+                         std::int16_t eval) const noexcept;
 
     [[nodiscard]] int estimateHashfull() const noexcept;
 
-    static int scoreToTT(const int score, const int ply)
-    {
-        return score >= EVAL_INFINITE    ? score + ply
-               : score <= -EVAL_INFINITE ? score - ply
-                                    : score;
+    static int scoreToTT(const int score, const int ply) {
+        return score >= EVAL_INFINITE
+                   ? score + ply
+                   : score <= -EVAL_INFINITE
+                         ? score - ply
+                         : score;
     }
 
-    static int scoreFromTT(const int score, const int ply)
-    {
-        return score >= EVAL_INFINITE    ? score - ply
-               : score <= -EVAL_INFINITE ? score + ply
-                                    : score;
+    static int scoreFromTT(const int score, const int ply) {
+        return score >= EVAL_INFINITE
+                   ? score - ply
+                   : score <= -EVAL_INFINITE
+                         ? score + ply
+                         : score;
     }
 
-    static bool checkForMoreInformation(const std::uint8_t type, const int ttScore, const int score)
-    {
+    static bool checkForMoreInformation(const std::uint8_t type, const int ttScore, const int score) {
         std::uint8_t tempType;
-        if (ttScore >= score)
-        {
+        if (ttScore >= score) {
             tempType = LOWER_BOUND;
-        }
-        else
-        {
+        } else {
             tempType = UPPER_BOUND;
         }
 
@@ -97,6 +97,7 @@ public:
 private:
     std::uint64_t size{};
     Hash *table{};
+
     void init(std::uint64_t MB);
 };
 

@@ -24,7 +24,9 @@
 using namespace chess;
 
 int getPieceValue(const Board &board, const Move &move);
+
 bool see(const Board &board, const Move &move, int cutoff);
+
 PieceType getLeastValuableAttacker(const Board &board, Bitboard &occ, Bitboard attackers, Color color);
 
 #endif
