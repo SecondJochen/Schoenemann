@@ -56,8 +56,10 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
         return beta;
     }
 
+    const bool root = ply > 0;
+
     // Every 128 we check for a timeout
-    if (nodes % 128 == 0 && ply > 0)
+    if (nodes % 128 == 0 && !root)
     {
         if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
         {
@@ -90,7 +92,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
     }
 
     // Check for a draw
-    if (ply > 0 && (board.isHalfMoveDraw() || board.isRepetition() || board.isInsufficientMaterial()))
+    if (!root && (board.isHalfMoveDraw() || board.isRepetition() || board.isInsufficientMaterial()))
     {
         return 0;
     }
