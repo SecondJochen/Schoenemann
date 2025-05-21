@@ -57,7 +57,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board)
     }
 
     // Every 128 we check for a timeout
-    if (nodes % 128 == 0)
+    if (nodes % 128 == 0 && ply > 0)
     {
         if (timeManagement.shouldStopSoft(start) && !isNormalSearch)
         {
@@ -212,35 +212,13 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
     }
 
     const bool pvNode = beta > alpha + 1;
-    const std::uint64_t zobristKey = board.zobrist();
 
-    const Hash *entry = transpositionTabel.getHash(zobristKey);
-    const bool isNullptr = entry == nullptr;
     const bool inCheck = board.inCheck();
 
     int hashedScore = 0;
     int standPat = EVAL_NONE;
     std::uint8_t hashedType = 0;
 
-    if (!isNullptr)
-    {
-        if (zobristKey == entry->key)
-        {
-            hashedScore = tt::scoreFromTT(entry->score, ply);
-            hashedType = entry->type;
-            standPat = entry->eval;
-        }
-
-        if (!pvNode && tt::checkForMoreInformation(hashedType, hashedScore, beta))
-        {
-            if ((hashedType == EXACT) ||
-                (hashedType == UPPER_BOUND && hashedScore <= alpha) ||
-                (hashedType == LOWER_BOUND && hashedScore >= beta))
-            {
-                return hashedScore;
-            }
-        }
-    }
 
     if (ply >= MAX_PLY) {
         return scaleOutput(net.evaluate(board.sideToMove(), board.occ().count()), board);
@@ -277,17 +255,6 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
 
     for (Move &move : moveList)
     {
-
-        // Static Exchange Evaluation
-        if (!see(board, move, 0))
-        {
-            continue;
-        }
-
-        // Update the piece and the move for continuationHistory
-        stack[ply].previousMovedPiece = board.at(move.from()).type();
-        stack[ply].previousMove = move;
-
         board.makeMove(move);
 
         const int score = -qs(-beta, -alpha, board, ply + 1);
@@ -328,14 +295,8 @@ int Search::qs(int alpha, int beta, Board &board, int ply)
     // Checks for checkmate
     if (bestScore == -EVAL_INFINITE)
     {
-        return -EVAL_INFINITE + ply + 1;
+        bestScore = inCheck ? matedIn(ply) : 0;
     }
-
-    if (stack[ply].exludedMove == Move::NULL_MOVE)
-    {
-        transpositionTabel.storeEvaluation(zobristKey, 0, bestScore >= beta ? LOWER_BOUND : UPPER_BOUND, tt::scoreToTT(bestScore, ply), bestMoveInQs, standPat);
-    }
-    transpositionTabel.storeEvaluation(zobristKey, 0, bestScore >= beta ? LOWER_BOUND : UPPER_BOUND, tt::scoreToTT(bestScore, ply), bestMoveInQs, rawEval);
 
     return bestScore;
 }
@@ -364,7 +325,6 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite)
 
     int alpha = -EVAL_INFINITE;
     int beta = EVAL_INFINITE;
-    int delta = 26;
 
     for (int i = 1; i < MAX_PLY; i++)
     {
@@ -373,29 +333,7 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite)
             previousBestScore = scoreData;
         }
 
-        if (i > 4) {
-            delta = 26;
-            alpha = std::max(scoreData - delta, -EVAL_INFINITE);
-            beta = std::min(scoreData + delta, EVAL_INFINITE);
-        }
-
-        while (true) {
-            const int aspirationScore = pvs(alpha, beta, i, 0, board);
-
-            if (aspirationScore > alpha && aspirationScore < beta) {
-                scoreData = aspirationScore;
-                break;
-            }
-            // Our aspiration failed low so we need to search with a wider window
-            else if (aspirationScore <= alpha) {
-                beta = (alpha + beta) / 2;
-                alpha = std::max(alpha - delta, -EVAL_INFINITE);
-            }
-            else {
-                beta = std::min(beta + delta, EVAL_INFINITE);
-            }
-            delta += delta * 3;
-        }
+        scoreData = pvs(alpha, beta, i, 0, board);
 
         if (i > 6)
         {
