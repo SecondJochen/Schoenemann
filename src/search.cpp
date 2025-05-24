@@ -113,7 +113,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
 
     int scoreMoves[MAX_MOVES] = {};
     // Sort the list
-    MoveOrder::orderMoves(&history, moveList, nullptr, stack[ply].killerMove, stack, board, scoreMoves, ply);
+    MoveOrder::orderMoves(&history, moveList, entry, stack[ply].killerMove, stack, board, scoreMoves, ply);
 
     // Set up values for the search
     int score = 0;
