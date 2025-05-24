@@ -80,7 +80,31 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
         depth = MAX_PLY - 1;
     }
 
+    // Transposition Table lookup
+    Hash *entry = transpositionTabel.getHash(board.hash());
+    const bool ttHit = entry == nullptr;
+    int hashedScore = EVAL_NONE;
+    int hashedDepth = 0;
+    const int oldAlpha = alpha;
+    std::uint8_t hashedType = 4;
+
+    if (!ttHit) {
+        if (entry->key == board.hash()) {
+            hashedScore = static_cast<int>(entry->score);
+            hashedType = static_cast<std::uint8_t>(entry->type);
+            hashedDepth = static_cast<int>(entry->depth);
+        }
+    }
+
+    // Check if we can return our score that we got from the transposition table
+    if (!pvNode && hashedDepth >= depth && ((hashedType == UPPER_BOUND && hashedScore <= alpha) ||
+        (hashedType == LOWER_BOUND && hashedScore >= beta) ||
+        hashedType == EXACT)) {
+        return hashedScore;
+    }
+
     const bool inCheck = board.inCheck();
+    const int staticEval = evaluate(board);
 
     //const int staticEval = net.evaluate(board.sideToMove(), board.occ().count());
 
@@ -138,6 +162,11 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
     }
 
     assert(bestScore > -EVAL_INFINITE && bestScore < EVAL_INFINITE);
+
+    std::uint8_t failHigh = score >= beta;
+    std::uint8_t failLow = alpha == oldAlpha;
+    std::uint8_t flag = failHigh ? LOWER_BOUND : !failLow ? EXACT : UPPER_BOUND;
+    transpositionTabel.storeHash(board.hash(), depth, flag, bestScore, bestMoveInPVS, staticEval);
 
     return bestScore;
 }

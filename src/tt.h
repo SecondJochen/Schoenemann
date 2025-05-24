@@ -39,8 +39,9 @@ struct alignas(16) Hash {
     std::int8_t depth{}; // The current depth                         (1 Byte)
     std::uint8_t type{}; // Either EXACT, UPPER_BOUND or LOWER_BOUND   (1 Byte)
 
-    void setEntry(std::uint64_t _key, std::uint8_t _depth, std::uint8_t _type, std::int16_t _score, Move _move,
-                  std::int16_t _eval) {
+    void setEntry(const std::uint64_t _key, const std::uint8_t _depth, const std::uint8_t _type,
+                  const std::int16_t _score, const Move _move,
+                  const std::int16_t _eval) {
         key = _key;
         depth = _depth;
         type = _type;
@@ -62,36 +63,25 @@ public:
 
     void clear() const;
 
-    void storeEvaluation(std::uint64_t key, std::uint8_t depth, std::uint8_t type, std::int16_t score, Move move,
+    void storeHash(std::uint64_t key, std::uint8_t depth, std::uint8_t type, std::int16_t score, Move move,
                          std::int16_t eval) const noexcept;
 
     [[nodiscard]] int estimateHashfull() const noexcept;
 
     static int scoreToTT(const int score, const int ply) {
-        return score >= EVAL_INFINITE
+        return score >= EVAL_MATE
                    ? score + ply
-                   : score <= -EVAL_INFINITE
+                   : score <= -EVAL_MATE
                          ? score - ply
                          : score;
     }
 
     static int scoreFromTT(const int score, const int ply) {
-        return score >= EVAL_INFINITE
+        return score >= EVAL_MATE
                    ? score - ply
-                   : score <= -EVAL_INFINITE
+                   : score <= -EVAL_MATE
                          ? score + ply
                          : score;
-    }
-
-    static bool checkForMoreInformation(const std::uint8_t type, const int ttScore, const int score) {
-        std::uint8_t tempType;
-        if (ttScore >= score) {
-            tempType = LOWER_BOUND;
-        } else {
-            tempType = UPPER_BOUND;
-        }
-
-        return type & tempType;
     }
 
 private:

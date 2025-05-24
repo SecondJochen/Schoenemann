@@ -21,23 +21,19 @@
 
 #include <cstring>
 
-void tt::storeEvaluation(std::uint64_t key, std::uint8_t depth, std::uint8_t type, std::int16_t score, Move move,
-                         std::int16_t eval) const noexcept {
-    const std::uint64_t index = key % size;
-
+void tt::storeHash(const std::uint64_t key, const std::uint8_t depth, const std::uint8_t type,
+                         const std::int16_t score, const Move move,
+                         const std::int16_t eval) const noexcept {
     // Get the HashNode
-    Hash *node = table + index;
+    Hash *node = table + key % size;
 
     // Store the entry
     node->setEntry(key, depth, type, score, move, eval);
 }
 
-Hash *tt::getHash(std::uint64_t zobristKey) const noexcept {
-    // Gets the index based on the zobrist key
-    const std::uint64_t index = zobristKey % size;
-
+Hash *tt::getHash(const std::uint64_t zobristKey) const noexcept {
     // Check if we got the key in our Hash
-    if (Hash *node = table + index; node->key == zobristKey) {
+    if (Hash *node = table + zobristKey % size; node->key == zobristKey) {
         return node;
     }
 
@@ -51,20 +47,12 @@ void tt::clear() const {
 
 void tt::init(const std::uint64_t MB) {
     const std::uint64_t bytes = MB << 20;
-    const std::uint64_t maxSize = bytes / sizeof(Hash);
-
-    size = 1;
-    while (size <= maxSize) {
-        size <<= 1;
-    }
-
-    size >>= 1;
+    size = bytes / sizeof(Hash);
 
     table = static_cast<Hash *>(calloc(size, sizeof(Hash)));
-    clear();
 }
 
-void tt::setSize(std::uint64_t MB) {
+void tt::setSize(const std::uint64_t MB) {
     free(table);
     init(MB);
 }
@@ -73,7 +61,7 @@ int tt::estimateHashfull() const noexcept {
     int used = 0;
 
     for (std::uint16_t i = 0; i < 1000; i++) {
-        used += (table[i].move == Move::NO_MOVE);
+        used += table[i].move == Move::NO_MOVE;
     }
 
     return used;

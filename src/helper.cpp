@@ -29,7 +29,7 @@ void Helper::transpositionTableTest(Board &board, const tt &transpositionTable) 
     const std::uint64_t key = board.hash();
 
     // Store some placeholder information
-    transpositionTable.storeEvaluation(key, 2, LOWER_BOUND, transpositionTable.scoreToTT(200, 1),
+    transpositionTable.storeHash(key, 2, LOWER_BOUND, transpositionTable.scoreToTT(200, 1),
                                        uci::uciToMove(board, "d5e4"), 1);
 
     // Try to get the information out of the table
