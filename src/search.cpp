@@ -100,7 +100,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
     }
 
     // Check if we can return our score that we got from the transposition table
-    if (!pvNode && ttHit && board.hash() == entry->key && hashedDepth >= depth && ((hashedType == UPPER_BOUND && hashedScore <= alpha) ||
+    if (!pvNode && ttHit && board.hash() == entry->key && !root && hashedDepth >= depth && ((hashedType == UPPER_BOUND && hashedScore <= alpha) ||
                                             (hashedType == LOWER_BOUND && hashedScore >= beta) ||
                                             (hashedType == EXACT))) {
         return hashedScore;
