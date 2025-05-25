@@ -29,10 +29,8 @@ class Search {
 public:
     Search(Time &timeManagement,
            tt &transpositionTabel,
-           MoveOrder &moveOrder,
            Network &net) : reductions{}, stack{}, timeManagement(timeManagement),
                            transpositionTabel(transpositionTabel), history(),
-                           moveOrder(moveOrder),
                            net(net) {
     }
 
@@ -72,13 +70,14 @@ public:
     static std::string scoreToUci(const int &score);
 
 private:
-    std::string getPVLine() const;
+    [[nodiscard]] std::string getPVLine() const;
 
     Time &timeManagement;
     tt &transpositionTabel;
     History history;
-    MoveOrder &moveOrder;
     Network &net;
+
+    static bool isDraw(const Board &board);
 };
 
 #endif

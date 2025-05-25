@@ -63,8 +63,8 @@ public:
 
     void clear() const;
 
-    void storeHash(std::uint64_t key, std::uint8_t depth, std::uint8_t type, std::int16_t score, Move move,
-                         std::int16_t eval) const noexcept;
+    void storeHash(const std::uint64_t key, const std::uint8_t depth, const std::uint8_t type, const std::int16_t score, const Move move,
+                         const std::int16_t eval) const noexcept;
 
     [[nodiscard]] int estimateHashfull() const noexcept;
 

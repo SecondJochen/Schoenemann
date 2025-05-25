@@ -31,19 +31,17 @@
 #include "search.h"
 #include "tt.h"
 #include "time.h"
-#include "moveorder.h"
 
 int main(int argc, char *argv[]) {
     std::uint32_t transpositionTableSize = 16;
 
     tt transpositionTable(transpositionTableSize);
     Time timeManagement;
-    MoveOrder moveOrder;
     Network net;
     Helper helper;
 
     const std::unique_ptr<Search> search =
-            std::make_unique<Search>(timeManagement, transpositionTable, moveOrder, net);
+            std::make_unique<Search>(timeManagement, transpositionTable, net);
 
     // The main board
     Board board(&net);
