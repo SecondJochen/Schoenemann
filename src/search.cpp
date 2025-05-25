@@ -58,16 +58,6 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
         stack[ply].pvLength = 0;
     }
 
-    // If depth is 0 we drop into qs to get a neutral position
-    if (depth <= 0) {
-        return qs(alpha, beta, board, ply);
-    }
-
-    // Make sure that depth is always lower than MAX_PLY
-    if (depth >= MAX_PLY - 1) {
-        depth = MAX_PLY - 1;
-    }
-
     if (!root) {
         // We check for a timeout
         if (timeManagement.shouldStopSoft(start) && !isNormalSearch) {
@@ -81,6 +71,16 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
         if (isDraw(board)) {
             return 0;
         }
+    }
+
+    // If depth is 0 we drop into qs to get a neutral position
+    if (depth <= 0) {
+        return qs(alpha, beta, board, ply);
+    }
+
+    // Make sure that depth is always lower than MAX_PLY
+    if (depth >= MAX_PLY - 1) {
+        depth = MAX_PLY - 1;
     }
 
     // Transposition Table lookup
@@ -100,7 +100,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
     }
 
     // Check if we can return our score that we got from the transposition table
-    if (!pvNode && hashedDepth >= depth && ((hashedType == UPPER_BOUND && hashedScore <= alpha) ||
+    if (!pvNode && ttHit && board.hash() == entry->key && hashedDepth >= depth && ((hashedType == UPPER_BOUND && hashedScore <= alpha) ||
                                             (hashedType == LOWER_BOUND && hashedScore >= beta) ||
                                             (hashedType == EXACT))) {
         return hashedScore;
@@ -209,9 +209,6 @@ int Search::qs(int alpha, int beta, Board &board, int ply) {
     if (isDraw(board)) {
         return 0;
     }
-
-
-    const bool inCheck = board.inCheck();
 
     const int standPat = evaluate(board);
 
