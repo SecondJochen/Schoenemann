@@ -126,7 +126,20 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
         board.makeMove(move);
         moveCount++;
 
-        score = -pvs(-beta, -alpha, depth - 1, ply + 1, board);
+        // PVS
+        // We assume our first move is the best move so we search this move with a full window
+        if (moveCount == 1) {
+            score = -pvs(-beta, -alpha, depth - 1, ply + 1, board);
+        } else {
+            // Since we assumed that our first move was the best we search every other
+            // Move with a zero window
+            score = -pvs(-alpha - 1, -alpha, depth - 1, ply + 1, board);
+
+            // Our score could also be outside the window so we need to research with full window
+            if (score > alpha && score < beta) {
+                score = -pvs(-beta, -alpha, depth - 1, ply + 1, board);
+            }
+        }
 
         board.unmakeMove(move);
 
