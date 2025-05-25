@@ -74,8 +74,12 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
             shouldStop = true;
         }
 
-        if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1 || isDraw(board)) {
+        if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1) {
             return ply >= MAX_PLY - 1 && !board.inCheck() ? evaluate(board) : 0;
+        }
+
+        if (isDraw(board)) {
+            return 0;
         }
     }
 
@@ -198,8 +202,12 @@ int Search::qs(int alpha, int beta, Board &board, int ply) {
     if (timeManagement.shouldStopSoft(start) && !isNormalSearch) {
         shouldStop = true;
     }
-    if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1 || isDraw(board)) {
+    if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1) {
         return ply >= MAX_PLY - 1 && !board.inCheck() ? evaluate(board) : 0;
+    }
+
+    if (isDraw(board)) {
+        return 0;
     }
 
 
