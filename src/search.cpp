@@ -85,13 +85,13 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
 
     // Transposition Table lookup
     const Hash *entry = transpositionTabel.getHash(board.hash());
-    const bool ttHit = entry == nullptr;
+    const bool ttHit = entry != nullptr;
     int hashedScore = EVAL_NONE;
     int hashedDepth = 0;
     const int oldAlpha = alpha;
     std::uint8_t hashedType = 4;
 
-    if (!ttHit) {
+    if (ttHit) {
         if (entry->key == board.hash()) {
             hashedScore = tt::scoreFromTT(entry->score, ply);
             hashedType = static_cast<std::uint8_t>(entry->type);
@@ -108,8 +108,6 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
 
     const bool inCheck = board.inCheck();
     const int staticEval = evaluate(board);
-
-    //const int staticEval = net.evaluate(board.sideToMove(), board.occ().count());
 
     Movelist moveList;
     movegen::legalmoves(moveList, board);
@@ -139,7 +137,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
             // Move with a zero window
             score = -pvs(-alpha - 1, -alpha, depth - 1, ply + 1, board);
 
-            // Our score could also be outside the window so we need to research with full window
+            // If the score is outside the window we need to research with full window
             if (score > alpha && score < beta) {
                 score = -pvs(-beta, -alpha, depth - 1, ply + 1, board);
             }
