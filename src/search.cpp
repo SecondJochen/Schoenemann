@@ -65,7 +65,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
         }
 
         if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1 || isDraw(board)) {
-            return ply >= MAX_PLY - 1 && board.inCheck() ? evaluate(board) : 0;
+            return ply >= MAX_PLY - 1 && !board.inCheck() ? evaluate(board) : 0;
         }
     }
 
@@ -97,8 +97,8 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
 
     // Check if we can return our score that we got from the transposition table
     if (!pvNode && hashedDepth >= depth && ((hashedType == UPPER_BOUND && hashedScore <= alpha) ||
-        (hashedType == LOWER_BOUND && hashedScore >= beta) ||
-        (hashedType == EXACT))) {
+                                            (hashedType == LOWER_BOUND && hashedScore >= beta) ||
+                                            (hashedType == EXACT))) {
         return hashedScore;
     }
 
@@ -181,17 +181,14 @@ int Search::qs(int alpha, int beta, Board &board, int ply) {
         stack[ply].pvLength = 0;
     }
 
-    const bool root = ply == 0;
-
-    if (!root) {
-        assert(alpha >= -EVAL_INFINITE && alpha < beta && beta <= EVAL_INFINITE);
-        if (timeManagement.shouldStopSoft(start) && !isNormalSearch) {
-            shouldStop = true;
-        }
-        if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1 || isDraw(board)) {
-            return ply >= MAX_PLY - 1 && board.inCheck() ? evaluate(board) : 0;
-        }
+    assert(alpha >= -EVAL_INFINITE && alpha < beta && beta <= EVAL_INFINITE);
+    if (timeManagement.shouldStopSoft(start) && !isNormalSearch) {
+        shouldStop = true;
     }
+    if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1 || isDraw(board)) {
+        return ply >= MAX_PLY - 1 && !board.inCheck() ? evaluate(board) : 0;
+    }
+
 
     const bool inCheck = board.inCheck();
 
