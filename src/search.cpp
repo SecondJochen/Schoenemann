@@ -58,6 +58,16 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
         stack[ply].pvLength = 0;
     }
 
+    // If depth is 0 we drop into qs to get a neutral position
+    if (depth <= 0) {
+        return qs(alpha, beta, board, ply);
+    }
+
+    // Make sure that depth is always lower than MAX_PLY
+    if (depth >= MAX_PLY - 1) {
+        depth = MAX_PLY - 1;
+    }
+
     if (!root) {
         // We check for a timeout
         if (timeManagement.shouldStopSoft(start) && !isNormalSearch) {
@@ -67,16 +77,6 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
         if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1 || isDraw(board)) {
             return ply >= MAX_PLY - 1 && !board.inCheck() ? evaluate(board) : 0;
         }
-    }
-
-    // If depth is 0 we drop into qs to get a neutral position
-    if (depth <= 0) {
-        return qs(alpha, beta, board, ply);
-    }
-
-    // Make sure that depth is always lower than MAX_PLY
-    if (depth >= MAX_PLY - 1) {
-        depth = MAX_PLY - 1;
     }
 
     // Transposition Table lookup
