@@ -21,7 +21,6 @@
 
 void generate(Board &board, Search &search, tt transpositionTable) {
     // Set up the nodes limit
-    search.hasNodeLimit = true;
     search.nodeLimit = 10000;
 
     // Initialize stuff for random moves
@@ -184,5 +183,4 @@ void generate(Board &board, Search &search, tt transpositionTable) {
     // Reset everything
     transpositionTable.clear();
     outputFile.close();
-    search.hasNodeLimit = false;
 }

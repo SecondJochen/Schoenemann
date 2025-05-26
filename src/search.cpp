@@ -58,21 +58,6 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
         stack[ply].pvLength = 0;
     }
 
-    if (!root) {
-        // We check for a timeout
-        if (timeManagement.shouldStopSoft(start) && !isNormalSearch) {
-            shouldStop = true;
-        }
-
-        if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1) {
-            return ply >= MAX_PLY - 1 && !board.inCheck() ? evaluate(board) : 0;
-        }
-
-        if (isDraw(board)) {
-            return 0;
-        }
-    }
-
     // If depth is 0 we drop into qs to get a neutral position
     if (depth <= 0) {
         return qs(alpha, beta, board, ply);
@@ -83,8 +68,23 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
         depth = MAX_PLY - 1;
     }
 
+    if (!root) {
+        // We check for a timeout
+        if (timeManagement.shouldStopSoft(start) || nodes >= nodeLimit) {
+            shouldStop = true;
+        }
+
+        if (shouldStop || ply >= MAX_PLY - 1) {
+            return ply >= MAX_PLY - 1 && !board.inCheck() ? evaluate(board) : 0;
+        }
+
+        if (isDraw(board)) {
+            return 0;
+        }
+    }
+
     // Transposition Table lookup
-    const Hash *entry = transpositionTabel.getHash(board.hash());
+    const Hash *entry = transpositionTable.getHash(board.hash());
     const bool ttHit = entry != nullptr;
     int hashedScore = EVAL_NONE;
     int hashedDepth = 0;
@@ -100,7 +100,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
     }
 
     // Check if we can return our score that we got from the transposition table
-    if (!pvNode && ttHit && board.hash() == entry->key && !root && hashedDepth >= depth && ((hashedType == UPPER_BOUND && hashedScore <= alpha) ||
+    if (!pvNode && ttHit && !root && hashedDepth >= depth && ((hashedType == UPPER_BOUND && hashedScore <= alpha) ||
                                             (hashedType == LOWER_BOUND && hashedScore >= beta) ||
                                             (hashedType == EXACT))) {
         return hashedScore;
@@ -180,7 +180,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
     const std::uint8_t failHigh = score >= beta;
     const std::uint8_t failLow = alpha == oldAlpha;
     const std::uint8_t flag = failHigh ? LOWER_BOUND : !failLow ? EXACT : UPPER_BOUND;
-    transpositionTabel.storeHash(board.hash(), depth, flag, tt::scoreToTT(bestScore, ply), bestMoveInPVS, staticEval);
+    transpositionTable.storeHash(board.hash(), depth, flag, tt::scoreToTT(bestScore, ply), bestMoveInPVS, staticEval);
 
     return bestScore;
 }
@@ -197,10 +197,10 @@ int Search::qs(int alpha, int beta, Board &board, int ply) {
     }
 
     assert(alpha >= -EVAL_INFINITE && alpha < beta && beta <= EVAL_INFINITE);
-    if (timeManagement.shouldStopSoft(start) && !isNormalSearch) {
+    if (timeManagement.shouldStopSoft(start) || nodes >= nodeLimit) {
         shouldStop = true;
     }
-    if (shouldStop || (hasNodeLimit && nodes >= nodeLimit) || ply >= MAX_PLY - 1) {
+    if (shouldStop || ply >= MAX_PLY - 1) {
         return ply >= MAX_PLY - 1 && !board.inCheck() ? evaluate(board) : 0;
     }
 
@@ -269,7 +269,7 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite) {
     start = std::chrono::steady_clock::now();
     timeManagement.calculateTimeForMove();
 
-    if (hasNodeLimit) {
+    if (nodeLimit > 0 || isInfinite) {
         timeManagement.hardLimit = 99999999;
         timeManagement.softLimit = 99999999;
     }
@@ -277,18 +277,17 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite) {
     rootBestMove = Move::NULL_MOVE;
     Move bestMoveThisIteration = Move::NULL_MOVE;
 
-    isNormalSearch = false;
-
-    if (isInfinite) {
-        isNormalSearch = true;
-    }
-
     nodes = 0;
 
     int alpha = -EVAL_INFINITE;
     int beta = EVAL_INFINITE;
 
     for (int i = 1; i < MAX_PLY; i++) {
+        if ((timeManagement.shouldStopID(start) && !isInfinite) || i == MAX_PLY - 1 || nodes == nodeLimit || shouldStop) {
+            std::cout << "bestmove " << uci::moveToUci(bestMoveThisIteration) << std::endl;
+            break;
+        }
+
         if (i > 7) {
             previousBestScore = scoreData;
         }
@@ -318,19 +317,15 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite) {
                 << scoreToUci(scoreData) << " nodes "
                 << nodes << " nps "
                 << static_cast<std::uint64_t>(nodes / (elapsed.count() + 1) * 1000)
-                << " hashfull " << transpositionTabel.estimateHashfull()
+                << " hashfull " << transpositionTable.estimateHashfull()
                 << " pv " << getPVLine()
                 << std::endl;
 
         // std::cout << "Time for this move: " << timeForMove << " | Time used: " << static_cast<int>(elapsed.count()) << " | Depth: " << i << " | bestmove: " << bestMove << std::endl;
-
-        if ((timeManagement.shouldStopID(start) && !isInfinite) || i == MAX_PLY - 1 || nodes == nodeLimit) {
-            std::cout << "bestmove " << uci::moveToUci(bestMoveThisIteration) << std::endl;
-            break;
-        }
     }
+
     shouldStop = false;
-    isNormalSearch = true;
+    nodeLimit = -1;
 }
 
 std::string Search::scoreToUci(const int &score) {

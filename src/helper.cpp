@@ -171,7 +171,6 @@ void Helper::handleGo(Search &search, Time &timeManagement, Board &board, std::i
             std::cout << "bestmove " << uci::moveToUci(search.rootBestMove) << std::endl;
         } else if (token == "nodes") {
             is >> token;
-            search.hasNodeLimit = true;
             search.nodeLimit = std::stoi(token);
             std::thread t1([&] { search.iterativeDeepening(board, true); });
             t1.detach();

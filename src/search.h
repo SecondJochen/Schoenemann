@@ -30,7 +30,7 @@ public:
     Search(Time &timeManagement,
            tt &transpositionTabel,
            Network &net) : reductions{}, stack{}, timeManagement(timeManagement),
-                           transpositionTabel(transpositionTabel), history(),
+                           transpositionTable(transpositionTabel), history(),
                            net(net) {
     }
 
@@ -38,10 +38,8 @@ public:
     Move previousBestMove = Move::NULL_MOVE;
 
     bool shouldStop = false;
-    bool isNormalSearch = true;
-    bool hasNodeLimit = false;
 
-    std::uint64_t nodeLimit = 0;
+    std::uint64_t nodeLimit = -1;
     std::uint64_t timeForMove = 0;
     std::uint64_t nodes = 0;
 
@@ -73,7 +71,7 @@ private:
     [[nodiscard]] std::string getPVLine() const;
 
     Time &timeManagement;
-    tt &transpositionTabel;
+    tt &transpositionTable;
     History history;
     Network &net;
 
