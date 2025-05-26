@@ -91,12 +91,10 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
     const int oldAlpha = alpha;
     std::uint8_t hashedType = 4;
 
-    if (ttHit) {
-        if (entry->key == board.hash()) {
-            hashedScore = tt::scoreFromTT(entry->score, ply);
-            hashedType = static_cast<std::uint8_t>(entry->type);
-            hashedDepth = static_cast<int>(entry->depth);
-        }
+    if (ttHit && entry->key == board.hash()) {
+        hashedScore = tt::scoreFromTT(entry->score, ply);
+        hashedType = static_cast<std::uint8_t>(entry->type);
+        hashedDepth = static_cast<int>(entry->depth);
     }
 
     // Check if we can return our score that we got from the transposition table
@@ -282,8 +280,8 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite) {
     int alpha = -EVAL_INFINITE;
     int beta = EVAL_INFINITE;
 
-    for (int i = 1; i < MAX_PLY; i++) {
-        if ((timeManagement.shouldStopID(start) && !isInfinite) || i == MAX_PLY - 1 || nodes == nodeLimit || shouldStop) {
+    for (int i = 1; i < MAX_PLY - 1; i++) {
+        if ((timeManagement.shouldStopID(start) && !isInfinite) || nodes == nodeLimit || shouldStop) {
             std::cout << "bestmove " << uci::moveToUci(bestMoveThisIteration) << std::endl;
             break;
         }
