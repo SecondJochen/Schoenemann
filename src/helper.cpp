@@ -90,6 +90,7 @@ void Helper::runBenchmark(Search &search, Board &board) {
 
     // Resting the nodes
     search.nodes = 0;
+    search.setTimeInfinite();
 
     // Looping over all bench positions
     for (const std::string &test: testStrings) {

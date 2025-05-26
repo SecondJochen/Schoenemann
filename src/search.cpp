@@ -58,6 +58,12 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
         stack[ply].pvLength = 0;
     }
 
+    // We check for a timeout
+    if (timeManagement.shouldStopSoft(start) || nodes >= nodeLimit) {
+        std::cout << (timeManagement.shouldStopSoft(start)) << std::endl;
+        shouldStop = true;
+    }
+
     // If depth is 0 we drop into qs to get a neutral position
     if (depth <= 0) {
         return qs(alpha, beta, board, ply);
@@ -69,10 +75,6 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
     }
 
     if (!root) {
-        // We check for a timeout
-        if (timeManagement.shouldStopSoft(start) || nodes >= nodeLimit) {
-            shouldStop = true;
-        }
 
         if (shouldStop || ply >= MAX_PLY - 1) {
             return ply >= MAX_PLY - 1 && !board.inCheck() ? evaluate(board) : 0;
@@ -144,6 +146,10 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
         board.unmakeMove(move);
 
         assert(score > -EVAL_INFINITE && score < EVAL_INFINITE);
+
+        if (shouldStop) {
+            return 0;
+        }
 
         if (score > bestScore) {
             bestScore = score;
@@ -268,8 +274,7 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite) {
     timeManagement.calculateTimeForMove();
 
     if (nodeLimit > 0 || isInfinite) {
-        timeManagement.hardLimit = 99999999;
-        timeManagement.softLimit = 99999999;
+        setTimeInfinite();
     }
 
     rootBestMove = Move::NULL_MOVE;
@@ -384,4 +389,9 @@ bool Search::isDraw(const Board &board) {
 
 void Search::resetHistory() {
     history.resetHistorys();
+}
+
+void Search::setTimeInfinite() {
+    timeManagement.hardLimit = 99999999;
+    timeManagement.softLimit = 99999999;
 }

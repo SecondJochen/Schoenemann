@@ -64,6 +64,7 @@ public:
     void initLMR();
 
     void resetHistory();
+    void setTimeInfinite();
 
     static std::string scoreToUci(const int &score);
 
