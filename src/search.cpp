@@ -273,7 +273,7 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite) {
     start = std::chrono::steady_clock::now();
     timeManagement.calculateTimeForMove();
 
-    if (nodeLimit > 0 || isInfinite) {
+    if (isInfinite) {
         setTimeInfinite();
     }
 
