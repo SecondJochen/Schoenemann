@@ -285,8 +285,8 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite) {
     int alpha = -EVAL_INFINITE;
     int beta = EVAL_INFINITE;
 
-    for (int i = 1; i < MAX_PLY - 1; i++) {
-        if ((timeManagement.shouldStopID(start) && !isInfinite) || nodes == nodeLimit || shouldStop) {
+    for (int i = 1; i < MAX_PLY; i++) {
+        if ((timeManagement.shouldStopID(start) && !isInfinite) || i == MAX_PLY - 1 || nodes == nodeLimit || shouldStop) {
             std::cout << "bestmove " << uci::moveToUci(bestMoveThisIteration) << std::endl;
             break;
         }
