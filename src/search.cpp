@@ -60,7 +60,6 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
 
     // We check for a timeout
     if (timeManagement.shouldStopSoft(start) || nodes >= nodeLimit) {
-        std::cout << (timeManagement.shouldStopSoft(start)) << std::endl;
         shouldStop = true;
     }
 
@@ -75,13 +74,8 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
     }
 
     if (!root) {
-
-        if (shouldStop || ply >= MAX_PLY - 1) {
+        if (shouldStop || ply >= MAX_PLY - 1 || isDraw(board)) {
             return ply >= MAX_PLY - 1 && !board.inCheck() ? evaluate(board) : 0;
-        }
-
-        if (isDraw(board)) {
-            return 0;
         }
     }
 
@@ -100,9 +94,9 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
     }
 
     // Check if we can return our score that we got from the transposition table
-    if (!pvNode && ttHit && !root && hashedDepth >= depth && ((hashedType == UPPER_BOUND && hashedScore <= alpha) ||
-                                            (hashedType == LOWER_BOUND && hashedScore >= beta) ||
-                                            (hashedType == EXACT))) {
+    if (!pvNode && !root && hashedDepth >= depth && ((hashedType == UPPER_BOUND && hashedScore <= alpha) ||
+                                                              (hashedType == LOWER_BOUND && hashedScore >= beta) ||
+                                                              (hashedType == EXACT))) {
         return hashedScore;
     }
 
@@ -204,12 +198,9 @@ int Search::qs(int alpha, int beta, Board &board, int ply) {
     if (timeManagement.shouldStopSoft(start) || nodes >= nodeLimit) {
         shouldStop = true;
     }
-    if (shouldStop || ply >= MAX_PLY - 1) {
-        return ply >= MAX_PLY - 1 && !board.inCheck() ? evaluate(board) : 0;
-    }
 
-    if (isDraw(board)) {
-        return 0;
+    if (shouldStop || ply >= MAX_PLY - 1 || isDraw(board)) {
+        return ply >= MAX_PLY - 1 && !board.inCheck() ? evaluate(board) : 0;
     }
 
     const int standPat = evaluate(board);
@@ -237,6 +228,7 @@ int Search::qs(int alpha, int beta, Board &board, int ply) {
         assert(score < EVAL_INFINITE && score > -EVAL_INFINITE);
 
         board.unmakeMove(move);
+
         // Our current Score is better than the previous bestScore so we update it
         if (score > bestScore) {
             bestScore = score;
@@ -286,7 +278,8 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite) {
     int beta = EVAL_INFINITE;
 
     for (int i = 1; i < MAX_PLY; i++) {
-        if ((timeManagement.shouldStopID(start) && !isInfinite) || i == MAX_PLY - 1 || nodes == nodeLimit || shouldStop) {
+        if ((timeManagement.shouldStopID(start) && !isInfinite) || i == MAX_PLY - 1 || nodes == nodeLimit ||
+            shouldStop) {
             std::cout << "bestmove " << uci::moveToUci(bestMoveThisIteration) << std::endl;
             break;
         }
@@ -321,6 +314,7 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite) {
                 << nodes << " nps "
                 << static_cast<std::uint64_t>(nodes / (elapsed.count() + 1) * 1000)
                 << " hashfull " << transpositionTable.estimateHashfull()
+                << " time " << static_cast<std::uint64_t>(elapsed.count() + 1)
                 << " pv " << getPVLine()
                 << std::endl;
 
@@ -338,7 +332,7 @@ std::string Search::scoreToUci(const int &score) {
     if (score <= -EVAL_MATE_IN_MAX_PLY) {
         return " mate " + std::to_string(-(EVAL_MATE + score) / 2);
     }
-    return " cp " + std::to_string(score);
+    return " score cp " + std::to_string(score);
 }
 
 void Search::initLMR() {
