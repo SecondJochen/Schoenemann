@@ -24,6 +24,7 @@
 #include "tt.h"
 #include "moveorder.h"
 #include "search_fwd.h"
+#include <memory>
 
 class Search {
 public:

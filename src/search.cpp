@@ -101,6 +101,13 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
     const bool inCheck = board.inCheck();
     const int staticEval = evaluate(board);
 
+    // Reverse Futility Pruning
+    // If we subtract a margin from our static evaluation and this still
+    // produces a beta cutoff, we can assume that this node is still good
+    if (!inCheck && !pvNode && depth < 6 && staticEval - 100 * depth >= beta) {
+        return staticEval;
+    }
+
     Movelist moveList;
     movegen::legalmoves(moveList, board);
 
