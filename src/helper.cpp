@@ -23,14 +23,15 @@
 #include <chrono>
 #include <thread>
 
-void Helper::transpositionTableTest(Board &board, const tt &transpositionTable) {
+void Helper::transpositionTableTest(const tt &transpositionTable) {
+    Board board;
     // Set up a unique position
     board.setFen("3N4/2p5/5K2/k1PB3p/3Pr3/1b5p/6p1/5nB1 w - - 0 1");
     const std::uint64_t key = board.hash();
 
     // Store some placeholder information
     transpositionTable.storeHash(key, 2, LOWER_BOUND, transpositionTable.scoreToTT(200, 1),
-                                       uci::uciToMove(board, "d5e4"), 1);
+                                 uci::uciToMove(board, "d5e4"), 1);
 
     // Try to get the information out of the table
     const Hash *entry = transpositionTable.getHash(key);
@@ -38,43 +39,19 @@ void Helper::transpositionTableTest(Board &board, const tt &transpositionTable) 
     assert(entry != nullptr);
 
     const std::uint64_t hashedKey = entry->key;
+    assert(hashedKey == key);
+
     const std::uint8_t hashedDepth = entry->depth;
-    short hashedType = entry->type;
-    int hashedScore = entry->score;
-    Move hashedMove = entry->move;
+    assert(hashedDepth == 2);
 
-    if (hashedKey == key) {
-        std::cout << "Key PASSED." << std::endl;
-    } else {
-        std::cout << "Key FAILED." << "Original key: \n"
-                << key << "\nHash key: \n"
-                << hashedKey << std::endl;
-    }
+    const short hashedType = entry->type;
+    assert(hashedType == LOWER_BOUND);
 
-    if (hashedDepth == 2) {
-        std::cout << "Depth PASSED." << std::endl;
-    } else {
-        std::cout << "Depth FAILED." << "Original depth: 2" << "\nHash key: " << hashedDepth << std::endl;
-    }
+    const int hashedScore = entry->score;
+    assert(hashedScore == 200);
 
-    if (hashedType == LOWER_BOUND) {
-        std::cout << "Type PASSED." << std::endl;
-    } else {
-        std::cout << "Type FAILED." << "Original type: 2" << "\nHash type: " << hashedType << std::endl;
-    }
-
-    if (hashedScore == 200) {
-        std::cout << "Score PASSED." << std::endl;
-    } else {
-        std::cout << "Score FAILED." << "Original score: 200" << "\nHash score: " << hashedScore << std::endl;
-    }
-
-    if (hashedMove == uci::uciToMove(board, "d5e4")) {
-        std::cout << "Move PASSED." << std::endl;
-    } else {
-        std::cout << "Move FAILED." << "Original move: d5e4" << "\nHash move: " << hashedMove << std::endl;
-    }
-    board.setFen(STARTPOS);
+    const Move hashedMove = entry->move;
+    assert(hashedMove == uci::uciToMove(board, "d5e4"));
 }
 
 // Print the uci info
@@ -84,18 +61,18 @@ void Helper::uciPrint() {
             << "option name Threads type spin default 1 min 1 max 1" << std::endl;
 }
 
-void Helper::runBenchmark(Search &search, Board &board) {
+void Helper::runBenchmark(Search* search, Board &board) {
     // Setting up the clock
     const std::chrono::time_point start = std::chrono::steady_clock::now();
 
     // Resting the nodes
-    search.nodes = 0;
-    search.setTimeInfinite();
+    search->nodes = 0;
+    search->setTimeInfinite();
 
     // Looping over all bench positions
     for (const std::string &test: testStrings) {
         board.setFen(test);
-        search.pvs(-EVAL_INFINITE, EVAL_INFINITE, benchDepth, 0, board);
+        search->pvs(-EVAL_INFINITE, EVAL_INFINITE, benchDepth, 0, board);
     }
 
     const std::chrono::time_point end = std::chrono::steady_clock::now();
@@ -105,10 +82,10 @@ void Helper::runBenchmark(Search &search, Board &board) {
     const int timeInMs = static_cast<int>(timeElapsed.count());
 
     // calculates the Nodes per Second
-    const int NPS = static_cast<int>(search.nodes / timeElapsed.count() * 1000);
+    const int NPS = static_cast<int>(search->nodes / timeElapsed.count() * 1000);
 
     // Prints out the final bench
-    std::cout << "Time  : " << timeInMs << " ms\nNodes : " << search.nodes << "\nNPS   : " << NPS << std::endl;
+    std::cout << "Time  : " << timeInMs << " ms\nNodes : " << search->nodes << "\nNPS   : " << NPS << std::endl;
 
     board.setFen(STARTPOS);
 }
