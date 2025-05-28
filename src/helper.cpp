@@ -61,7 +61,7 @@ void Helper::uciPrint() {
             << "option name Threads type spin default 1 min 1 max 1" << std::endl;
 }
 
-void Helper::runBenchmark(Search &search, Board &board) {
+void Helper::runBenchmark(Search* search, Board &board) {
     // Setting up the clock
     const std::chrono::time_point start = std::chrono::steady_clock::now();
 
