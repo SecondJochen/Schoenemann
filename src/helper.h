@@ -25,7 +25,7 @@
 class Helper {
 private:
 public:
-    static void transpositionTableTest(Board &board, const tt &transpositionTable);
+    static void transpositionTableTest(const tt &transpositionTable);
 
     static void runBenchmark(Search &search, Board &board);
 

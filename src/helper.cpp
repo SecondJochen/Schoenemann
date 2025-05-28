@@ -23,14 +23,15 @@
 #include <chrono>
 #include <thread>
 
-void Helper::transpositionTableTest(Board &board, const tt &transpositionTable) {
+void Helper::transpositionTableTest(const tt &transpositionTable) {
+    Board board;
     // Set up a unique position
     board.setFen("3N4/2p5/5K2/k1PB3p/3Pr3/1b5p/6p1/5nB1 w - - 0 1");
     const std::uint64_t key = board.hash();
 
     // Store some placeholder information
     transpositionTable.storeHash(key, 2, LOWER_BOUND, transpositionTable.scoreToTT(200, 1),
-                                       uci::uciToMove(board, "d5e4"), 1);
+                                 uci::uciToMove(board, "d5e4"), 1);
 
     // Try to get the information out of the table
     const Hash *entry = transpositionTable.getHash(key);
@@ -38,43 +39,19 @@ void Helper::transpositionTableTest(Board &board, const tt &transpositionTable) 
     assert(entry != nullptr);
 
     const std::uint64_t hashedKey = entry->key;
+    assert(hashedKey == key);
+
     const std::uint8_t hashedDepth = entry->depth;
-    short hashedType = entry->type;
-    int hashedScore = entry->score;
-    Move hashedMove = entry->move;
+    assert(hashedDepth == 2);
 
-    if (hashedKey == key) {
-        std::cout << "Key PASSED." << std::endl;
-    } else {
-        std::cout << "Key FAILED." << "Original key: \n"
-                << key << "\nHash key: \n"
-                << hashedKey << std::endl;
-    }
+    const short hashedType = entry->type;
+    assert(hashedType == LOWER_BOUND);
 
-    if (hashedDepth == 2) {
-        std::cout << "Depth PASSED." << std::endl;
-    } else {
-        std::cout << "Depth FAILED." << "Original depth: 2" << "\nHash key: " << hashedDepth << std::endl;
-    }
+    const int hashedScore = entry->score;
+    assert(hashedScore == 200);
 
-    if (hashedType == LOWER_BOUND) {
-        std::cout << "Type PASSED." << std::endl;
-    } else {
-        std::cout << "Type FAILED." << "Original type: 2" << "\nHash type: " << hashedType << std::endl;
-    }
-
-    if (hashedScore == 200) {
-        std::cout << "Score PASSED." << std::endl;
-    } else {
-        std::cout << "Score FAILED." << "Original score: 200" << "\nHash score: " << hashedScore << std::endl;
-    }
-
-    if (hashedMove == uci::uciToMove(board, "d5e4")) {
-        std::cout << "Move PASSED." << std::endl;
-    } else {
-        std::cout << "Move FAILED." << "Original move: d5e4" << "\nHash move: " << hashedMove << std::endl;
-    }
-    board.setFen(STARTPOS);
+    const Move hashedMove = entry->move;
+    assert(hashedMove == uci::uciToMove(board, "d5e4"));
 }
 
 // Print the uci info

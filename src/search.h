@@ -50,7 +50,7 @@ public:
     SearchStack stack[MAX_PLY];
 
     static int scaleOutput(int rawEval, const Board &board);
-    static std::string scoreToUci(const int &score);
+    std::string scoreToUci() const;
 
     int pvs(int alpha, int beta, int depth, int ply, Board &board);
     int qs(int alpha, int beta, Board &board, int ply);
@@ -69,6 +69,9 @@ private:
     tt &transpositionTable;
     History history;
     Network &net;
+
+    std::unique_ptr<RootMove[]> rootMoveList;
+    int rootMoveListSize = 0;
 
     static bool isDraw(const Board &board);
     bool shouldExit(const Board &board, int ply) const;

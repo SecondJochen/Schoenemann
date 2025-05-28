@@ -151,6 +151,12 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
 
                 // If we are ate the root we set the bestMove
                 if (ply == 0) {
+                    for (int x = 0; x < rootMoveListSize; x++) {
+                        if (rootMoveList[x].move == move) {
+                            rootMoveList[x].score = score;
+                            break;
+                        }
+                    }
                     rootBestMove = move;
                 }
 
@@ -275,6 +281,17 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite) {
     int alpha = -EVAL_INFINITE;
     int beta = EVAL_INFINITE;
 
+    Movelist moveList;
+    movegen::legalmoves(moveList, board);
+
+    rootMoveList.reset(new RootMove[moveList.size()]);
+
+    for (int i = 0; i < moveList.size(); i++) {
+        rootMoveList[i].move = moveList[i];
+    }
+
+    rootMoveListSize = moveList.size();
+
     for (int i = 1; i < MAX_PLY; i++) {
         if ((timeManagement.shouldStopID(start) && !isInfinite) || i == MAX_PLY - 1 || nodes == nodeLimit ||
             shouldStop) {
@@ -306,11 +323,10 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite) {
 
         std::chrono::duration<double, std::milli> elapsed = std::chrono::steady_clock::now() - start;
         std::cout
-                << "info depth "
-                << i
-                << scoreToUci(scoreData) << " nodes "
-                << nodes << " nps "
-                << static_cast<std::uint64_t>(nodes / (elapsed.count() + 1) * 1000)
+                << "info depth " << i
+                << scoreToUci()
+                << " nodes " << nodes
+                << " nps " << static_cast<std::uint64_t>(nodes / (elapsed.count() + 1) * 1000)
                 << " hashfull " << transpositionTable.estimateHashfull()
                 << " time " << static_cast<std::uint64_t>(elapsed.count() + 1)
                 << " pv " << getPVLine()
@@ -323,13 +339,22 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite) {
     nodeLimit = -1;
 }
 
-std::string Search::scoreToUci(const int &score) {
+std::string Search::scoreToUci() const {
+    int score = EVAL_NONE;
+
+    for (int i = 0; i < rootMoveListSize; i++) {
+        if (rootMoveList[i].move == rootBestMove) {
+             score = rootMoveList[i].score;
+            break;
+        }
+    }
     if (score >= EVAL_MATE_IN_MAX_PLY) {
         return " mate " + std::to_string((EVAL_MATE - score) / 2 + 1);
     }
     if (score <= -EVAL_MATE_IN_MAX_PLY) {
         return " mate " + std::to_string(-(EVAL_MATE + score) / 2);
     }
+    assert(score != EVAL_NONE);
     return " score cp " + std::to_string(score);
 }
 

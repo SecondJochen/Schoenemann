@@ -50,7 +50,6 @@ constexpr int matedIn(const int ply) {
     return -EVAL_MATE + ply;
 }
 
-
 const std::string testStrings[] = {
     STARTPOS,
     "r2q4/pp1k1pp1/2p1r1np/5p2/2N5/1P5Q/5PPP/3RR1K1 b - -",
