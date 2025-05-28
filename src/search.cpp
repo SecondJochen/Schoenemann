@@ -108,6 +108,21 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
         return staticEval;
     }
 
+    // Null Move Pruning
+    // If our position is excellent we pass a move to our opponent.
+    // We search this with a full window and a reduced search depth.
+    // If the search returns a score above beta we can cut that off.
+    if (!pvNode && depth > 3 && !inCheck && staticEval >= beta) {
+        const int nmpDepthReduction = 3 + depth / 3;
+        board.makeNullMove();
+        const int score = -pvs(-beta, -alpha, depth - nmpDepthReduction, ply + 1, board);
+        board.unmakeNullMove();
+
+        if (score >= beta) {
+            return score;
+        }
+    }
+
     Movelist moveList;
     movegen::legalmoves(moveList, board);
 
