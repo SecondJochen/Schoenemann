@@ -49,24 +49,18 @@ public:
     std::uint8_t reductions[MAX_PLY][MAX_MOVES];
     SearchStack stack[MAX_PLY];
 
-    int pvs(int alpha, int beta, int depth, int ply, Board &board);
-
-    int qs(int alpha, int beta, Board &board, int ply);
-
     static int scaleOutput(int rawEval, const Board &board);
+    static std::string scoreToUci(const int &score);
 
+    int pvs(int alpha, int beta, int depth, int ply, Board &board);
+    int qs(int alpha, int beta, Board &board, int ply);
     int evaluate(const Board &board) const;
 
     void updatePv(int ply, const Move &move);
-
     void iterativeDeepening(Board &board, bool isInfinite);
-
     void initLMR();
-
     void resetHistory();
-    void setTimeInfinite();
-
-    static std::string scoreToUci(const int &score);
+    void setTimeInfinite() const;
 
 private:
     [[nodiscard]] std::string getPVLine() const;
@@ -77,6 +71,7 @@ private:
     Network &net;
 
     static bool isDraw(const Board &board);
+    bool shouldExit(const Board &board, int ply) const;
 };
 
 #endif

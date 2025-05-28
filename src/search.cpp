@@ -73,10 +73,8 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
         depth = MAX_PLY - 1;
     }
 
-    if (!root) {
-        if (shouldStop || ply >= MAX_PLY - 1 || isDraw(board)) {
-            return ply >= MAX_PLY - 1 && !board.inCheck() ? evaluate(board) : 0;
-        }
+    if (!root && shouldExit(board, ply)) {
+        return ply >= MAX_PLY - 1 && !board.inCheck() ? evaluate(board) : 0;
     }
 
     // Transposition Table lookup
@@ -141,7 +139,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
 
         assert(score > -EVAL_INFINITE && score < EVAL_INFINITE);
 
-        if (shouldStop) {
+        if (shouldStop && rootBestMove != Move::NULL_MOVE) {
             return 0;
         }
 
@@ -199,7 +197,7 @@ int Search::qs(int alpha, int beta, Board &board, int ply) {
         shouldStop = true;
     }
 
-    if (shouldStop || ply >= MAX_PLY - 1 || isDraw(board)) {
+    if (shouldExit(board, ply)) {
         return ply >= MAX_PLY - 1 && !board.inCheck() ? evaluate(board) : 0;
     }
 
@@ -381,11 +379,15 @@ bool Search::isDraw(const Board &board) {
     return board.isHalfMoveDraw() || board.isRepetition() || board.isInsufficientMaterial();
 }
 
+bool Search::shouldExit(const Board &board, const int ply) const {
+    return (shouldStop || ply >= MAX_PLY - 1 || isDraw(board)) && rootBestMove != Move::NULL_MOVE;
+}
+
 void Search::resetHistory() {
     history.resetHistorys();
 }
 
-void Search::setTimeInfinite() {
+void Search::setTimeInfinite() const {
     timeManagement.hardLimit = 99999999;
     timeManagement.softLimit = 99999999;
 }
