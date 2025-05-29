@@ -160,7 +160,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
             score = -pvs(-alpha - 1, -alpha, depth - depthReduction - 1, ply + 1, board);
 
             // If the score is outside the window we need to research with full window
-            if (score > alpha && (score < beta || depthReduction > 1)) {
+            if (score > alpha && (score < beta || depthReduction > 0)) {
                 score = -pvs(-beta, -alpha, depth - 1, ply + 1, board);
             }
         }
