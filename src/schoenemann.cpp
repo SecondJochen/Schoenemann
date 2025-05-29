@@ -30,13 +30,13 @@
 #include "tune.h"
 #include "search.h"
 #include "tt.h"
-#include "time.h"
+#include "timeman.h"
 
 int main(int argc, char *argv[]) {
     std::uint32_t transpositionTableSize = 16;
 
     tt transpositionTable(transpositionTableSize);
-    Time timeManagement;
+    TimeManagement timeManagement;
     Network net;
     SearchParams params;
 

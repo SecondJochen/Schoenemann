@@ -25,23 +25,19 @@
 #include "chess.hpp"
 using namespace chess;
 
-class Time {
+class TimeManagement {
 private:
     std::uint16_t bestMoveStabilityCount = 0;
     std::uint16_t bestEvalStabilityCount = 0;
 
 public:
     void calculateTimeForMove();
-
     void updateBestMoveStability(Move bestMove, Move previousBestMove);
-
     void updateEvalStability(int score, int previousScore);
-
     void reset();
 
-    bool shouldStopSoft(std::chrono::steady_clock::time_point start) const;
-
-    bool shouldStopID(std::chrono::steady_clock::time_point start) const;
+    [[nodiscard]] bool shouldStopSoft(std::chrono::steady_clock::time_point start) const;
+    [[nodiscard]] bool shouldStopID(std::chrono::steady_clock::time_point start) const;
 
     int timeLeft = 0;
     int increment = 0;

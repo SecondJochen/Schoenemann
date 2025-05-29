@@ -20,11 +20,12 @@
 #ifndef SEARCH_H
 #define SEARCH_H
 
-#include "time.h"
+#include "timeman.h"
 #include "tt.h"
 #include "moveorder.h"
 #include "search_fwd.h"
 #include <memory>
+#include <limits>
 
 struct SearchParams {
     bool isInfinite = false;
@@ -33,7 +34,7 @@ struct SearchParams {
 
 class Search {
 public:
-    Search(Time &timeManagement,
+    Search(TimeManagement &timeManagement,
            tt &transpositionTabel,
            Network &net) : reductions{}, stack{}, timeManagement(timeManagement),
                            transpositionTable(transpositionTabel), history(),
@@ -45,10 +46,10 @@ public:
 
     bool shouldStop = false;
 
-    std::uint64_t nodeLimit = -1;
-    std::uint64_t timeForMove = 0;
+    std::uint64_t nodeLimit = NO_NODE_LIMIT;
     std::uint64_t nodes = 0;
 
+    int timeForMove = 0;
     int currentScore = 0;
     int previousBestScore = 0;
 
@@ -69,18 +70,18 @@ public:
     void setTimeInfinite() const;
 
 private:
-    [[nodiscard]] std::string getPVLine() const;
-
-    Time &timeManagement;
+    TimeManagement &timeManagement;
     tt &transpositionTable;
     History history;
     Network &net;
 
     std::unique_ptr<RootMove[]> rootMoveList;
     int rootMoveListSize = 0;
+    static constexpr std::uint64_t NO_NODE_LIMIT = std::numeric_limits<std::uint64_t>::max();
 
     static bool isDraw(const Board &board);
-    bool shouldExit(const Board &board, int ply) const;
+    [[nodiscard]] bool shouldExit(const Board &board, int ply) const;
+    [[nodiscard]] std::string getPVLine() const;
 };
 
 #endif

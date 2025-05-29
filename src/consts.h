@@ -25,7 +25,7 @@
 const std::string STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 // Bench depth
-constexpr int benchDepth = 5;
+constexpr int benchDepth = 7;
 
 constexpr int hashMoveScore = 500000;
 constexpr int killerScore = 300000;

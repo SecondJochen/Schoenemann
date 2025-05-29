@@ -118,7 +118,7 @@ void Helper::handleSetPosition(Board &board, std::istringstream &is, std::string
     }
 }
 
-void Helper::handleGo(Search &search, Time &timeManagement, Board &board, std::istringstream &is, std::string &token, SearchParams &params) {
+void Helper::handleGo(Search &search, TimeManagement &timeManagement, Board &board, std::istringstream &is, std::string &token, SearchParams &params) {
     int number[4];
     bool hasTime = false;
     search.shouldStop = false;

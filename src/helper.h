@@ -33,7 +33,7 @@ public:
 
     static void handleSetPosition(Board &board, std::istringstream &is, std::string &token);
 
-    static void handleGo(Search &search, Time &timeManagement, Board &board, std::istringstream &is,
+    static void handleGo(Search &search, TimeManagement &timeManagement, Board &board, std::istringstream &is,
                          std::string &token, SearchParams &params);
 };
 
