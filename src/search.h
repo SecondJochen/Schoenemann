@@ -49,7 +49,7 @@ public:
     std::uint64_t timeForMove = 0;
     std::uint64_t nodes = 0;
 
-    int scoreData = 0;
+    int currentScore = 0;
     int previousBestScore = 0;
 
     std::uint8_t reductions[MAX_PLY][MAX_MOVES];

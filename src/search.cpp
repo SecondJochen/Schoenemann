@@ -328,26 +328,30 @@ void Search::iterativeDeepening(Board &board, const SearchParams &params) {
         }
 
         if (i > 7) {
-            previousBestScore = scoreData;
+            previousBestScore = currentScore;
         }
 
         if (i > 3) {
             // Set up the initial aspiration window
             delta = 25;
-            alpha = std::max(alpha - delta, -EVAL_INFINITE);
-            beta = std::min(beta + delta, EVAL_INFINITE);
+            alpha = std::max(currentScore - delta, -EVAL_INFINITE);
+            beta = std::min(currentScore + delta, EVAL_INFINITE);
         }
 
         while (true) {
-            scoreData = pvs(alpha, beta, i, 0, board);
+            const int newScore = pvs(alpha, beta, i, 0, board);
 
-            if (scoreData >= beta) {
-                beta = std::min(scoreData + delta, EVAL_INFINITE);
-            } else if (scoreData <= alpha) {
-                beta = (alpha + beta) / 2;
-                alpha = std::max(scoreData - delta, -EVAL_INFINITE);
-            } else {
+            // Our window didn't fail low or failed high so we exit the aspiration loop
+            if (newScore > alpha && newScore < beta) {
+                currentScore = newScore;
                 break;
+            }
+            // We failed low so we need to widen the window
+            else if (newScore <= alpha) {
+                beta = (alpha + beta) / 2;
+                alpha = std::max(alpha - delta, -EVAL_INFINITE);
+            } else {
+                beta = std::min(currentScore + delta, EVAL_INFINITE);
             }
 
             delta += delta * 3;
@@ -366,7 +370,7 @@ void Search::iterativeDeepening(Board &board, const SearchParams &params) {
         }
 
         if (i > 7) {
-            timeManagement.updateEvalStability(scoreData, previousBestScore);
+            timeManagement.updateEvalStability(currentScore, previousBestScore);
         }
 
         std::chrono::duration<double, std::milli> elapsed = std::chrono::steady_clock::now() - start;

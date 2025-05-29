@@ -131,17 +131,17 @@ void generate(Board &board, Search &search, tt &transpositionTable, SearchParams
             if (bestMove.typeOf() == Move::PROMOTION ||
                 board.inCheck() ||
                 board.isCapture(bestMove) ||
-                (board.sideToMove() == Color::WHITE && search.scoreData >= 10000) ||
-                (board.sideToMove() == Color::BLACK && search.scoreData <= 10000)) {
+                (board.sideToMove() == Color::WHITE && search.currentScore >= 10000) ||
+                (board.sideToMove() == Color::BLACK && search.currentScore <= 10000)) {
                 board.makeMove(bestMove);
                 continue;
             }
 
             // We create the output string based on whites perspective
             if (board.sideToMove() == Color::WHITE) {
-                outputLine[i] = board.getFen() + " | " + std::to_string(search.scoreData) + " | ";
+                outputLine[i] = board.getFen() + " | " + std::to_string(search.currentScore) + " | ";
             } else if (board.sideToMove() == Color::WHITE) {
-                outputLine[i] = board.getFen() + " | " + std::to_string(-search.scoreData) + " | ";
+                outputLine[i] = board.getFen() + " | " + std::to_string(-search.currentScore) + " | ";
             }
 
             // Count up the position
