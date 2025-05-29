@@ -365,7 +365,7 @@ void Search::iterativeDeepening(Board &board, const SearchParams &params) {
 
             // We want to widen the window for the next iteration
             // to increase the chance that our score is inside our bounds
-            delta += delta * 3;
+            delta *= 2;
         }
 
         if (i > 6) {
