@@ -141,6 +141,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
 
         board.makeMove(move);
         moveCount++;
+        const bool isQuiet = board.isCapture(move);
 
         // PVS
         // We assume our first move is the best move so we search this move with a full window
@@ -210,6 +211,9 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
 
             // Beta cutoff
             if (score >= beta) {
+                if (isQuiet) {
+                    stack[ply].killerMove = move;
+                }
                 break;
             }
         }
