@@ -34,8 +34,8 @@ std::chrono::time_point start = std::chrono::steady_clock::now();
 //DEFINE_PARAM_B(aspDepth, 7, 6, 8);
 
 
-DEFINE_PARAM_B(lmrBase, 80, 50, 105);
-DEFINE_PARAM_B(lmrDivisor, 250, 200, 280);
+DEFINE_PARAM_B(lmrBase, 50, 50, 105);
+DEFINE_PARAM_B(lmrDivisor, 210, 200, 280);
 
 // Material Scaling
 DEFINE_PARAM_B(materialScaleKnight, 3, 2, 4);
@@ -152,7 +152,6 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
 
             if (depth > 2) {
                 lmrDepth = reductions[depth][moveCount];
-                lmrDepth -= pvNode;
                 lmrDepth = std::clamp(lmrDepth, 0, depth - 1);
             }
 
