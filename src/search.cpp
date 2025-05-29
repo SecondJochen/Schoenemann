@@ -155,7 +155,13 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
             // moves with a lower depth. And we also assume that our move ordering is good the
             // more moves we made the higher our depth reduction will go
             if (depth > 2) {
+                // Get the initial reduction from the reduction table
                 depthReduction = reductions[depth][moveCount];
+
+                // When we are in a pv node we want to search with a higher depth
+                // so we decrease the depth reduction
+                depthReduction -= pvNode;
+
                 depthReduction = std::clamp(depthReduction, 0, depth - 1);
             }
 
