@@ -34,8 +34,8 @@ std::chrono::time_point start = std::chrono::steady_clock::now();
 //DEFINE_PARAM_B(aspDepth, 7, 6, 8);
 
 
-DEFINE_PARAM_B(lmrBase, 80, 50, 105);
-DEFINE_PARAM_B(lmrDivisor, 250, 200, 280);
+DEFINE_PARAM_B(lmrBase, 85, 50, 105);
+DEFINE_PARAM_B(lmrDivisor, 270, 200, 280);
 
 // Material Scaling
 DEFINE_PARAM_B(materialScaleKnight, 3, 2, 4);
