@@ -150,6 +150,10 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
 
             int depthReduction = 0;
 
+            // Late Move Reductions (LMR)
+            // Since our assumption is that the first move is the best move we search all other
+            // moves with a lower depth. And we also assume that our move ordering is good the
+            // more moves we made the higher our depth reduction will go
             if (depth > 2) {
                 depthReduction = reductions[depth][moveCount];
                 depthReduction = std::clamp(depthReduction, 0, depth - 1);
