@@ -320,7 +320,7 @@ void Search::iterativeDeepening(Board &board, const SearchParams &params) {
 
     // We keep track of the size
     rootMoveListSize = moveList.size();
-    const int finalDepth = params.depth == 255 ? MAX_PLY : params.depth;
+    const int finalDepth = params.depth == 255 ? MAX_PLY : params.depth + 1;
     for (int i = 1; i < finalDepth; i++) {
         if ((timeManagement.shouldStopID(start) && !params.isInfinite) || i == MAX_PLY - 1 || nodes == nodeLimit ||
             shouldStop) {
@@ -333,6 +333,7 @@ void Search::iterativeDeepening(Board &board, const SearchParams &params) {
 
         if (i > 3) {
             // Set up the initial aspiration window
+            delta = 25;
             alpha = std::max(alpha - delta, -EVAL_INFINITE);
             beta = std::min(beta + delta, EVAL_INFINITE);
         }
