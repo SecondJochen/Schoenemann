@@ -351,7 +351,7 @@ void Search::iterativeDeepening(Board &board, const SearchParams &params) {
                 beta = (alpha + beta) / 2;
                 alpha = std::max(alpha - delta, -EVAL_INFINITE);
             } else {
-                beta = std::min(currentScore + delta, EVAL_INFINITE);
+                beta = std::min(beta + delta, EVAL_INFINITE);
             }
 
             delta += delta * 3;
