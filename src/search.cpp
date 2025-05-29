@@ -148,20 +148,19 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
             score = -pvs(-beta, -alpha, depth - 1, ply + 1, board);
         } else {
 
-            int lmrDepth = 0;
+            int depthReduction = 0;
 
             if (depth > 2) {
-                lmrDepth = reductions[depth][moveCount];
-                lmrDepth -= pvNode;
-                lmrDepth = std::clamp(lmrDepth, 0, depth - 1);
+                depthReduction = reductions[depth][moveCount];
+                depthReduction = std::clamp(depthReduction, 0, depth - 1);
             }
 
             // Since we assumed that our first move was the best we search every other
             // move with a zero window
-            score = -pvs(-alpha - 1, -alpha, depth - lmrDepth - 1, ply + 1, board);
+            score = -pvs(-alpha - 1, -alpha, depth - depthReduction - 1, ply + 1, board);
 
             // If the score is outside the window we need to research with full window
-            if (score > alpha && score < beta) {
+            if (score > alpha && (score < beta || depthReduction > 1)) {
                 score = -pvs(-beta, -alpha, depth - 1, ply + 1, board);
             }
         }
