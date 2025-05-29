@@ -26,6 +26,11 @@
 #include "search_fwd.h"
 #include <memory>
 
+struct SearchParams {
+    bool isInfinite = false;
+    int depth = 255;
+};
+
 class Search {
 public:
     Search(Time &timeManagement,
@@ -51,14 +56,14 @@ public:
     SearchStack stack[MAX_PLY];
 
     static int scaleOutput(int rawEval, const Board &board);
-    std::string scoreToUci() const;
+    [[nodiscard]] std::string scoreToUci() const;
 
     int pvs(int alpha, int beta, int depth, int ply, Board &board);
     int qs(int alpha, int beta, Board &board, int ply);
-    int evaluate(const Board &board) const;
+    [[nodiscard]] int evaluate(const Board &board) const;
 
     void updatePv(int ply, const Move &move);
-    void iterativeDeepening(Board &board, bool isInfinite);
+    void iterativeDeepening(Board &board, const SearchParams &params);
     void initLMR();
     void resetHistory();
     void setTimeInfinite() const;

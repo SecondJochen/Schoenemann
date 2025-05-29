@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     tt transpositionTable(transpositionTableSize);
     Time timeManagement;
     Network net;
-    Helper helper;
+    SearchParams params;
 
     const std::unique_ptr<Search> search =
             std::make_unique<Search>(timeManagement, transpositionTable, net);
@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
     search->resetHistory();
 
     if (argc > 1 && std::strcmp(argv[1], "bench") == 0) {
-        helper.runBenchmark(search.get(), board);
+        Helper::runBenchmark(search.get(), board, params);
         return 0;
     }
 
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
         is >> token;
 
         if (token == "uci") {
-            helper.uciPrint();
+            Helper::uciPrint();
 
 #ifdef DO_TUNING
             std::cout << engineParameterToUCI();
@@ -152,9 +152,9 @@ int main(int argc, char *argv[]) {
                 }
             }
         } else if (token == "position") {
-            helper.handleSetPosition(board, is, token);
+            Helper::handleSetPosition(board, is, token);
         } else if (token == "go") {
-            helper.handleGo(*search, timeManagement, board, is, token);
+            Helper::handleGo(*search, timeManagement, board, is, token, params);
         } else if (token == "d") {
             std::cout << board << std::endl;
         } else if (token == "fen") {
@@ -162,7 +162,7 @@ int main(int argc, char *argv[]) {
         } else if (token == "datagen") {
             // generate(board);
         } else if (token == "bench") {
-            helper.runBenchmark(search.get(), board);
+            Helper::runBenchmark(search.get(), board, params);
         } else if (token == "eval") {
             std::cout << "The raw eval is: " << net.evaluate(board.sideToMove(), board.occ().count()) << std::endl;
             std::cout << "The scaled evaluation is: " << Search::scaleOutput(

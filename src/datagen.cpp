@@ -19,7 +19,7 @@
 
 #include "datagen.h"
 
-void generate(Board &board, Search &search, tt transpositionTable) {
+void generate(Board &board, Search &search, tt &transpositionTable, SearchParams &params) {
     // Set up the nodes limit
     search.nodeLimit = 10000;
 
@@ -115,7 +115,7 @@ void generate(Board &board, Search &search, tt transpositionTable) {
             }
 
             // Search for 5000 nodes
-            search.iterativeDeepening(board, true);
+            search.iterativeDeepening(board, params);
 
             // Get the best move
             Move bestMove = search.rootBestMove;

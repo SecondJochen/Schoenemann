@@ -289,11 +289,11 @@ int Search::qs(int alpha, int beta, Board &board, int ply) {
     return bestScore;
 }
 
-void Search::iterativeDeepening(Board &board, const bool isInfinite) {
+void Search::iterativeDeepening(Board &board, const SearchParams &params) {
     start = std::chrono::steady_clock::now();
     timeManagement.calculateTimeForMove();
 
-    if (isInfinite) {
+    if (params.isInfinite) {
         setTimeInfinite();
     }
 
@@ -304,6 +304,7 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite) {
 
     int alpha = -EVAL_INFINITE;
     int beta = EVAL_INFINITE;
+    int delta = 25;
 
     // Generate all legal root moves to later report the correct score
     Movelist moveList;
@@ -319,11 +320,10 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite) {
 
     // We keep track of the size
     rootMoveListSize = moveList.size();
-
-    for (int i = 1; i < MAX_PLY; i++) {
-        if ((timeManagement.shouldStopID(start) && !isInfinite) || i == MAX_PLY - 1 || nodes == nodeLimit ||
+    const int finalDepth = params.depth == 255 ? MAX_PLY : params.depth;
+    for (int i = 1; i < finalDepth; i++) {
+        if ((timeManagement.shouldStopID(start) && !params.isInfinite) || i == MAX_PLY - 1 || nodes == nodeLimit ||
             shouldStop) {
-            std::cout << "bestmove " << uci::moveToUci(bestMoveThisIteration) << std::endl;
             break;
         }
 
@@ -331,7 +331,26 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite) {
             previousBestScore = scoreData;
         }
 
-        scoreData = pvs(alpha, beta, i, 0, board);
+        if (i > 3) {
+            // Set up the initial aspiration window
+            alpha = std::max(alpha - delta, -EVAL_INFINITE);
+            beta = std::min(beta + delta, EVAL_INFINITE);
+        }
+
+        while (true) {
+            scoreData = pvs(alpha, beta, i, 0, board);
+
+            if (scoreData >= beta) {
+                beta = std::min(scoreData + delta, EVAL_INFINITE);
+            } else if (scoreData <= alpha) {
+                beta = (alpha + beta) / 2;
+                alpha = std::max(alpha - delta, -EVAL_INFINITE);
+            } else {
+                break;
+            }
+
+            delta += delta * 3;
+        }
 
         if (i > 6) {
             // Update the previous best move
@@ -362,6 +381,8 @@ void Search::iterativeDeepening(Board &board, const bool isInfinite) {
 
         // std::cout << "Time for this move: " << timeForMove << " | Time used: " << static_cast<int>(elapsed.count()) << " | Depth: " << i << " | bestmove: " << bestMove << std::endl;
     }
+
+    std::cout << "bestmove " << uci::moveToUci(bestMoveThisIteration) << std::endl;
 
     shouldStop = false;
     nodeLimit = -1;

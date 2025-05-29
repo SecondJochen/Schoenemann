@@ -30,7 +30,7 @@ void Helper::transpositionTableTest(const tt &transpositionTable) {
     const std::uint64_t key = board.hash();
 
     // Store some placeholder information
-    transpositionTable.storeHash(key, 2, LOWER_BOUND, transpositionTable.scoreToTT(200, 1),
+    transpositionTable.storeHash(key, 2, LOWER_BOUND, tt::scoreToTT(200, 1),
                                  uci::uciToMove(board, "d5e4"), 1);
 
     // Try to get the information out of the table
@@ -61,18 +61,20 @@ void Helper::uciPrint() {
             << "option name Threads type spin default 1 min 1 max 1" << std::endl;
 }
 
-void Helper::runBenchmark(Search* search, Board &board) {
+void Helper::runBenchmark(Search* search, Board &board, SearchParams &params) {
     // Setting up the clock
     const std::chrono::time_point start = std::chrono::steady_clock::now();
 
-    // Resting the nodes
-    search->nodes = 0;
-    search->setTimeInfinite();
+    int nodes = 0;
+
+    params.depth = benchDepth;
+    params.isInfinite = true;
 
     // Looping over all bench positions
     for (const std::string &test: testStrings) {
         board.setFen(test);
-        search->pvs(-EVAL_INFINITE, EVAL_INFINITE, benchDepth, 0, board);
+        search->iterativeDeepening(board, params);
+        nodes += search->nodes;
     }
 
     const std::chrono::time_point end = std::chrono::steady_clock::now();
@@ -82,10 +84,10 @@ void Helper::runBenchmark(Search* search, Board &board) {
     const int timeInMs = static_cast<int>(timeElapsed.count());
 
     // calculates the Nodes per Second
-    const int NPS = static_cast<int>(search->nodes / timeElapsed.count() * 1000);
+    const int NPS = static_cast<int>(nodes / timeElapsed.count() * 1000);
 
     // Prints out the final bench
-    std::cout << "Time  : " << timeInMs << " ms\nNodes : " << search->nodes << "\nNPS   : " << NPS << std::endl;
+    std::cout << "Time  : " << timeInMs << " ms\nNodes : " << nodes << "\nNPS   : " << NPS << std::endl;
 
     board.setFen(STARTPOS);
 }
@@ -116,14 +118,14 @@ void Helper::handleSetPosition(Board &board, std::istringstream &is, std::string
     }
 }
 
-void Helper::handleGo(Search &search, Time &timeManagement, Board &board, std::istringstream &is, std::string &token) {
+void Helper::handleGo(Search &search, Time &timeManagement, Board &board, std::istringstream &is, std::string &token, SearchParams &params) {
     int number[4];
     bool hasTime = false;
     search.shouldStop = false;
 
     is >> token;
     if (!is.good()) {
-        std::thread t1([&] { search.iterativeDeepening(board, true); });
+        std::thread t1([&] { search.iterativeDeepening(board, params); });
         t1.detach();
     }
     while (is.good()) {
@@ -143,19 +145,20 @@ void Helper::handleGo(Search &search, Time &timeManagement, Board &board, std::i
             number[3] = std::stoi(token);
         } else if (token == "depth") {
             is >> token;
-            std::thread t1([&] { search.pvs(-EVAL_INFINITE, EVAL_INFINITE, std::stoi(token), 0, board); });
+            params.depth = std::stoi(token);
+            std::thread t1([&] {  search.iterativeDeepening(board, params); });
             t1.detach();
 
             std::cout << "bestmove " << uci::moveToUci(search.rootBestMove) << std::endl;
         } else if (token == "nodes") {
             is >> token;
             search.nodeLimit = std::stoi(token);
-            std::thread t1([&] { search.iterativeDeepening(board, true); });
+            std::thread t1([&] { search.iterativeDeepening(board, params); });
             t1.detach();
         } else if (token == "movetime") {
             is >> token;
             timeManagement.timeLeft = std::stoi(token);
-            std::thread t1([&] { search.iterativeDeepening(board, false); });
+            std::thread t1([&] { search.iterativeDeepening(board, params); });
             t1.detach();
         }
         if (!(is >> token)) {
@@ -171,7 +174,7 @@ void Helper::handleGo(Search &search, Time &timeManagement, Board &board, std::i
             timeManagement.increment = number[3];
         }
 
-        std::thread t1([&] { search.iterativeDeepening(board, false); });
+        std::thread t1([&] { search.iterativeDeepening(board, params); });
         t1.detach();
     }
 }

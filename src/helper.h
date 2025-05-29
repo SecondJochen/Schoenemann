@@ -27,14 +27,14 @@ private:
 public:
     static void transpositionTableTest(const tt &transpositionTable);
 
-    static void runBenchmark(Search* search, Board &board);
+    static void runBenchmark(Search *search, Board &board, SearchParams &params);
 
     static void uciPrint();
 
     static void handleSetPosition(Board &board, std::istringstream &is, std::string &token);
 
     static void handleGo(Search &search, Time &timeManagement, Board &board, std::istringstream &is,
-                         std::string &token);
+                         std::string &token, SearchParams &params);
 };
 
 #endif
