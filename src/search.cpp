@@ -342,10 +342,10 @@ void Search::iterativeDeepening(Board &board, const SearchParams &params) {
             scoreData = pvs(alpha, beta, i, 0, board);
 
             if (scoreData >= beta) {
-                beta = std::min(scoreData + delta, EVAL_INFINITE);
-            } else if (scoreData <= alpha) {
                 beta = (alpha + beta) / 2;
-                alpha = std::max(alpha - delta, -EVAL_INFINITE);
+                alpha = std::max(scoreData - delta, -EVAL_INFINITE);
+            } else if (scoreData <= alpha) {
+                beta = std::min(scoreData + delta, EVAL_INFINITE);
             } else {
                 break;
             }
