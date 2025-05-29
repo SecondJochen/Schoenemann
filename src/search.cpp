@@ -341,19 +341,30 @@ void Search::iterativeDeepening(Board &board, const SearchParams &params) {
         while (true) {
             const int newScore = pvs(alpha, beta, i, 0, board);
 
-            // Our window didn't fail low or failed high so we exit the aspiration loop
+            // Our score did fall inside our bounds so we exit the search
             if (newScore > alpha && newScore < beta) {
                 currentScore = newScore;
                 break;
             }
-            // We failed low so we need to widen the window
-            else if (newScore <= alpha) {
+
+            // Fail low
+            if (newScore <= alpha) {
+                // We narrow beta down to make a fail high more likely
                 beta = (alpha + beta) / 2;
+
+                // We make alpha wider to lower the chance of a fail low
                 alpha = std::max(alpha - delta, -EVAL_INFINITE);
-            } else {
+            }
+
+            // Fail High
+            else {
+                // We make beta bigger to decrease the chance of another fail high
+                // Since fail highs on PV nodes are very strange
                 beta = std::min(beta + delta, EVAL_INFINITE);
             }
 
+            // We want to widen the window for the next iteration
+            // to increase the chance that our score is inside our bounds
             delta += delta * 3;
         }
 
