@@ -138,10 +138,10 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
 
     for (int i = 0; i < moveList.size(); i++) {
         const Move move = MoveOrder::sortByScore(moveList, scoreMoves, i);
+        const bool isQuiet = !board.isCapture(move);
 
         board.makeMove(move);
         moveCount++;
-        const bool isQuiet = !board.isCapture(move);
 
         // PVS
         // We assume our first move is the best move so we search this move with a full window
@@ -475,14 +475,14 @@ int Search::evaluate(const Board &board) const {
 void Search::updatePv(const int ply, const Move &move) {
     stack[ply].pvLine[0] = move;
     stack[ply].pvLength = stack[ply + 1].pvLength + 1;
-    for (std::uint16_t i = 0; i < stack[ply + 1].pvLength; i++) {
+    for (int i = 0; i < stack[ply + 1].pvLength; i++) {
         stack[ply].pvLine[i + 1] = stack[ply + 1].pvLine[i];
     }
 }
 
 std::string Search::getPVLine() const {
     std::string pvLine;
-    for (std::uint16_t i = 0; i < stack[0].pvLength; i++) {
+    for (int i = 0; i < stack[0].pvLength; i++) {
         pvLine += uci::moveToUci(stack[0].pvLine[i]) + " ";
     }
     return pvLine;
