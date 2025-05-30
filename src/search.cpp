@@ -212,6 +212,9 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
             // Beta cutoff
             if (score >= beta) {
                 if (isQuiet) {
+                    // Killer Move
+                    // If the move is quiet but still causes a fail high which is very unusual,
+                    // we store the move and later rank it high up in the move ordering
                     stack[ply].killerMove = move;
                 }
                 break;
