@@ -32,11 +32,15 @@ private:
 
 public:
     void calculateTimeForMove();
+
     void updateBestMoveStability(Move bestMove, Move previousBestMove);
+
     void updateEvalStability(int score, int previousScore);
+
     void reset();
 
     [[nodiscard]] bool shouldStopSoft(std::chrono::steady_clock::time_point start) const;
+
     [[nodiscard]] bool shouldStopID(std::chrono::steady_clock::time_point start) const;
 
     int timeLeft = 0;

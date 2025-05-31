@@ -57,16 +57,23 @@ public:
     SearchStack stack[MAX_PLY];
 
     static int scaleOutput(int rawEval, const Board &board);
+
     [[nodiscard]] std::string scoreToUci() const;
 
     int pvs(int alpha, int beta, int depth, int ply, Board &board);
+
     int qs(int alpha, int beta, Board &board, int ply);
+
     [[nodiscard]] int evaluate(const Board &board) const;
 
     void updatePv(int ply, const Move &move);
+
     void iterativeDeepening(Board &board, const SearchParams &params);
+
     void initLMR();
+
     void resetHistory();
+
     void setTimeInfinite() const;
 
 private:
@@ -80,7 +87,9 @@ private:
     static constexpr std::uint64_t NO_NODE_LIMIT = std::numeric_limits<std::uint64_t>::max();
 
     static bool isDraw(const Board &board);
+
     [[nodiscard]] bool shouldExit(const Board &board, int ply) const;
+
     [[nodiscard]] std::string getPVLine() const;
 };
 
