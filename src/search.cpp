@@ -140,7 +140,18 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
 
     for (int i = 0; i < moveList.size(); i++) {
         const Move move = MoveOrder::sortByScore(moveList, scoreMoves, i);
-        const bool isQuiet = !board.isCapture(move);
+        const bool isQuiet = !board.isCapture(move) && move.typeOf() != Move::PROMOTION;
+
+        // Move Pruning
+        if (!root && bestScore > -EVAL_MATE_IN_MAX_PLY)
+        {
+            // Late Move Pruning
+            // If we have a quiet position, and we already have made almost
+            // all of our moves we skip the move
+            if (!pvNode && isQuiet && !inCheck && moveCount >= 4 + 3 * depth * depth) {
+                continue;
+            }
+        }
 
         board.makeMove(move);
         moveCount++;
