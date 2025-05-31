@@ -68,7 +68,6 @@ public:
     void iterativeDeepening(Board &board, const SearchParams &params);
     void initLMR();
     void resetHistory();
-    void setTimeInfinite() const;
 
 private:
     TimeManagement &timeManagement;

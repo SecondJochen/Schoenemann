@@ -23,23 +23,25 @@ void TimeManagement::calculateTimeForMove() {
     // Only use half of out time as maximum
     timeLeft -= timeLeft / 2;
 
-    hardLimit = softLimit = timeLeft;
+    hardLimit = std::chrono::milliseconds{timeLeft};
+    softLimit = std::chrono::milliseconds{timeLeft};
 
     // Calculate the base and the max time
     const int baseTime = static_cast<int>(timeLeft * 0.054 + increment * 0.85);
     const int maxTime = static_cast<int>(timeLeft * 0.76);
 
-    // Calculate the hard limit when we need to stop
-    hardLimit = std::min(maxTime, static_cast<int>(baseTime * 3.04));
+    int hardMs = std::min(maxTime, static_cast<int>(baseTime * 3.04));
 
-    // Calculate our soft limit
-    const double bmFactor = 1.3 - 0.05 * bestMoveStabilityCount;
+    const double bmFactor   = 1.3 - 0.05 * bestMoveStabilityCount;
     const double evalFactor = 1.3 - 0.05 * bestEvalStabilityCount;
-    softLimit = std::min(maxTime, static_cast<int>(baseTime * 0.76 * bmFactor * evalFactor));
+    int softMs = std::min(maxTime, static_cast<int>(baseTime * 0.76 * bmFactor * evalFactor));
 
-    // Make sure that out time doesn't get below 1
-    softLimit = std::max(softLimit, 1.0);
-    hardLimit = std::max(hardLimit, 1.0);
+    // Ensure we never go below 1 ms.
+    hardMs = std::max(hardMs, 1);
+    softMs = std::max(softMs, 1);
+
+    hardLimit = std::chrono::milliseconds{hardMs};
+    softLimit = std::chrono::milliseconds{softMs};
 }
 
 void TimeManagement::updateBestMoveStability(const Move bestMove, const Move previousBestMove) {
@@ -51,7 +53,7 @@ void TimeManagement::updateBestMoveStability(const Move bestMove, const Move pre
 }
 
 void TimeManagement::updateEvalStability(const int score, const int previousScore) {
-    if (score > (previousScore - 10) && bestEvalStabilityCount < 10) {
+    if (score > previousScore - 10 && bestEvalStabilityCount < 10) {
         bestMoveStabilityCount++;
     } else {
         bestMoveStabilityCount = 0;
@@ -62,16 +64,20 @@ void TimeManagement::reset() {
     bestMoveStabilityCount = 0;
     bestEvalStabilityCount = 0;
 
-    hardLimit = 0;
-    softLimit = 0;
+    hardLimit = std::chrono::milliseconds{0};
+    softLimit = std::chrono::milliseconds{0};
 }
 
-bool TimeManagement::shouldStopSoft(const std::chrono::steady_clock::time_point start) const {
-    const std::chrono::duration<double, std::milli> elapsed = std::chrono::steady_clock::now() - start;
-    return elapsed.count() > hardLimit;
+[[nodiscard]] bool TimeManagement::shouldStopSoft(const std::chrono::steady_clock::time_point& start) const noexcept {
+    if (isInfiniteSearch) {
+        return false;
+    }
+    return std::chrono::steady_clock::now() - start > hardLimit;
 }
 
-bool TimeManagement::shouldStopID(const std::chrono::steady_clock::time_point start) const {
-    const std::chrono::duration<double, std::milli> elapsed = std::chrono::steady_clock::now() - start;
-    return elapsed.count() > softLimit;
+[[nodiscard]] bool TimeManagement::shouldStopID(const std::chrono::steady_clock::time_point& start) const noexcept {
+    if (isInfiniteSearch) {
+        return false;
+    }
+    return std::chrono::steady_clock::now() - start > softLimit;
 }

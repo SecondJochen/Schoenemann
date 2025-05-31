@@ -26,10 +26,6 @@
 using namespace chess;
 
 class TimeManagement {
-private:
-    std::uint16_t bestMoveStabilityCount = 0;
-    std::uint16_t bestEvalStabilityCount = 0;
-
 public:
     void calculateTimeForMove();
 
@@ -39,14 +35,22 @@ public:
 
     void reset();
 
-    [[nodiscard]] bool shouldStopSoft(std::chrono::steady_clock::time_point start) const;
+    [[nodiscard]]
+    bool shouldStopSoft(const std::chrono::steady_clock::time_point& start) const noexcept;
 
-    [[nodiscard]] bool shouldStopID(std::chrono::steady_clock::time_point start) const;
+    [[nodiscard]]
+    bool shouldStopID(const std::chrono::steady_clock::time_point& start) const noexcept;
 
     int timeLeft = 0;
     int increment = 0;
-    double hardLimit = 0;
-    double softLimit = 0;
+    std::chrono::milliseconds hardLimit{0};
+    std::chrono::milliseconds softLimit{0};
+    bool isInfiniteSearch = false;
+private:
+    std::uint16_t bestMoveStabilityCount = 0;
+    std::uint16_t bestEvalStabilityCount = 0;
+
 };
+
 
 #endif
