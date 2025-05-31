@@ -134,14 +134,21 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
     int score = 0;
     int bestScore = -EVAL_INFINITE;
     int moveCount = 0;
+    int quietMoveCount = 0;
     Move bestMoveInPVS = Move::NULL_MOVE;
+    Move quietMoves[MAX_MOVES] = {};
 
     for (int i = 0; i < moveList.size(); i++) {
         const Move move = MoveOrder::sortByScore(moveList, scoreMoves, i);
         const bool isQuiet = !board.isCapture(move);
 
         board.makeMove(move);
-        moveCount++;
+        if (isQuiet) {
+            moveCount++;
+        } else {
+            quietMoves[quietMoveCount] = move;
+            quietMoveCount++;
+        }
 
         // PVS
         // We assume our first move is the best move so we search this move with a full window
@@ -216,6 +223,21 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
                     // If the move is quiet but still causes a fail high which is very unusual,
                     // we store the move and later rank it high up in the move ordering
                     stack[ply].killerMove = move;
+
+                    const int quietHistoryBonus = std::min(30 + 200 * depth, 1750);
+                    const int quietHistoryMalus = std::min(15 + 170 * depth, 1900);
+
+                    history.updateQuietHistory(board, move, quietHistoryBonus);
+
+                    // History malus
+                    for (int x = 0; x < moveCount; x++) {
+                        Move madeMove = quietMoves[x];
+                        if (madeMove == bestMoveInPVS) {
+                            continue;
+                        }
+
+                        history.updateQuietHistory(board, madeMove, -quietHistoryMalus);
+                    }
                 }
                 break;
             }

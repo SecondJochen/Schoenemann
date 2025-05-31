@@ -22,8 +22,8 @@
 #include "history.h"
 #include "tune.h"
 
-DEFINE_PARAM_B(quietHistoryDiv, 28711, 10000, 50000);
-DEFINE_PARAM_B(continuationHistoryDiv, 28156, 10000, 50000);
+DEFINE_PARAM_B(quietHistoryDiv, 28000, 10000, 50000);
+DEFINE_PARAM_B(continuationHistoryDiv, 28000, 10000, 50000);
 DEFINE_PARAM_B(correctionValueDiv, 30, 1, 600);
 
 int History::getQuietHistory(const Board &board, const Move move) const {

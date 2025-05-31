@@ -50,6 +50,8 @@ void MoveOrder::orderMoves(const History *history, Movelist &moveList, const Has
             scores[i] = killerScore;
         } else if (move.typeOf() == Move::PROMOTION) {
             scores[i] = promotion;
+        } else {
+            scores[i] += history->getQuietHistory(board, move);
         }
     }
 }
