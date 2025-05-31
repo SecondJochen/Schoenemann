@@ -61,7 +61,7 @@ void Helper::uciPrint() {
             << "option name Threads type spin default 1 min 1 max 1" << std::endl;
 }
 
-void Helper::runBenchmark(Search* search, Board &board, SearchParams &params) {
+void Helper::runBenchmark(Search *search, Board &board, SearchParams &params) {
     // Setting up the clock
     const std::chrono::time_point start = std::chrono::steady_clock::now();
 
@@ -118,7 +118,8 @@ void Helper::handleSetPosition(Board &board, std::istringstream &is, std::string
     }
 }
 
-void Helper::handleGo(Search &search, TimeManagement &timeManagement, Board &board, std::istringstream &is, std::string &token, SearchParams &params) {
+void Helper::handleGo(Search &search, TimeManagement &timeManagement, Board &board, std::istringstream &is,
+                      std::string &token, SearchParams &params) {
     int number[4];
     bool hasTime = false;
     search.shouldStop = false;
@@ -146,7 +147,7 @@ void Helper::handleGo(Search &search, TimeManagement &timeManagement, Board &boa
         } else if (token == "depth") {
             is >> token;
             params.depth = std::stoi(token);
-            std::thread t1([&] {  search.iterativeDeepening(board, params); });
+            std::thread t1([&] { search.iterativeDeepening(board, params); });
             t1.detach();
 
             std::cout << "bestmove " << uci::moveToUci(search.rootBestMove) << std::endl;
