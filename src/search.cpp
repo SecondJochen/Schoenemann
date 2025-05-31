@@ -82,6 +82,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
     const bool ttHit = entry != nullptr;
     int hashedScore = EVAL_NONE;
     int hashedDepth = 0;
+    Move hashedMove = Move::NULL_MOVE;
     const int oldAlpha = alpha;
     std::uint8_t hashedType = 4;
 
@@ -89,6 +90,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
         hashedScore = tt::scoreFromTT(entry->score, ply);
         hashedType = static_cast<std::uint8_t>(entry->type);
         hashedDepth = static_cast<int>(entry->depth);
+        hashedMove = entry->move;
     }
 
     // Check if we can return our score that we got from the transposition table
@@ -121,6 +123,13 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
         if (score >= beta) {
             return score;
         }
+    }
+
+    // Internal Iterative Reduction
+    // If we have no hashed move, we expect that our move ordering is worse
+    // so we reduce our depth
+    if (hashedMove == Move::NULL_MOVE && depth > 3) {
+        depth--;
     }
 
     Movelist moveList;
