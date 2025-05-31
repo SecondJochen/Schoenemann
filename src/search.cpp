@@ -45,7 +45,7 @@ DEFINE_PARAM_B(materialScaleQueen, 18, 12, 24);
 DEFINE_PARAM_B(materialScaleGamePhaseAdd, 169, 120, 220);
 DEFINE_PARAM_B(materialScaleGamePhaseDiv, 269, 220, 320);
 
-int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
+int Search::pvs(int alpha, const int beta, int depth, const int ply, Board &board) {
     assert(-EVAL_INFINITE <= alpha && alpha < beta && beta <= EVAL_INFINITE);
     // Increment nodes by one
     nodes++;
@@ -290,7 +290,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
     return bestScore;
 }
 
-int Search::qs(int alpha, int beta, Board &board, int ply) {
+int Search::qs(int alpha, const int beta, Board &board, const int ply) {
     // Increment node counter
     nodes++;
 
