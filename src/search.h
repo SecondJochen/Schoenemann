@@ -59,21 +59,15 @@ public:
     static int scaleOutput(int rawEval, const Board &board);
 
     [[nodiscard]] std::string scoreToUci() const;
-
-    int pvs(int alpha, int beta, int depth, int ply, Board &board);
-
-    int qs(int alpha, int beta, Board &board, int ply);
-
     [[nodiscard]] int evaluate(const Board &board) const;
 
+    int pvs(int alpha, int beta, int depth, int ply, Board &board);
+    int qs(int alpha, int beta, Board &board, int ply);
+
     void updatePv(int ply, const Move &move);
-
     void iterativeDeepening(Board &board, const SearchParams &params);
-
     void initLMR();
-
     void resetHistory();
-
     void setTimeInfinite() const;
 
 private:
