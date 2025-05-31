@@ -235,12 +235,16 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
                     // we store the move and later rank it high up in the move ordering
                     stack[ply].killerMove = move;
 
+                    // Quiet History
                     const int quietHistoryBonus = std::min(30 + 200 * depth, 1750);
                     const int quietHistoryMalus = std::min(15 + 170 * depth, 1900);
 
                     history.updateQuietHistory(board, move, quietHistoryBonus);
 
                     // History malus
+                    // Since we don't want the history scores to be over saturated, and we want to
+                    // penalize all other quiet moves since they are not promising, we apply a negative
+                    // bonus to all other quiet moves so they get lower ranked in move ordering
                     for (int x = 0; x < moveCount; x++) {
                         Move madeMove = quietMoves[x];
                         if (madeMove == bestMoveInPVS) {
