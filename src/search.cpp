@@ -143,9 +143,9 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
         const bool isQuiet = !board.isCapture(move);
 
         board.makeMove(move);
+        moveCount++;
+
         if (isQuiet) {
-            moveCount++;
-        } else {
             quietMoves[quietMoveCount] = move;
             quietMoveCount++;
         }
