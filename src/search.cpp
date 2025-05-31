@@ -128,7 +128,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
     // Internal Iterative Reduction
     // If we have no hashed move, we expect that our move ordering is worse
     // so we reduce our depth
-     if (!ttHit && board.hash() != entry->key && !inCheck && depth > 3) {
+     if (hashedMove == Move::NULL_MOVE && pvNode && hashedDepth > depth && !inCheck && depth > 3) {
         depth--;
     }
 
