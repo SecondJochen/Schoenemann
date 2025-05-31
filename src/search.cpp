@@ -140,6 +140,8 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
 
     for (int i = 0; i < moveList.size(); i++) {
         const Move move = MoveOrder::sortByScore(moveList, scoreMoves, i);
+
+        // We consider a move quiet if it isn't a capture or a promotion
         const bool isQuiet = !board.isCapture(move) && move.typeOf() != Move::PROMOTION;
 
         // Move Pruning
@@ -149,6 +151,12 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
             // If we have a quiet position, and we already have made almost
             // all of our moves we skip the move
             if (!pvNode && isQuiet && !inCheck && moveCount >= 4 + 3 * depth * depth) {
+                continue;
+            }
+
+            // Futility Pruning
+            // We skip quiet moves that have less potential to raise alpha
+            if (!inCheck && isQuiet && staticEval + 50 + 100 * depth < alpha && depth < 6) {
                 continue;
             }
         }
