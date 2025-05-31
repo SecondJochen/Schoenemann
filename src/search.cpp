@@ -93,8 +93,8 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
 
     // Check if we can return our score that we got from the transposition table
     if (!pvNode && !root && hashedDepth >= depth && ((hashedType == UPPER_BOUND && hashedScore <= alpha) ||
-                                                              (hashedType == LOWER_BOUND && hashedScore >= beta) ||
-                                                              (hashedType == EXACT))) {
+                                                     (hashedType == LOWER_BOUND && hashedScore >= beta) ||
+                                                     (hashedType == EXACT))) {
         return hashedScore;
     }
 
@@ -140,15 +140,22 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
 
     for (int i = 0; i < moveList.size(); i++) {
         const Move move = MoveOrder::sortByScore(moveList, scoreMoves, i);
+
+        // We consider a move quiet if it isn't a capture or a promotion
         const bool isQuiet = !board.isCapture(move) && move.typeOf() != Move::PROMOTION;
 
         // Move Pruning
-        if (!root && bestScore > -EVAL_MATE_IN_MAX_PLY)
-        {
+        if (!root && bestScore > -EVAL_MATE_IN_MAX_PLY) {
             // Late Move Pruning
             // If we have a quiet position, and we already have made almost
             // all of our moves we skip the move
             if (!pvNode && isQuiet && !inCheck && moveCount >= 4 + 3 * depth * depth) {
+                continue;
+            }
+
+            // Futility Pruning
+            // We skip quiet moves that have less potential to raise alpha
+            if (!inCheck && isQuiet && staticEval + 50 + 100 * depth < alpha && depth < 6) {
                 continue;
             }
         }
@@ -166,7 +173,6 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
         if (moveCount == 1) {
             score = -pvs(-beta, -alpha, depth - 1, ply + 1, board);
         } else {
-
             int depthReduction = 0;
 
             // Late Move Reductions (LMR)
@@ -210,7 +216,6 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
 
                 // If we are ate the root we set the bestMove
                 if (ply == 0) {
-
                     // Update the score of the root move
                     for (int x = 0; x < rootMoveListSize; x++) {
                         if (rootMoveList[x].move == move) {
@@ -472,7 +477,7 @@ std::string Search::scoreToUci() const {
     // Get the score of the best root move
     for (int i = 0; i < rootMoveListSize; i++) {
         if (rootMoveList[i].move == rootBestMove) {
-             score = rootMoveList[i].score;
+            score = rootMoveList[i].score;
             break;
         }
     }
