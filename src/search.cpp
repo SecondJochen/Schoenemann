@@ -130,7 +130,7 @@ int Search::pvs(int alpha, int beta, int depth, int ply, Board &board) {
     // so we reduce our depth
      if (hashedMove == Move::NULL_MOVE && pvNode && hashedDepth > depth && !inCheck && depth > 3) {
         depth--;
-    }
+     }
 
     Movelist moveList;
     movegen::legalmoves(moveList, board);
