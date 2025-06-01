@@ -79,14 +79,15 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
 
     // Transposition Table lookup
     const Hash *entry = transpositionTable.getHash(board.hash());
-    const bool ttHit = entry != nullptr;
+    bool ttHit = false;
     int hashedScore = EVAL_NONE;
     int hashedDepth = 0;
     Move hashedMove = Move::NULL_MOVE;
     const int oldAlpha = alpha;
     std::uint8_t hashedType = 4;
 
-    if (ttHit && entry->key == board.hash()) {
+    if (entry != nullptr && entry->key == board.hash()) {
+        ttHit = true;
         hashedScore = tt::scoreFromTT(entry->score, ply);
         hashedType = static_cast<std::uint8_t>(entry->type);
         hashedDepth = static_cast<int>(entry->depth);
@@ -101,7 +102,13 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
     }
 
     const bool inCheck = board.inCheck();
-    const int staticEval = evaluate(board);
+    int staticEval;
+
+    if (ttHit) {
+        staticEval = entry->eval;
+    } else {
+        staticEval = evaluate(board);
+    }
 
     // Reverse Futility Pruning
     // If we subtract a margin from our static evaluation and this still
