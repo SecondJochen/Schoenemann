@@ -110,10 +110,23 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
         staticEval = evaluate(board);
     }
 
+    stack[ply].staticEval = staticEval;
+
+    bool improving = false;
+
+    // Check if we improved over one move
+    if (ply > 2 && staticEval > stack[ply - 2].staticEval) {
+        improving = true;
+    }
+
+    if (ply > 4 && staticEval > stack[ply - 4].staticEval) {
+        improving = true;
+    }
+
     // Reverse Futility Pruning
     // If we subtract a margin from our static evaluation and this still
     // produces a beta cutoff, we can assume that this node is still good
-    if (!inCheck && !pvNode && depth < 6 && staticEval - 100 * depth >= beta) {
+    if (!inCheck && !pvNode && depth < 6 && staticEval - 100 * (depth - improving) >= beta) {
         return staticEval;
     }
 
