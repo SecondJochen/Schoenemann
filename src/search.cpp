@@ -132,7 +132,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
     // If we subtract a margin from our static evaluation and this still
     // produces a beta cutoff, we can assume that this node is still good
     if (!inCheck && !pvNode && depth < 6 && staticEval - 100 * (depth - improving) >= beta) {
-        return staticEval;
+        return (staticEval + beta) / 2;
     }
 
     // Null Move Pruning
