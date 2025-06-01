@@ -104,21 +104,26 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
     const bool inCheck = board.inCheck();
     int staticEval;
 
+    // We check if we have the static eval already stored in the transposition table.
+    // If that is the case, we use this eval elsewhere we have to evaluate the position
     if (ttHit) {
         staticEval = entry->eval;
     } else {
         staticEval = evaluate(board);
     }
 
+    // Save statick eval into the SearchStack. This is important for the improving flag
     stack[ply].staticEval = staticEval;
 
     bool improving = false;
 
     // Check if we improved over one move
+    // That means we check if our evaluation is greater than two plies ago
     if (ply > 2 && staticEval > stack[ply - 2].staticEval) {
         improving = true;
     }
 
+    // Check if we improved a move ago
     if (ply > 4 && staticEval > stack[ply - 4].staticEval) {
         improving = true;
     }
