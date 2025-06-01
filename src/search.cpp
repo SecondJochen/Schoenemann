@@ -129,9 +129,11 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
     }
 
     // Reverse Futility Pruning
-    // If we subtract a margin from our static evaluation and this still
-    // produces a beta cutoff, we can assume that this node is still good
+    // If we subtract a margin from our stati evaluation, and it is still far
+    // above beta, we can assume that the node will fail high (beta cutoff) and prune it
     if (!inCheck && !pvNode && depth < 6 && staticEval - 100 * (depth - improving) >= beta) {
+
+        // Since static eval is a harsh prune we make it "softer" by tweaking it with beta
         return (staticEval + beta) / 2;
     }
 
