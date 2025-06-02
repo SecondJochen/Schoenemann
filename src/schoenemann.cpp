@@ -31,6 +31,8 @@
 #include "search.h"
 #include "tt.h"
 #include "timeman.h"
+#include "see.h"
+#include "tests.h"
 
 int main(int argc, char *argv[]) {
     std::uint32_t transpositionTableSize = 16;
@@ -171,7 +173,20 @@ int main(int argc, char *argv[]) {
             std::cout << engineParameterToSpsaInput() << std::endl;
         } else if (token == "stop") {
             search->shouldStop = true;
-        } else {
+        } else if (token == "see") {
+            std::string fen;
+            while (is >> token && token != "move") {
+                fen += token + " ";
+            }
+            fen = fen.substr(0, fen.size() - 1);
+            board.setFen(fen);
+
+            Move m = uci::uciToMove(board, token);
+            see(board, m, 0);
+        } else if (token == "t") {
+            testSEE(board);
+        }
+        else {
             std::cout << "No valid command: '" << token << "'!" << std::endl;
         }
     } while (token != "quit");

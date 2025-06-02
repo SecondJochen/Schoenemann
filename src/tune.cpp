@@ -63,11 +63,11 @@ std::string engineParameterToSpsaInput() {
 }
 
 
-DEFINE_PARAM_B(seePawn, 140, 100, 180);
-DEFINE_PARAM_B(seeKnight, 287, 200, 350);
-DEFINE_PARAM_B(seeBishop, 348, 280, 400);
-DEFINE_PARAM_B(seeRook, 565, 500, 700);
-DEFINE_PARAM_B(seeQueen, 1045, 840, 1240);
+DEFINE_PARAM_B(seePawn, 100, 100, 180);
+DEFINE_PARAM_B(seeKnight, 300, 200, 350);
+DEFINE_PARAM_B(seeBishop, 300, 280, 400);
+DEFINE_PARAM_B(seeRook, 500, 500, 700);
+DEFINE_PARAM_B(seeQueen, 900, 840, 1240);
 DEFINE_PARAM_B(seeEmpty, 0, 0, 0);
 
 DEFINE_PARAM_B(piecePawn, 73, 53, 93);
