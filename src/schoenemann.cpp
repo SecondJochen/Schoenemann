@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
             board.setFen(fen);
 
             Move m = uci::uciToMove(board, token);
-            see(board, m, 0);
+            std::cout << see(board, m, 0) << std::endl;
         } else if (token == "t") {
             testSEE(board);
         }
