@@ -95,10 +95,7 @@ bool see(const Board &board, const Move &move, const int cutoff) {
         us = ~us;
 
         if (score >= 0) {
-            // If our only attacker is our king, but the opponent still has defenders
-            if (next == PieceType::KING && (attackers & board.us(us)).getBits() > 0) {
-                us = ~us;
-            }
+
             break;
         }
     }

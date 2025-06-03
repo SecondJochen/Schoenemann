@@ -5,7 +5,11 @@
 using namespace chess;
 
 class SEE {
+public:
+    bool see(const Board &board, const Move &move, int &cutoff);
+private:
     int getPieceValue(const Board &board, const Move &move);
+    int getLeastValuableAttacker();
 };
 
 
