@@ -33,6 +33,7 @@
 #include "timeman.h"
 #include "see.h"
 #include "tests.h"
+#include "see_o.h"
 
 int main(int argc, char *argv[]) {
     std::uint32_t transpositionTableSize = 16;
@@ -180,11 +181,18 @@ int main(int argc, char *argv[]) {
             }
             fen = fen.substr(0, fen.size() - 1);
             board.setFen(fen);
+            // r2n3r/2P1P3/4N3/1k6/8/8/8/4K3 w - -
+            // e6d8
 
+            is >> token;
             Move m = uci::uciToMove(board, token);
+
             std::cout << see(board, m, 0) << std::endl;
         } else if (token == "t") {
             testSEE(board);
+        } else if (token == "u") {
+            board.setFen("6RR/4bP2/8/8/5r2/3K4/5p2/4k3 w - -");
+            SEE::see(board, uci::uciToMove(board, "f7f8q"), 0);
         }
         else {
             std::cout << "No valid command: '" << token << "'!" << std::endl;

@@ -6,10 +6,10 @@ using namespace chess;
 
 class SEE {
 public:
-    bool see(const Board &board, const Move &move, int &cutoff);
+    static bool see(const Board &board, const Move &move, int cutoff);
 private:
     int getPieceValue(const Board &board, const Move &move);
-    int getLeastValuableAttacker();
+    PieceType getLeastValuableAttacker(const Board &board, const Bitboard &attackers, const Square &toSquare);
 };
 
 
