@@ -15,7 +15,7 @@ bool SEE::see(const Board &board, const Move &move, int cutoff) {
 
 
     // We get every piece on the board and generate there attacks on the target square.
-    // Then we do a bitwise and to only get the attacks on the traget square
+    // Then we do a bitwise and to only get the attacks on the target square
     Bitboard attackers;
     attackers |= board.pieces(PieceType::PAWN, Color::WHITE) & attacks::pawn(Color::WHITE, toSquare);
     attackers |= board.pieces(PieceType::PAWN, Color::BLACK) & attacks::pawn(Color::BLACK, toSquare);
@@ -24,8 +24,7 @@ bool SEE::see(const Board &board, const Move &move, int cutoff) {
     attackers |= board.pieces(PieceType::ROOK) & attacks::rook(toSquare, occ);
     attackers |= board.pieces(PieceType::QUEEN) & attacks::queen(toSquare, occ);
     attackers |= board.pieces(PieceType::KING) & attacks::king(toSquare);
-
-    std::cout << attackers << std::endl;
+    std::cout << getLeastValuableAttacker(board, attackers, board.sideToMove()) << std::endl;
     return ourSide != board.sideToMove();
 }
 
@@ -55,6 +54,15 @@ int SEE::getPieceValue(const Board &board, const Move &move) {
     return score;
 }
 
-PieceType SEE::getLeastValuableAttacker(const Board &board, const Bitboard &attackers, const Square &toSquare) {
+PieceType SEE::getLeastValuableAttacker(const Board &board, const Bitboard &attackers, const Color color) {
+    for (int piece = 0; piece <= 5; piece++) {
+        if (Bitboard bitboard = attackers & board.pieces(static_cast<PieceType>(piece), color);
+            bitboard.getBits() > 0) {
+            //occ ^= (1ULL << bitboard.lsb());
+            return static_cast<PieceType>(piece);
+            }
+    }
 
+    // If no attacker is found we return an empty piece
+    return PieceType::NONE;
 }

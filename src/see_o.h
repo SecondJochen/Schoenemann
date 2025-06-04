@@ -8,8 +8,8 @@ class SEE {
 public:
     static bool see(const Board &board, const Move &move, int cutoff);
 private:
-    int getPieceValue(const Board &board, const Move &move);
-    PieceType getLeastValuableAttacker(const Board &board, const Bitboard &attackers, const Square &toSquare);
+    static int getPieceValue(const Board &board, const Move &move);
+    static PieceType getLeastValuableAttacker(const Board &board, const Bitboard &attackers, Color color);
 };
 
 
