@@ -7,17 +7,22 @@ bool SEE::see(const Board &board, const Move &move, int cutoff) {
     // since we make a move we must revert the side to move
     Color ourSide = ~board.sideToMove();
 
-    // We create a bitboards for all sliding pieces to save computation later on
-    Bitboard bishop = board.pieces(PieceType::BISHOP);
-    Bitboard rooks = board.pieces(PieceType::ROOK);
-    Bitboard queens = board.pieces(PieceType::QUEEN);
-
     const Square toSquare = move.to();
-    const Bitboard occ = board.occ();
+
+    // In our occupied bitboard we make the move so we turn off the 'from' bit
+    // and turn on the 'to' bit
+    const Bitboard occ = board.occ() ^ 1ULL << move.from().index() ^ 1ULL << move.to().index();
+
+    // We get every piece on the board and generate there attacks on the target square.
+    // Then we do a bitwise and to only get the attacks on the traget square
     Bitboard attackers;
     attackers |= board.pieces(PieceType::PAWN, Color::WHITE) & attacks::pawn(Color::WHITE, toSquare);
     attackers |= board.pieces(PieceType::PAWN, Color::BLACK) & attacks::pawn(Color::BLACK, toSquare);
     attackers |= board.pieces(PieceType::BISHOP) & attacks::bishop(toSquare, occ);
+    attackers |= board.pieces(PieceType::KNIGHT) & attacks::knight(toSquare);
+    attackers |= board.pieces(PieceType::ROOK) & attacks::rook(toSquare, occ);
+    attackers |= board.pieces(PieceType::KING) & attacks::king(toSquare);
+
     std::cout << attackers << std::endl;
     return ourSide != board.sideToMove();
 }
