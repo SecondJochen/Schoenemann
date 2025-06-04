@@ -13,6 +13,7 @@ bool SEE::see(const Board &board, const Move &move, int cutoff) {
     // and turn on the 'to' bit
     const Bitboard occ = board.occ() ^ 1ULL << move.from().index() ^ 1ULL << move.to().index();
 
+
     // We get every piece on the board and generate there attacks on the target square.
     // Then we do a bitwise and to only get the attacks on the traget square
     Bitboard attackers;
@@ -21,6 +22,7 @@ bool SEE::see(const Board &board, const Move &move, int cutoff) {
     attackers |= board.pieces(PieceType::BISHOP) & attacks::bishop(toSquare, occ);
     attackers |= board.pieces(PieceType::KNIGHT) & attacks::knight(toSquare);
     attackers |= board.pieces(PieceType::ROOK) & attacks::rook(toSquare, occ);
+    attackers |= board.pieces(PieceType::QUEEN) & attacks::queen(toSquare, occ);
     attackers |= board.pieces(PieceType::KING) & attacks::king(toSquare);
 
     std::cout << attackers << std::endl;

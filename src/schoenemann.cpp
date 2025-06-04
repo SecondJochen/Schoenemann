@@ -191,8 +191,8 @@ int main(int argc, char *argv[]) {
         } else if (token == "t") {
             testSEE(board);
         } else if (token == "u") {
-            board.setFen("6RR/4bP2/8/8/5r2/3K4/5p2/4k3 w - -");
-            SEE::see(board, uci::uciToMove(board, "f7f8q"), 0);
+            board.setFen("2r2r1k/6bp/p7/2q2p1Q/3PpP2/1B6/P5PP/2RR3K b - -");
+            SEE::see(board, uci::uciToMove(board, "c5c1"), 0);
         }
         else {
             std::cout << "No valid command: '" << token << "'!" << std::endl;

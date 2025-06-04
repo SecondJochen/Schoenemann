@@ -72,7 +72,7 @@ bool see(const Board &board, const Move &move, const int cutoff) {
     attackers |= board.pieces(PieceType::PAWN, Color::WHITE) & attacks::pawn(Color::BLACK, square);
     attackers |= board.pieces(PieceType::KNIGHT) & attacks::knight(square);
     attackers |= board.pieces(PieceType::KING) & attacks::king(square);
-    std::cout << "hi" << std::endl;
+
     std::cout << static_cast<std::string>(attackers) << std::endl;
 
     Color us = ~board.sideToMove();
