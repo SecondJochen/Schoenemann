@@ -15,12 +15,11 @@ bool SEE::see(const Board &board, const Move &move, int cutoff) {
         return true;
     }
 
-    std::cout << "bur" << std::endl;
     // Our side is the opposite of the current side to move
     // since we make a move we must revert the side to move
     Color side = ~board.sideToMove();
 
-    const Square toSquare = move.to();
+     Square toSquare = move.to();
 
     // In our occupied bitboard we make the move so we turn off the 'from' bit
     // and turn on the 'to' bit
@@ -57,6 +56,7 @@ bool SEE::see(const Board &board, const Move &move, int cutoff) {
         if (next == PieceType::PAWN || next == PieceType::BISHOP || next == PieceType::QUEEN) {
             attackers |= attacks::bishop(toSquare, occ) & bishops;
         }
+        std::cout << ourAttackers << std::endl;
 
         if (next == PieceType::ROOK || next == PieceType::QUEEN) {
             attackers |= attacks::rook(toSquare, occ) & rooks;
