@@ -1,5 +1,5 @@
 #include "tests.h"
-#include "see.h"
+#include "see_o.h"
 
 
 void testSEE(Board &board) {
@@ -20,10 +20,10 @@ void testSEE(Board &board) {
 
         board.setFen(fen);
         const Move move = uci::uciToMove(board, uciMove);
-
-        assert(see(board, move, gain - 1));
-        assert(see(board, move, gain));
-        assert(!see(board, move, gain + 1));
+        std::cout << "Position: " << fen << std::endl;
+        assert(SEE::see(board, move, gain - 1));
+        assert(SEE::see(board, move, gain));
+        assert(!SEE::see(board, move, gain + 1));
     }
 
     inputFile.close();

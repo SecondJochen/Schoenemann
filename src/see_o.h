@@ -9,7 +9,7 @@ public:
     static bool see(const Board &board, const Move &move, int cutoff);
 private:
     static int getPieceValue(const Board &board, const Move &move);
-    static PieceType getLeastValuableAttacker(const Board &board, const Bitboard &attackers, Color color);
+    static PieceType getLeastValuableAttacker(const Board &board, const Bitboard &attackers, Bitboard &occ, Color color);
 };
 
 
