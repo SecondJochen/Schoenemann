@@ -52,6 +52,11 @@ void MoveOrder::orderMoves(const History *history, Movelist &moveList, const Has
             scores[i] = promotion;
         } else {
             scores[i] += history->getQuietHistory(board, move);
+
+            if (ply > 0 && stack[ply - 1].previousMovedPiece != PieceType::NONE)
+            {
+                scores[i] += history->getContinuationHistory(board.at(move.from()).type(), move, ply - 1, stack);
+            }
         }
     }
 }
