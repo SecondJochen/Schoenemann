@@ -76,7 +76,7 @@ void generate(Board &board, Search &search, tt &transpositionTable, SearchParams
 
             // Choose a random move
             Move move = moveList[dis(gen)];
-            if (!see(board, move, 0)) {
+            if (!SEE::see(board, move, 0)) {
                 exitEarly = true;
                 break;
             }

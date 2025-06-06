@@ -40,7 +40,7 @@ void MoveOrder::orderMoves(const History *history, Movelist &moveList, const Has
             const PieceType captured = board.at<PieceType>(move.to());
             const PieceType capturing = board.at<PieceType>(move.from());
 
-            int captureScore = see(board, move, 0) ? goodCapture : badCapture;
+            int captureScore = SEE::see(board, move, 0) ? goodCapture : badCapture;
 
             // MVA - LVV
             captureScore += mvaLvvMultiplyer * (*PIECE_VALUES[captured]) - (*PIECE_VALUES[capturing]);

@@ -23,10 +23,13 @@
 #include "chess.hpp"
 using namespace chess;
 
-int getPieceValue(const Board &board, const Move &move);
+class SEE {
+public:
+  static bool see(const Board &board, const Move &move, int cutoff);
+private:
+  static int getPieceValue(const Board &board, const Move &move);
+  static PieceType getLeastValuableAttacker(const Board &board, Bitboard &occ, const Bitboard &attackers, const Color color);
+};
 
-bool see(const Board &board, const Move &move, int cutoff);
-
-PieceType getLeastValuableAttacker(const Board &board, Bitboard &occ, Bitboard attackers, Color color);
 
 #endif
