@@ -133,7 +133,9 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
     // above beta, we can assume that the node will fail high (beta cutoff) and prune it
     if (!inCheck && !pvNode && depth < 6 && staticEval - 100 * (depth - improving) >= beta) {
 
-        // Since static eval is a harsh prune we make it "softer" by tweaking it with beta
+        // By tweaking the return value with beta, we try to adjust it more to the window.
+        // As we do this, we make the value more inaccurate, but we are potentially adjusting
+        // it more to our window which can probably produce a fail high
         return (staticEval + beta) / 2;
     }
 
