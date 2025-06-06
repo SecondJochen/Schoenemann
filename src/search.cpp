@@ -357,6 +357,15 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
     int moveCount = 0;
 
     for (const Move &move: moveList) {
+
+        // Static Exchange evaluation (SEE)
+        // We look at a move if it returns a negative result form SEE.
+        // That means when the result is positive the opponent is winning the exchange on
+        // the target square of the move.
+        if (!SEE::see(board, move, 0)) {
+            continue;
+        }
+
         board.makeMove(move);
         moveCount++;
 
