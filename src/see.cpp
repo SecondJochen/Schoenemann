@@ -73,6 +73,8 @@ bool see(const Board &board, const Move &move, const int cutoff) {
     attackers |= board.pieces(PieceType::KNIGHT) & attacks::knight(square);
     attackers |= board.pieces(PieceType::KING) & attacks::king(square);
 
+    std::cout << static_cast<std::string>(attackers) << std::endl;
+
     Color us = ~board.sideToMove();
     while (true) {
         Bitboard ourAttackers = attackers & board.us(us);
