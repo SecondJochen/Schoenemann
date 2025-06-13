@@ -27,12 +27,12 @@
 
 class util {
 public:
-    static inline std::int32_t screlu(int input) {
-        const std::int32_t clipped = std::clamp<std::int32_t>(static_cast<std::int32_t>(input), 0, QA);
+    static std::int32_t screlu(const int input) {
+        const std::int32_t clipped = std::clamp<std::int32_t>(input, 0, QA);
         return clipped * clipped;
     }
 
-    static inline void addAll(
+    static void addAll(
         std::array<std::int16_t, hiddenSize> &us,
         std::array<std::int16_t, hiddenSize> &them,
         const std::array<std::int16_t, inputHiddenSize> &outputBias,
@@ -46,7 +46,7 @@ public:
         }
     }
 
-    static inline void subAll(
+    static void subAll(
         std::array<std::int16_t, hiddenSize> &us,
         std::array<std::int16_t, hiddenSize> &them,
         const std::array<std::int16_t, inputHiddenSize> &outputBias,
@@ -66,7 +66,7 @@ public:
         const std::array<std::int16_t, hiddenSize> &them,
         const std::array<std::array<std::int16_t, hiddenSize * 2>, outputSize> &outputWeight,
         const std::array<std::int16_t, outputSize> &outputBias,
-        const short bucket) {
+        const int bucket) {
         int eval = 0;
 #ifdef __AVX2__
         const __m256i vecZero = _mm256_setzero_si256();
@@ -74,10 +74,10 @@ public:
         __m256i sum = vecZero;
 
         for (int i = 0; i < hiddenSize; i += 16) {
-            const __m256i usVec = _mm256_loadu_si256((const __m256i *) (&us[i]));
-            const __m256i themVec = _mm256_loadu_si256((const __m256i *) (&them[i]));
-            const __m256i usWeights = _mm256_loadu_si256((const __m256i *) (&outputWeight[bucket][i]));
-            const __m256i themWeights = _mm256_loadu_si256((const __m256i *) (&outputWeight[bucket][i + hiddenSize]));
+            const __m256i usVec = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(&us[i]));
+            const __m256i themVec = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(&them[i]));
+            const __m256i usWeights = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(&outputWeight[bucket][i]));
+            const __m256i themWeights = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(&outputWeight[bucket][i + hiddenSize]));
 
             // Clamp all the values using _mm256_min_epi16
             const __m256i usClamped = _mm256_min_epi16(_mm256_max_epi16(usVec, vecZero), vecQA);
@@ -90,8 +90,8 @@ public:
             sum = _mm256_add_epi32(sum, themResults);
         }
 
-        __m256i vecOne = _mm256_hadd_epi32(sum, sum);
-        __m256i vecTwo = _mm256_hadd_epi32(vecOne, vecOne);
+        const __m256i vecOne = _mm256_hadd_epi32(sum, sum);
+        const __m256i vecTwo = _mm256_hadd_epi32(vecOne, vecOne);
 
         eval = _mm256_extract_epi32(vecTwo, 0) + _mm256_extract_epi32(vecTwo, 4);
 #else

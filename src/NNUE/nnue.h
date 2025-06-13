@@ -22,23 +22,23 @@
 
 #include <array>
 #include <cstdint>
-#include <cassert>
+#include <cstring>
 #include <sstream>
-#include <immintrin.h>
 
 #include "accumulator.h"
 #include "utils.h"
 #include "incbin.h"
 
+INCBIN_EXTERN(network);
+
 class Network {
-private:
     struct {
         std::array<std::int16_t, inputHiddenSize> featureWeight;
         std::array<std::int16_t, hiddenSize> featureBias;
 
         std::array<std::array<std::int16_t, hiddenSize * 2>, outputSize> outputWeight;
         std::array<std::int16_t, outputSize> outputBias;
-    } innerNet;
+    } innerNet{};
 
     accumulator acc;
 
@@ -54,8 +54,8 @@ public:
 
         if (nn) {
             size_t read = 0;
-            size_t fileSize = sizeof(innerNet);
-            size_t objectsExpected = fileSize / sizeof(int16_t);
+            constexpr size_t fileSize = sizeof(innerNet);
+            constexpr size_t objectsExpected = fileSize / sizeof(int16_t);
 
             // Read all the different weight and bias
             read += fread(&innerNet.featureWeight, sizeof(int16_t), inputSize * hiddenSize, nn);
@@ -64,7 +64,7 @@ public:
             read += fread(&innerNet.outputBias, sizeof(int16_t), outputSize, nn);
 
             // Check if the file was read correctly
-            if (std::abs((int64_t) read - (int64_t) objectsExpected) >= 16) {
+            if (std::abs(static_cast<int64_t>(read) - static_cast<int64_t>(objectsExpected)) >= 16) {
                 std::cout << "Error loading the net, aborting ";
                 std::cout << "Expected " << objectsExpected << " shorts, got " << read << "\n";
                 exit(1);
@@ -73,17 +73,27 @@ public:
             // Close the file after reading it
             fclose(nn);
         } else {
-            std::cout << "The NNUE File wasn't found" << std::endl;
-            exit(1);
+            // Fall back to embedded net
+            const auto* raw = reinterpret_cast<const std::int16_t*>(gnetworkData);
+            const size_t shortsAvailable = gnetworkSize / sizeof(std::int16_t);
+
+            // Validate network
+            if (constexpr size_t expectedShorts = (sizeof(innerNet) / sizeof(std::int16_t)); shortsAvailable < expectedShorts) {
+                std::cerr << "Embedded network file too small: "
+                          << shortsAvailable << " expected " << expectedShorts << "\n";
+                std::exit(1);
+            }
+
+            std::memcpy(&innerNet, raw, sizeof(innerNet));
         }
     }
 
-    inline void refreshAccumulator() {
+    void refreshAccumulator() {
         acc.zeroAccumulator();
         acc.loadBias(innerNet.featureBias);
     }
 
-    inline void updateAccumulator(
+    void updateAccumulator(
         const std::uint8_t piece,
         const std::uint8_t color,
         const std::uint8_t square,
@@ -91,7 +101,7 @@ public:
         // Calculate the stride necessary to get to the correct piece:
         const std::uint16_t pieceIndex = piece * whiteSquares;
 
-        // Get the squre index based on the color
+        // Get the square index based on the color
         const std::uint16_t whiteIndex = color * blackSqures + pieceIndex + square;
         const std::uint16_t blackIndex = (color ^ 1) * blackSqures + pieceIndex + (square ^ 56);
 
@@ -105,9 +115,9 @@ public:
         }
     }
 
-    inline std::int32_t evaluate(const std::uint8_t sideToMove, int pieces) {
+    [[nodiscard]] std::int32_t evaluate(const std::uint8_t sideToMove, const int pieces) const {
         // Calculate the bucket based on the number of pieces on the board
-        const short bucket = (pieces - 2) / ((32 + outputSize - 1) / outputSize);
+        const int bucket = (pieces - 2) / ((32 + outputSize - 1) / outputSize);
 
         int eval = 0;
 
