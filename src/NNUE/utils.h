@@ -77,7 +77,8 @@ public:
             const __m256i usVec = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(&us[i]));
             const __m256i themVec = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(&them[i]));
             const __m256i usWeights = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(&outputWeight[bucket][i]));
-            const __m256i themWeights = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(&outputWeight[bucket][i + hiddenSize]));
+            const __m256i themWeights = _mm256_loadu_si256(
+                reinterpret_cast<const __m256i *>(&outputWeight[bucket][i + hiddenSize]));
 
             // Clamp all the values using _mm256_min_epi16
             const __m256i usClamped = _mm256_min_epi16(_mm256_max_epi16(usVec, vecZero), vecQA);

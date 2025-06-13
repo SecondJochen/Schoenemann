@@ -74,13 +74,14 @@ public:
             fclose(nn);
         } else {
             // Fall back to embedded net
-            const auto* raw = reinterpret_cast<const std::int16_t*>(gnetworkData);
+            const auto *raw = reinterpret_cast<const std::int16_t *>(gnetworkData);
             const size_t shortsAvailable = gnetworkSize / sizeof(std::int16_t);
 
             // Validate network
-            if (constexpr size_t expectedShorts = (sizeof(innerNet) / sizeof(std::int16_t)); shortsAvailable < expectedShorts) {
+            if (constexpr size_t expectedShorts = (sizeof(innerNet) / sizeof(std::int16_t));
+                shortsAvailable < expectedShorts) {
                 std::cerr << "Embedded network file too small: "
-                          << shortsAvailable << " expected " << expectedShorts << "\n";
+                        << shortsAvailable << " expected " << expectedShorts << "\n";
                 std::exit(1);
             }
 
