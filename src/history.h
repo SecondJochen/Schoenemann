@@ -23,7 +23,7 @@
 
 class History {
     int quietHistory[2][7][64] = {};
-    int continuationHistory[2][6][64][768] = {};
+    int continuationHistory[6][64][6][64] = {};
     int pawnCorrectionHistory[2][16384] = {};
 
 private:

@@ -43,10 +43,7 @@ int History::getContinuationHistory(PieceType piece, const Move move, int ply, c
     int score = 0;
 
     if (ply - 1 >= 0 && stack[ply - 1].previousMovedPiece != PieceType::NONE) {
-        score += 2 * continuationHistory[
-            stack[ply - 1].previousMovedPiece][
-            stack[ply - 1].previousMove.to().index()][
-            piece][to];
+        score += 2 * continuationHistory[ stack[ply - 1].previousMovedPiece][ stack[ply - 1].previousMove.to().index()][piece][to];
     }
 
     return score;
