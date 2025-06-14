@@ -48,6 +48,13 @@ int History::getContinuationHistory(PieceType piece, const Move move, int ply, c
                 [piece]
                 [to];
     }
+    if (ply - 2 >= 0 && stack[ply - 2].previousMovedPiece != PieceType::NONE) {
+        score += continuationHistory[stack[ply - 2].previousMovedPiece]
+                [stack[ply - 2].previousMove.to().index()]
+                [piece]
+                [to];
+    }
+
 
     return score;
 }
@@ -62,6 +69,13 @@ void History::updateContinuationHistory(const PieceType piece, const Move move, 
     if (ply - 1 >= 0 && stack[ply - 1].previousMovedPiece != PieceType::NONE) {
         continuationHistory[stack[ply - 1].previousMovedPiece]
                 [stack[ply - 1].previousMove.to().index()]
+                [piece]
+                [to] += gravity;
+    }
+
+    if (ply - 2 >= 0 && stack[ply - 2].previousMovedPiece != PieceType::NONE) {
+        continuationHistory[stack[ply - 2].previousMovedPiece]
+                [stack[ply - 2].previousMove.to().index()]
                 [piece]
                 [to] += gravity;
     }
