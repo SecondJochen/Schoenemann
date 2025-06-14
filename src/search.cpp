@@ -146,6 +146,10 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
     if (!pvNode && depth > 3 && !inCheck && staticEval >= beta) {
         const int nmpDepthReduction = 3 + depth / 3;
         board.makeNullMove();
+
+        stack[ply].previousMovedPiece = PieceType::NONE;
+        stack[ply].previousMove = Move::NULL_MOVE;
+
         const int score = -pvs(-beta, -alpha, depth - nmpDepthReduction, ply + 1, board);
         board.unmakeNullMove();
 
@@ -197,6 +201,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
             if (!inCheck && isQuiet && staticEval + 50 + 100 * depth < alpha && depth < 6) {
                 continue;
             }
+
             // Static Exchange evaluation (SEE)
             // We look at a move if it returns a negative result form SEE.
             // That means when the result is positive the opponent is winning the exchange on
@@ -206,6 +211,9 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
                 continue;
             }
         }
+
+        stack[ply].previousMovedPiece = board.at(move.from()).type();
+        stack[ply].previousMove = move;
 
         board.makeMove(move);
         moveCount++;
@@ -295,6 +303,11 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
 
                     history.updateQuietHistory(board, move, quietHistoryBonus);
 
+                    int continuationHistoryBonus = std::min(25 + 200 * depth, 2000);
+                    int continuationHistoryMalus = std::min(25 + 185 * depth, 2150);
+
+                    history.updateContinuationHistory(board.at(move.from()).type(), move, continuationHistoryBonus, ply, stack);
+
                     // History malus
                     // Since we don't want the history scores to be over saturated, and we want to
                     // penalize all other quiet moves since they are not promising, we apply a negative
@@ -306,6 +319,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
                         }
 
                         history.updateQuietHistory(board, madeMove, -quietHistoryMalus);
+                        history.updateContinuationHistory(board.at(madeMove.from()).type(), madeMove, -continuationHistoryMalus, ply, stack);
                     }
                 }
                 break;
@@ -373,6 +387,9 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
         if (!SEE::see(board, move, 0)) {
             continue;
         }
+
+        stack[ply].previousMovedPiece = board.at(move.from()).type();
+        stack[ply].previousMove = move;
 
         board.makeMove(move);
         moveCount++;
