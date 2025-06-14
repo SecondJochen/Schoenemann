@@ -38,24 +38,31 @@ void History::updateQuietHistory(const Board &board, const Move move, const int 
             bonus - getQuietHistory(board, move) * std::abs(bonus) / quietHistoryDiv;
 }
 
-int History::getContinuationHistory(const PieceType piece, const Move move, const int ply,
-                                    const SearchStack *stack) const {
-    return continuationHistory[stack[ply].previousMovedPiece][stack[ply].previousMove.to().index()][piece][move.to().
-        index()];
+int History::getContinuationHistory(PieceType piece, const Move move, int ply, const SearchStack *stack) const {
+    const int to = move.to().index();
+    int score = 0;
+
+    if (ply - 1 >= 0 && stack[ply - 1].previousMovedPiece != PieceType::NONE) {
+        score += 2 * continuationHistory[
+            stack[ply - 1].previousMovedPiece][
+            stack[ply - 1].previousMove.to().index()][
+            piece][to];
+    }
+
+    return score;
 }
 
-void History::updateContinuationHistory(const PieceType piece, const Move move, const int bonus, const int ply,
-                                        const SearchStack *stack) {
-    // Continuation History is indexed as follows
-    // | Ply - 1 Moved Piece From | Ply - 1 Move To Index | Moved Piece From | Move To Index |
-    const int gravity = (bonus - getContinuationHistory(piece, move, ply - 1, stack));
-    const int scaledBonus = (gravity * std::abs(bonus) / continuationHistoryDiv);
+void History::updateContinuationHistory(const PieceType piece, const Move move, const int bonus, const int ply, const SearchStack *stack) {
+    const int current = getContinuationHistory(piece, move, ply, stack);
+    const int gravity = bonus - current * std::abs(bonus) / continuationHistoryDiv;
 
-    if (stack[ply - 1].previousMovedPiece != PieceType::NONE) {
-        // Continuation History is indexed as follows
-        // | Ply - 1 Moved Piece From | Ply - 1 Move To Index | Moved Piece From | Move To Index |
-        continuationHistory[stack[ply - 1].previousMovedPiece][stack[ply - 1].previousMove.to().index()][piece][move.
-            to().index()] += scaledBonus;
+    const int to = move.to().index();
+
+    if (ply - 1 >= 0 && stack[ply - 1].previousMovedPiece != PieceType::NONE) {
+        continuationHistory[
+            stack[ply - 1].previousMovedPiece][
+            stack[ply - 1].previousMove.to().index()][
+            piece][to] += gravity;
     }
 }
 
