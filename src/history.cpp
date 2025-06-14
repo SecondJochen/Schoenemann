@@ -43,23 +43,27 @@ int History::getContinuationHistory(PieceType piece, const Move move, int ply, c
     int score = 0;
 
     if (ply - 1 >= 0 && stack[ply - 1].previousMovedPiece != PieceType::NONE) {
-        score += 2 * continuationHistory[ stack[ply - 1].previousMovedPiece][ stack[ply - 1].previousMove.to().index()][piece][to];
+        score += 2 * continuationHistory[stack[ply - 1].previousMovedPiece]
+                [stack[ply - 1].previousMove.to().index()]
+                [piece]
+                [to];
     }
 
     return score;
 }
 
-void History::updateContinuationHistory(const PieceType piece, const Move move, const int bonus, const int ply, const SearchStack *stack) {
+void History::updateContinuationHistory(const PieceType piece, const Move move, const int bonus, const int ply,
+                                        const SearchStack *stack) {
     const int current = getContinuationHistory(piece, move, ply, stack);
     const int gravity = bonus - current * std::abs(bonus) / continuationHistoryDiv;
 
     const int to = move.to().index();
 
     if (ply - 1 >= 0 && stack[ply - 1].previousMovedPiece != PieceType::NONE) {
-        continuationHistory[
-            stack[ply - 1].previousMovedPiece][
-            stack[ply - 1].previousMove.to().index()][
-            piece][to] += gravity;
+        continuationHistory[stack[ply - 1].previousMovedPiece]
+                [stack[ply - 1].previousMove.to().index()]
+                [piece]
+                [to] += gravity;
     }
 }
 
@@ -67,13 +71,13 @@ void History::updatePawnCorrectionHistory(const int bonus, const Board &board, c
     const std::uint64_t pawnHash = getPieceKey(PieceType::PAWN, board);
     // Gravity
     const int scaledBonus = bonus - pawnCorrectionHistory[board.sideToMove()][
-                                pawnHash & (pawnCorrectionHistorySize - 1)] * std::abs(bonus) / div;
-    pawnCorrectionHistory[board.sideToMove()][pawnHash & (pawnCorrectionHistorySize - 1)] += scaledBonus;
+                                pawnHash & pawnCorrectionHistorySize - 1] * std::abs(bonus) / div;
+    pawnCorrectionHistory[board.sideToMove()][pawnHash & pawnCorrectionHistorySize - 1] += scaledBonus;
 }
 
 int History::correctEval(const int rawEval, const Board &board) const {
     const int pawnEntry = pawnCorrectionHistory[board.sideToMove()][
-        getPieceKey(PieceType::PAWN, board) & (pawnCorrectionHistorySize - 1)];
+        getPieceKey(PieceType::PAWN, board) & pawnCorrectionHistorySize - 1];
 
     const int corrHistoryBonus = pawnEntry;
 

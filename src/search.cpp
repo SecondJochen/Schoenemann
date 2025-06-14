@@ -144,12 +144,12 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
     // We search this with a full window and a reduced search depth.
     // If the search returns a score above beta we can cut that off.
     if (!pvNode && depth > 3 && !inCheck && staticEval >= beta) {
-        const int nmpDepthReduction = 3 + depth / 3;
-        board.makeNullMove();
 
+        const int nmpDepthReduction = 3 + depth / 3;
         stack[ply].previousMovedPiece = PieceType::NONE;
         stack[ply].previousMove = Move::NULL_MOVE;
 
+        board.makeNullMove();
         const int score = -pvs(-beta, -alpha, depth - nmpDepthReduction, ply + 1, board);
         board.unmakeNullMove();
 
@@ -303,8 +303,9 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
 
                     history.updateQuietHistory(board, move, quietHistoryBonus);
 
-                    int continuationHistoryBonus = std::min(25 + 200 * depth, 2000);
-                    int continuationHistoryMalus = std::min(25 + 185 * depth, 2150);
+                    // Continuation History
+                    const int continuationHistoryBonus = std::min(25 + 200 * depth, 2000);
+                    const int continuationHistoryMalus = std::min(25 + 185 * depth, 2150);
 
                     history.updateContinuationHistory(board.at(move.from()).type(), move, continuationHistoryBonus, ply, stack);
 
