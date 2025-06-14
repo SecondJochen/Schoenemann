@@ -77,6 +77,8 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
         return ply >= MAX_PLY - 1 && !board.inCheck() ? evaluate(board) : 0;
     }
 
+    const bool isSingularSearch = stack[ply].excludedMove != Move::NULL_MOVE;
+
     // Transposition Table lookup
     const Hash *entry = transpositionTable.getHash(board.hash());
     bool ttHit = false;
@@ -86,7 +88,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
     const int oldAlpha = alpha;
     std::uint8_t hashedType = 4;
 
-    if (entry != nullptr && entry->key == board.hash()) {
+    if (!isSingularSearch && entry != nullptr && entry->key == board.hash()) {
         ttHit = true;
         hashedScore = tt::scoreFromTT(entry->score, ply);
         hashedType = static_cast<std::uint8_t>(entry->type);
@@ -102,6 +104,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
     }
 
     const bool inCheck = board.inCheck();
+
     int staticEval;
 
     // We check if we have the static eval already stored in the transposition table.
@@ -131,7 +134,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
     // Reverse Futility Pruning
     // If we subtract a margin from our stati evaluation, and it is still far
     // above beta, we can assume that the node will fail high (beta cutoff) and prune it
-    if (!inCheck && !pvNode && depth < 6 && staticEval - 100 * (depth - improving) >= beta) {
+    if (!isSingularSearch && !inCheck && !pvNode && depth < 6 && staticEval - 100 * (depth - improving) >= beta) {
 
         // By tweaking the return value with beta, we try to adjust it more to the window.
         // As we do this, we make the value more inaccurate, but we are potentially adjusting
@@ -143,7 +146,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
     // If our position is excellent we pass a move to our opponent.
     // We search this with a full window and a reduced search depth.
     // If the search returns a score above beta we can cut that off.
-    if (!pvNode && depth > 3 && !inCheck && staticEval >= beta) {
+    if (!isSingularSearch && !pvNode && depth > 3 && !inCheck && staticEval >= beta) {
 
         const int nmpDepthReduction = 3 + depth / 3;
         stack[ply].previousMovedPiece = PieceType::NONE;
@@ -161,7 +164,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
     // Internal Iterative Reduction
     // If we have no hashed move, we expect that our move ordering is worse
     // so we reduce our depth
-     if (hashedMove == Move::NULL_MOVE && pvNode && hashedDepth > depth && !inCheck && depth > 3) {
+     if (!isSingularSearch && hashedMove == Move::NULL_MOVE && pvNode && hashedDepth > depth && !inCheck && depth > 3) {
         depth--;
      }
 
@@ -212,6 +215,29 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
             }
         }
 
+        int extensions = 0;
+
+        if (!isSingularSearch &&
+            hashedMove == move &&
+            depth > 5 &&
+            hashedDepth >= depth - 3 &&
+            hashedType != UPPER_BOUND &&
+            std::abs(hashedScore) < EVAL_MATE_IN_MAX_PLY &&
+            !root)
+        {
+            const int singularBeta = hashedScore - depth * 2;
+            const std::uint8_t singularDepth = (depth - 1) / 2;
+
+            stack[ply].excludedMove = move;
+            const int singularScore = pvs(singularBeta - 1, singularBeta, singularDepth, ply, board);
+            stack[ply].excludedMove = Move::NULL_MOVE;
+
+            if (singularScore < singularBeta)
+            {
+                extensions++;
+            }
+        }
+
         stack[ply].previousMovedPiece = board.at(move.from()).type();
         stack[ply].previousMove = move;
 
@@ -226,7 +252,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
         // PVS
         // We assume our first move is the best move so we search this move with a full window
         if (moveCount == 1) {
-            score = -pvs(-beta, -alpha, depth - 1, ply + 1, board);
+            score = -pvs(-beta, -alpha, depth - 1 + extensions, ply + 1, board);
         } else {
 
             int depthReduction = 0;
@@ -248,11 +274,11 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
 
             // Since we assumed that our first move was the best we search every other
             // move with a zero window
-            score = -pvs(-alpha - 1, -alpha, depth - depthReduction - 1, ply + 1, board);
+            score = -pvs(-alpha - 1, -alpha, depth - depthReduction - 1 + extensions, ply + 1, board);
 
             // If the score is outside the window we need to research with full window
             if (score > alpha && (score < beta || depthReduction > 0)) {
-                score = -pvs(-beta, -alpha, depth - 1, ply + 1, board);
+                score = -pvs(-beta, -alpha, depth - 1 + extensions, ply + 1, board);
             }
         }
 
