@@ -238,6 +238,8 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
         board.makeMove(move);
         moveCount++;
 
+        extensions += board.inCheck();
+
         if (isQuiet) {
             quietMoves[quietMoveCount] = move;
             quietMoveCount++;
