@@ -52,7 +52,7 @@ void MoveOrder::orderMoves(const History *history, Movelist &moveList, const Has
             scores[i] = promotion;
         } else {
             scores[i] += history->getQuietHistory(board, move);
-            scores[i] += history->getContinuationHistory( board.at(move.from()).type(), move, ply, stack);
+            scores[i] += history->getContinuationHistory(board.at(move.from()).type(), move, ply, stack);
         }
     }
 }

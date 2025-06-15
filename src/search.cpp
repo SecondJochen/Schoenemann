@@ -98,8 +98,8 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
 
     // Check if we can return our score that we got from the transposition table
     if (!pvNode && !root && hashedDepth >= depth && ((hashedType == UPPER_BOUND && hashedScore <= alpha) ||
-                                                              (hashedType == LOWER_BOUND && hashedScore >= beta) ||
-                                                              (hashedType == EXACT))) {
+                                                     (hashedType == LOWER_BOUND && hashedScore >= beta) ||
+                                                     (hashedType == EXACT))) {
         return hashedScore;
     }
 
@@ -135,7 +135,6 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
     // If we subtract a margin from our stati evaluation, and it is still far
     // above beta, we can assume that the node will fail high (beta cutoff) and prune it
     if (!isSingularSearch && !inCheck && !pvNode && depth < 6 && staticEval - 100 * (depth - improving) >= beta) {
-
         // By tweaking the return value with beta, we try to adjust it more to the window.
         // As we do this, we make the value more inaccurate, but we are potentially adjusting
         // it more to our window which can probably produce a fail high
@@ -147,7 +146,6 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
     // We search this with a full window and a reduced search depth.
     // If the search returns a score above beta we can cut that off.
     if (!isSingularSearch && !pvNode && depth > 3 && !inCheck && staticEval >= beta) {
-
         const int nmpDepthReduction = 3 + depth / 3;
         stack[ply].previousMovedPiece = PieceType::NONE;
         stack[ply].previousMove = Move::NULL_MOVE;
@@ -164,9 +162,9 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
     // Internal Iterative Reduction
     // If we have no hashed move, we expect that our move ordering is worse
     // so we reduce our depth
-     if (!isSingularSearch && hashedMove == Move::NULL_MOVE && pvNode && hashedDepth > depth && !inCheck && depth > 3) {
+    if (!isSingularSearch && hashedMove == Move::NULL_MOVE && pvNode && hashedDepth > depth && !inCheck && depth > 3) {
         depth--;
-     }
+    }
 
     Movelist moveList;
     movegen::legalmoves(moveList, board);
@@ -190,8 +188,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
         const bool isQuiet = !board.isCapture(move) && move.typeOf() != Move::PROMOTION;
 
         // Move Pruning
-        if (!root && bestScore > -EVAL_MATE_IN_MAX_PLY)
-        {
+        if (!root && bestScore > -EVAL_MATE_IN_MAX_PLY) {
             // Late Move Pruning
             // If we have a quiet position, and we already have made almost
             // all of our moves we skip the move
@@ -209,8 +206,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
             // We look at a move if it returns a negative result form SEE.
             // That means when the result is positive the opponent is winning the exchange on
             // the target square of the move. If the move is not a capture then we make a bigger cutoff.
-            if (!pvNode && depth < 4 && !SEE::see(board, move, !isQuiet ? -90 : -20))
-            {
+            if (!pvNode && depth < 4 && !SEE::see(board, move, !isQuiet ? -90 : -20)) {
                 continue;
             }
         }
@@ -223,8 +219,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
             hashedDepth >= depth - 3 &&
             hashedType != UPPER_BOUND &&
             std::abs(hashedScore) < EVAL_MATE_IN_MAX_PLY &&
-            !root)
-        {
+            !root) {
             const int singularBeta = hashedScore - depth * 2;
             const std::uint8_t singularDepth = (depth - 1) / 2;
 
@@ -232,8 +227,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
             const int singularScore = pvs(singularBeta - 1, singularBeta, singularDepth, ply, board);
             stack[ply].excludedMove = Move::NULL_MOVE;
 
-            if (singularScore < singularBeta)
-            {
+            if (singularScore < singularBeta) {
                 extensions++;
             }
         }
@@ -254,7 +248,6 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
         if (moveCount == 1) {
             score = -pvs(-beta, -alpha, depth - 1 + extensions, ply + 1, board);
         } else {
-
             int depthReduction = 0;
 
             // Late Move Reductions (LMR)
@@ -298,7 +291,6 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
 
                 // If we are ate the root we set the bestMove
                 if (ply == 0) {
-
                     // Update the score of the root move
                     for (int x = 0; x < rootMoveListSize; x++) {
                         if (rootMoveList[x].move == move) {
@@ -333,7 +325,8 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
                     const int continuationHistoryBonus = std::min(25 + 200 * depth, 2000);
                     const int continuationHistoryMalus = std::min(25 + 185 * depth, 2150);
 
-                    history.updateContinuationHistory(board.at(move.from()).type(), move, continuationHistoryBonus, ply, stack);
+                    history.updateContinuationHistory(board.at(move.from()).type(), move, continuationHistoryBonus, ply,
+                                                      stack);
 
                     // History malus
                     // Since we don't want the history scores to be over saturated, and we want to
@@ -346,7 +339,8 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
                         }
 
                         history.updateQuietHistory(board, madeMove, -quietHistoryMalus);
-                        history.updateContinuationHistory(board.at(madeMove.from()).type(), madeMove, -continuationHistoryMalus, ply, stack);
+                        history.updateContinuationHistory(board.at(madeMove.from()).type(), madeMove,
+                                                          -continuationHistoryMalus, ply, stack);
                     }
                 }
                 break;
@@ -355,9 +349,6 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
     }
 
     if (moveCount == 0) {
-        if (isSingularSearch) {
-            return -EVAL_INFINITE;
-        }
         bestScore = inCheck ? matedIn(ply) : 0;
     }
 
@@ -409,7 +400,6 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
     int moveCount = 0;
 
     for (const Move &move: moveList) {
-
         // Static Exchange evaluation (SEE)
         // We look at a move if it returns a negative result form SEE.
         // That means when the result is positive the opponent is winning the exchange on
@@ -582,7 +572,7 @@ std::string Search::scoreToUci() const {
     // Get the score of the best root move
     for (int i = 0; i < rootMoveListSize; i++) {
         if (rootMoveList[i].move == rootBestMove) {
-             score = rootMoveList[i].score;
+            score = rootMoveList[i].score;
             break;
         }
     }
