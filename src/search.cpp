@@ -349,6 +349,9 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
     }
 
     if (moveCount == 0) {
+        if (isSingularSearch) {
+            return -EVAL_INFINITE;
+        }
         bestScore = inCheck ? matedIn(ply) : 0;
     }
 
