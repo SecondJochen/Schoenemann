@@ -387,6 +387,23 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
         return ply >= MAX_PLY - 1 && !board.inCheck() ? evaluate(board) : 0;
     }
 
+    // Transposition Table lookup
+    const Hash *entry = transpositionTable.getHash(board.hash());
+    int hashedScore = EVAL_NONE;
+    std::uint8_t hashedType = 4;
+
+    if (entry != nullptr) {
+        hashedScore = tt::scoreFromTT(entry->score, ply);
+        hashedType = static_cast<std::uint8_t>(entry->type);
+    }
+
+    // Check if we can return our score that we got from the transposition table
+    if (!pvNode && ((hashedType == UPPER_BOUND && hashedScore <= alpha) ||
+                    (hashedType == LOWER_BOUND && hashedScore >= beta) ||
+                    hashedType == EXACT)) {
+        return hashedScore;
+    }
+
     const int standPat = evaluate(board);
 
     if (standPat >= beta) {
@@ -452,6 +469,9 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
         assert(moveCount == 0);
         bestScore = matedIn(ply);
     }
+
+    transpositionTable.storeHash(board.hash(), 0, bestScore >= beta ? LOWER_BOUND : UPPER_BOUND,
+                                 tt::scoreToTT(bestScore, ply), bestMoveInQs, standPat);
 
     return bestScore;
 }
