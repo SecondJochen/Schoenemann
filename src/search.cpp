@@ -45,7 +45,7 @@ DEFINE_PARAM_B(materialScaleQueen, 18, 12, 24);
 DEFINE_PARAM_B(materialScaleGamePhaseAdd, 169, 120, 220);
 DEFINE_PARAM_B(materialScaleGamePhaseDiv, 269, 220, 320);
 
-int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
+int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, bool cutNode) {
     assert(-EVAL_INFINITE <= alpha && alpha < beta && beta <= EVAL_INFINITE);
     // Increment nodes by one
     nodes++;
@@ -151,7 +151,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
         stack[ply].previousMove = Move::NULL_MOVE;
 
         board.makeNullMove();
-        const int score = -pvs(-beta, -alpha, depth - nmpDepthReduction, ply + 1, board);
+        const int score = -pvs(-beta, -alpha, depth - nmpDepthReduction, ply + 1, board, !cutNode);
         board.unmakeNullMove();
 
         if (score >= beta) {
@@ -224,7 +224,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
             const std::uint8_t singularDepth = (depth - 1) / 2;
 
             stack[ply].excludedMove = move;
-            const int singularScore = pvs(singularBeta - 1, singularBeta, singularDepth, ply, board);
+            const int singularScore = pvs(singularBeta - 1, singularBeta, singularDepth, ply, board, cutNode);
             stack[ply].excludedMove = Move::NULL_MOVE;
 
             if (singularScore < singularBeta) {
@@ -248,7 +248,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
         // PVS
         // We assume our first move is the best move so we search this move with a full window
         if (moveCount == 1) {
-            score = -pvs(-beta, -alpha, depth - 1 + extensions, ply + 1, board);
+            score = -pvs(-beta, -alpha, depth - 1 + extensions, ply + 1, board, !cutNode);
         } else {
             int depthReduction = 0;
 
@@ -264,16 +264,18 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board) {
                 // so we decrease the depth reduction
                 depthReduction -= pvNode;
 
+                depthReduction += cutNode;
+
                 depthReduction = std::clamp(depthReduction, 0, depth - 1);
             }
 
             // Since we assumed that our first move was the best we search every other
             // move with a zero window
-            score = -pvs(-alpha - 1, -alpha, depth - depthReduction - 1 + extensions, ply + 1, board);
+            score = -pvs(-alpha - 1, -alpha, depth - depthReduction - 1 + extensions, ply + 1, board, true);
 
             // If the score is outside the window we need to research with full window
             if (score > alpha && (score < beta || depthReduction > 0)) {
-                score = -pvs(-beta, -alpha, depth - 1 + extensions, ply + 1, board);
+                score = -pvs(-beta, -alpha, depth - 1 + extensions, ply + 1, board, !cutNode);
             }
         }
 
@@ -526,7 +528,7 @@ void Search::iterativeDeepening(Board &board, const SearchParams &params) {
         }
 
         while (true) {
-            const int newScore = pvs(alpha, beta, i, 0, board);
+            const int newScore = pvs(alpha, beta, i, 0, board, false);
 
             // Our score did fall inside our bounds so we exit the search
             if (newScore > alpha && newScore < beta) {
