@@ -476,7 +476,8 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
     }
 
     if (!isSingularSearch) {
-        transpositionTable.storeHash(board.hash(), 0, bestScore >= beta ? LOWER_BOUND : UPPER_BOUND,
+        const bool failHigh = bestScore >= beta;
+        transpositionTable.storeHash(board.hash(), 0, failHigh ? LOWER_BOUND : UPPER_BOUND,
                                  tt::scoreToTT(bestScore, ply), bestMoveInQs, standPat);
     }
 
