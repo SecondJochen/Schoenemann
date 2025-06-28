@@ -108,7 +108,7 @@ std::uint64_t History::getPieceKey(const PieceType piece, const Board &board) {
     return key;
 }
 
-void History::resetHistorys() {
+void History::resetHistories() {
     std::memset(&quietHistory, 0, sizeof(quietHistory));
     std::memset(&continuationHistory, 0, sizeof(continuationHistory));
     std::memset(&pawnCorrectionHistory, 0, sizeof(pawnCorrectionHistory));

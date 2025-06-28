@@ -361,10 +361,12 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
 
     assert(bestScore > -EVAL_INFINITE && bestScore < EVAL_INFINITE);
 
-    const std::uint8_t failHigh = score >= beta;
-    const std::uint8_t failLow = alpha == oldAlpha;
+    const bool failHigh = score >= beta;
+    const bool failLow = alpha == oldAlpha;
     const std::uint8_t flag = failHigh ? LOWER_BOUND : !failLow ? EXACT : UPPER_BOUND;
-    transpositionTable.storeHash(board.hash(), depth, flag, tt::scoreToTT(bestScore, ply), bestMoveInPVS, staticEval);
+    if (!isSingularSearch) {
+        transpositionTable.storeHash(board.hash(), depth, flag, tt::scoreToTT(bestScore, ply), bestMoveInPVS, staticEval);
+    }
 
     return bestScore;
 }
@@ -422,6 +424,7 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
     int bestScore = standPat;
     Move bestMoveInQs = Move::NULL_MOVE;
     int moveCount = 0;
+    const bool isSingularSearch = stack[ply].excludedMove != Move::NULL_MOVE;
 
     for (const Move &move: moveList) {
         // Static Exchange evaluation (SEE)
@@ -472,8 +475,10 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
         bestScore = matedIn(ply);
     }
 
-    transpositionTable.storeHash(board.hash(), 0, bestScore >= beta ? LOWER_BOUND : UPPER_BOUND,
+    if (!isSingularSearch) {
+        transpositionTable.storeHash(board.hash(), 0, bestScore >= beta ? LOWER_BOUND : UPPER_BOUND,
                                  tt::scoreToTT(bestScore, ply), bestMoveInQs, standPat);
+    }
 
     return bestScore;
 }
@@ -664,5 +669,5 @@ bool Search::shouldExit(const Board &board, const int ply) const {
 }
 
 void Search::resetHistory() {
-    history.resetHistorys();
+    history.resetHistories();
 }

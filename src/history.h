@@ -44,7 +44,7 @@ public:
 
     void updateContinuationHistory(PieceType piece, Move move, int bonus, int ply, const SearchStack *stack);
 
-    void resetHistorys();
+    void resetHistories();
 };
 
 #endif
