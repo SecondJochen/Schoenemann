@@ -75,7 +75,7 @@ private:
     History history;
     Network &net;
 
-    std::chrono::time_point start;
+    std::chrono::steady_clock::time_point start;
 
     std::unique_ptr<RootMove[]> rootMoveList;
     int rootMoveListSize = 0;

@@ -20,6 +20,7 @@
 #include <cmath>
 #include <chrono>
 #include <cassert>
+#include <memory>
 
 #include "search.h"
 #include "see.h"
@@ -497,7 +498,7 @@ void Search::iterativeDeepening(Board &board, const SearchParams &params) {
     movegen::legalmoves(moveList, board);
 
     // Initialize the rootMoveList
-    rootMoveList.reset(new RootMove[moveList.size()]);
+    rootMoveList = std::make_unique<RootMove[]>(moveList.size());
 
     // Fill every move into the rootMoveList
     for (int i = 0; i < moveList.size(); i++) {
