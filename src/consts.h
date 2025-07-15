@@ -21,6 +21,7 @@
 #define CONSTS_H
 
 #include <iostream>
+#include <cstdint>
 
 const std::string STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -33,7 +34,15 @@ constexpr int promotion = 200000;
 constexpr int goodCapture = 400000;
 constexpr int badCapture = -500000;
 
+enum Bound : std::uint8_t {
+    EXACT = 0,
+    UPPER = 1,
+    LOWER = 2,
+    NONE = 3
+};
+
 constexpr int CORRHIST_LIMIT = 1024;
+
 constexpr int MAX_PLY = 246;
 constexpr int MAX_MOVES = 218;
 

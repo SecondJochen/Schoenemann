@@ -27,19 +27,15 @@
 
 using namespace chess;
 
-constexpr std::uint8_t EXACT = 0; // Exact bound
-constexpr std::uint8_t UPPER_BOUND = 1; // Upper bound
-constexpr std::uint8_t LOWER_BOUND = 2; // Lower bound
-
 struct alignas(16) Hash {
-    std::uint64_t key{}; // The zobrist Key of the position           (8 Byte)
-    Move move = Move::NO_MOVE; // The bestmove that we currently have       (2 Byte)
-    std::int16_t score{}; // The current score                         (2 Byte)
-    std::int16_t eval{}; // The static eval                           (2 Byte)
-    std::int8_t depth{}; // The current depth                         (1 Byte)
-    std::uint8_t type{}; // Either EXACT, UPPER_BOUND or LOWER_BOUND   (1 Byte)
+    std::uint64_t key; // 8 Byte
+    Move move = Move::NO_MOVE; // 2 Byte
+    std::int16_t score; // 2 Byte
+    std::int16_t eval; // 2 Byte
+    std::int8_t depth; // 1 Byte
+    Bound type; // 1 Byte
 
-    void setEntry(const std::uint64_t _key, const std::uint8_t _depth, const std::uint8_t _type,
+    void setEntry(const std::uint64_t _key, const std::uint8_t _depth, const Bound _type,
                   const std::int16_t _score, const Move _move,
                   const std::int16_t _eval) {
         key = _key;
@@ -63,12 +59,13 @@ public:
 
     void clear() const;
 
-    void storeHash(const std::uint64_t key, int depth, int type, int score,
-                   const Move move,
+    void storeHash(std::uint64_t key, int depth, Bound type, int score,
+                   Move move,
                    int eval) const noexcept;
 
     [[nodiscard]] int estimateHashfull() const noexcept;
 
+    // Adjust a potential mate score for the tt
     static int scoreToTT(const int score, const int ply) {
         return score >= EVAL_MATE
                    ? score + ply
@@ -77,6 +74,7 @@ public:
                          : score;
     }
 
+    // Adjust a potential mate score from the tt
     static int scoreFromTT(const int score, const int ply) {
         return score >= EVAL_MATE
                    ? score - ply

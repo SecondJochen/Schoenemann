@@ -30,7 +30,7 @@ void Helper::transpositionTableTest(const tt &transpositionTable) {
     const std::uint64_t key = board.hash();
 
     // Store some placeholder information
-    transpositionTable.storeHash(key, 2, LOWER_BOUND, tt::scoreToTT(200, 1),
+    transpositionTable.storeHash(key, 2, Bound::LOWER, tt::scoreToTT(200, 1),
                                  uci::uciToMove(board, "d5e4"), 1);
 
     // Try to get the information out of the table
@@ -45,7 +45,7 @@ void Helper::transpositionTableTest(const tt &transpositionTable) {
     assert(hashedDepth == 2);
 
     const short hashedType = entry->type;
-    assert(hashedType == LOWER_BOUND);
+    assert(hashedType == Bound::LOWER);
 
     const int hashedScore = entry->score;
     assert(hashedScore == 200);

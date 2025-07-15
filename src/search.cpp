@@ -25,15 +25,6 @@
 #include "see.h"
 #include "tune.h"
 
-std::chrono::time_point start = std::chrono::steady_clock::now();
-
-// Aspiration Window
-//DEFINE_PARAM_B(aspDelta, 26, 18, 36);
-// DEFINE_PARAM_B(aspDivisor, 2, 2, 8); When tuned this triggers crashes :(
-//DEFINE_PARAM_B(aspMul, 134, 100, 163);
-//DEFINE_PARAM_B(aspDepth, 7, 6, 8);
-
-
 DEFINE_PARAM_B(lmrBase, 80, 50, 105);
 DEFINE_PARAM_B(lmrDivisor, 250, 200, 280);
 
@@ -47,13 +38,13 @@ DEFINE_PARAM_B(materialScaleGamePhaseDiv, 269, 220, 320);
 
 int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, bool cutNode) {
     assert(-EVAL_INFINITE <= alpha && alpha < beta && beta <= EVAL_INFINITE);
-    // Increment nodes by one
+
+    // Setup some search constants
     nodes++;
 
     const bool root = ply == 0;
     const bool pvNode = beta > alpha + 1;
 
-    // Set the pvLength to zero
     if (pvNode) {
         stack[ply].pvLength = 0;
     }
@@ -86,19 +77,19 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
     int hashedDepth = 0;
     Move hashedMove = Move::NULL_MOVE;
     const int oldAlpha = alpha;
-    std::uint8_t hashedType = 4;
+    Bound hashedType = Bound::NONE;
 
     if (!isSingularSearch && entry != nullptr && entry->key == board.hash()) {
         ttHit = true;
         hashedScore = tt::scoreFromTT(entry->score, ply);
-        hashedType = static_cast<std::uint8_t>(entry->type);
-        hashedDepth = static_cast<int>(entry->depth);
+        hashedType = entry->type;
+        hashedDepth = entry->depth;
         hashedMove = entry->move;
     }
 
     // Check if we can return our score that we got from the transposition table
-    if (!pvNode && !root && hashedDepth >= depth && ((hashedType == UPPER_BOUND && hashedScore <= alpha) ||
-                                                     (hashedType == LOWER_BOUND && hashedScore >= beta) ||
+    if (!pvNode && !root && hashedDepth >= depth && ((hashedType == Bound::UPPER && hashedScore <= alpha) ||
+                                                     (hashedType == Bound::LOWER && hashedScore >= beta) ||
                                                      (hashedType == EXACT))) {
         return hashedScore;
     }
@@ -217,7 +208,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
             hashedMove == move &&
             depth > 5 &&
             hashedDepth >= depth - 3 &&
-            hashedType != UPPER_BOUND &&
+            hashedType != Bound::UPPER &&
             std::abs(hashedScore) < EVAL_MATE_IN_MAX_PLY &&
             !root) {
             const int singularBeta = hashedScore - depth * 2;
@@ -294,7 +285,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
                 bestMoveInPVS = move;
 
                 // If we are ate the root we set the bestMove
-                if (ply == 0) {
+                if (root) {
                     // Update the score of the root move
                     for (int x = 0; x < rootMoveListSize; x++) {
                         if (rootMoveList[x].move == move) {
@@ -363,7 +354,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
 
     const bool failHigh = score >= beta;
     const bool failLow = alpha == oldAlpha;
-    const std::uint8_t flag = failHigh ? LOWER_BOUND : !failLow ? EXACT : UPPER_BOUND;
+    const Bound flag = failHigh ? Bound::LOWER : !failLow ? Bound::EXACT : Bound::UPPER;
     if (!isSingularSearch) {
         transpositionTable.storeHash(board.hash(), depth, flag, tt::scoreToTT(bestScore, ply), bestMoveInPVS, staticEval);
     }
@@ -372,17 +363,17 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
 }
 
 int Search::qs(int alpha, int beta, Board &board, const int ply) {
-    // Increment node counter
+    
+    assert(alpha >= -EVAL_INFINITE && alpha < beta && beta <= EVAL_INFINITE);
+
     nodes++;
 
     const bool pvNode = beta > alpha + 1;
 
-    // Set the pvLength to zero
     if (pvNode) {
         stack[ply].pvLength = 0;
     }
 
-    assert(alpha >= -EVAL_INFINITE && alpha < beta && beta <= EVAL_INFINITE);
     if (timeManagement.shouldStopSoft(start) || nodes >= nodeLimit) {
         shouldStop = true;
     }
@@ -394,16 +385,16 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
     // Transposition Table lookup
     const Hash *entry = transpositionTable.getHash(board.hash());
     int hashedScore = EVAL_NONE;
-    std::uint8_t hashedType = 4;
+    Bound hashedType = Bound::NONE;
 
     if (entry != nullptr) {
         hashedScore = tt::scoreFromTT(entry->score, ply);
-        hashedType = static_cast<std::uint8_t>(entry->type);
+        hashedType = entry->type;
     }
 
     // Check if we can return our score that we got from the transposition table
-    if (!pvNode && ((hashedType == UPPER_BOUND && hashedScore <= alpha) ||
-                    (hashedType == LOWER_BOUND && hashedScore >= beta) ||
+    if (!pvNode && ((hashedType == Bound::UPPER && hashedScore <= alpha) ||
+                    (hashedType == Bound::LOWER && hashedScore >= beta) ||
                     hashedType == EXACT)) {
         return hashedScore;
     }
@@ -477,7 +468,7 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
 
     if (!isSingularSearch) {
         const bool failHigh = bestScore >= beta;
-        transpositionTable.storeHash(board.hash(), 0, failHigh ? LOWER_BOUND : UPPER_BOUND,
+        transpositionTable.storeHash(board.hash(), 0, failHigh ? Bound::LOWER : Bound::UPPER,
                                  tt::scoreToTT(bestScore, ply), bestMoveInQs, standPat);
     }
 

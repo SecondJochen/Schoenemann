@@ -60,8 +60,8 @@ void generate(Board &board, Search &search, tt &transpositionTable, SearchParams
             movegen::legalmoves(moveList, board);
 
             // Check if the game ended already
-            std::pair<GameResultReason, GameResult> result = board.isGameOver();
-            if (result.second != GameResult::NONE) {
+            auto [fst, snd] = board.isGameOver();
+            if (snd != GameResult::NONE) {
                 exitEarly = true;
                 break;
             }
