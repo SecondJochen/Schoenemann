@@ -21,9 +21,8 @@
 
 #include <cstring>
 
-void tt::storeHash(const std::uint64_t key, const int depth, const int type, const int score,
-                   const Move move,
-                   const int eval) const noexcept {
+void tt::storeHash(const std::uint64_t key, const int depth, const Bound type, const int score,
+                   const Move move, const int eval) const noexcept {
     const std::uint64_t index = key % size;
 
     // Get the HashNode

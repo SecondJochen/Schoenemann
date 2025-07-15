@@ -23,7 +23,6 @@
 #include "search.h"
 
 class Helper {
-private:
 public:
     static void transpositionTableTest(const tt &transpositionTable);
 
