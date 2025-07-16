@@ -168,16 +168,12 @@ int main(int argc, char *argv[]) {
             stopSearch();
             Helper::handleSetPosition(board, is, token);
         } else if (token == "go") {
-            // 1. Stop any search that is currently running.
-            stopSearch();
 
-            // 2. Reset the atomic stop flag for the new search.
+            // Stop search
+            stopSearch();
             search->shouldStop = false;
 
-            // 3. Call the corrected helper to parse UCI options and configure the search.
             Helper::handleGo(*search, timeManagement, board, is, params);
-
-            // 4. The main loop launches the thread with the configured parameters.
             searchThread = std::thread([&] {
                 search->iterativeDeepening(board, params);
             });
