@@ -123,6 +123,8 @@ void Helper::handleGo(Search &search, TimeManagement &timeManagement, Board &boa
 
     // Reset everything for a new search
     params.isInfinite = false;
+    params.depth = MAX_PLY;
+
     search.nodeLimit = -1;
     timeManagement.reset();
 
@@ -148,7 +150,7 @@ void Helper::handleGo(Search &search, TimeManagement &timeManagement, Board &boa
     }
 
     if (movetime != -1) {
-        timeManagement.timeLeft = movetime;
+        timeManagement.moveTime = movetime;
         timeManagement.increment = 0;
         timeManagement.isInfiniteSearch = false;
     } else if (wtime != -1 || btime != -1) {

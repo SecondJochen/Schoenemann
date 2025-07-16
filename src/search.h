@@ -28,9 +28,9 @@
 #include <limits>
 #include <atomic>
 
-struct SearchParams {
+struct alignas(8) SearchParams {
     bool isInfinite = false;
-    int depth = 255;
+    int depth = MAX_PLY;
 };
 
 class Search {
