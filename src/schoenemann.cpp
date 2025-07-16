@@ -63,6 +63,16 @@ int main(int argc, char *argv[]) {
     timeManagement.reset();
     search->resetHistory();
 
+    std::thread searchThread;
+
+    // Helper function for stoping the search
+    auto stopSearch = [&]() {
+        if (searchThread.joinable()) {
+            search->shouldStop = true;
+            searchThread.join();
+        }
+    };
+
     if (argc > 1 && std::strcmp(argv[1], "bench") == 0) {
         Helper::runBenchmark(search.get(), board, params);
         return 0;
@@ -106,10 +116,11 @@ int main(int argc, char *argv[]) {
 #endif
             std::cout << "uciok" << std::endl;
         } else if (token == "stop") {
-            search->shouldStop = true;
+            stopSearch();
         } else if (token == "isready") {
             std::cout << "readyok" << std::endl;
         } else if (token == "ucinewgame") {
+            stopSearch();
             // Reset the board
             board.setFen(STARTPOS);
 
@@ -122,6 +133,7 @@ int main(int argc, char *argv[]) {
             // Also reset all the historys
             search->resetHistory();
         } else if (token == "setoption") {
+            stopSearch();
             is >> token;
 
             if (token == "name") {
@@ -153,9 +165,22 @@ int main(int argc, char *argv[]) {
                 }
             }
         } else if (token == "position") {
+            stopSearch();
             Helper::handleSetPosition(board, is, token);
         } else if (token == "go") {
-            Helper::handleGo(*search, timeManagement, board, is, token, params);
+            // 1. Stop any search that is currently running.
+            stopSearch();
+
+            // 2. Reset the atomic stop flag for the new search.
+            search->shouldStop = false;
+
+            // 3. Call the corrected helper to parse UCI options and configure the search.
+            Helper::handleGo(*search, timeManagement, board, is, params);
+
+            // 4. The main loop launches the thread with the configured parameters.
+            searchThread = std::thread([&] {
+                search->iterativeDeepening(board, params);
+            });
         } else if (token == "d") {
             std::cout << board << std::endl;
         } else if (token == "fen") {
@@ -177,6 +202,8 @@ int main(int argc, char *argv[]) {
             std::cout << "No valid command: '" << token << "'!" << std::endl;
         }
     } while (token != "quit");
+
+    stopSearch();
 
     return 0;
 }
