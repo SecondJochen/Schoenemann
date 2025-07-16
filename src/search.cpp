@@ -617,7 +617,7 @@ void Search::initLMR() {
 int Search::scaleOutput(const int rawEval, const Board &board) {
     const int gamePhase = 3 * board.pieces(PieceType::KNIGHT).count() +
                           3 * board.pieces(PieceType::BISHOP).count() +
-                          3 * board.pieces(PieceType::ROOK).count() +
+                          5 * board.pieces(PieceType::ROOK).count() +
                           9 * board.pieces(PieceType::QUEEN).count();
 
     const int finalEval = rawEval * (160 + gamePhase) / 270;
