@@ -126,6 +126,7 @@ void Helper::handleGo(Search &search, TimeManagement &timeManagement, Board &boa
 
     is >> token;
     if (!is.good()) {
+        params.isInfinite = true;
         std::thread t1([&] { search.iterativeDeepening(board, params); });
         t1.detach();
     }
@@ -159,6 +160,10 @@ void Helper::handleGo(Search &search, TimeManagement &timeManagement, Board &boa
         } else if (token == "movetime") {
             is >> token;
             timeManagement.timeLeft = std::stoi(token);
+            std::thread t1([&] { search.iterativeDeepening(board, params); });
+            t1.detach();
+        } else if (token == "infinite") {
+            params.isInfinite = true;
             std::thread t1([&] { search.iterativeDeepening(board, params); });
             t1.detach();
         }
