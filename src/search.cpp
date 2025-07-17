@@ -29,14 +29,6 @@
 DEFINE_PARAM_B(lmrBase, 80, 50, 105);
 DEFINE_PARAM_B(lmrDivisor, 250, 200, 280);
 
-// Material Scaling
-DEFINE_PARAM_B(materialScaleKnight, 3, 2, 4);
-DEFINE_PARAM_B(materialScaleBishop, 3, 2, 4);
-DEFINE_PARAM_B(materialScaleRook, 5, 4, 6);
-DEFINE_PARAM_B(materialScaleQueen, 18, 12, 24);
-DEFINE_PARAM_B(materialScaleGamePhaseAdd, 169, 120, 220);
-DEFINE_PARAM_B(materialScaleGamePhaseDiv, 269, 220, 320);
-
 int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, bool cutNode) {
     assert(-EVAL_INFINITE <= alpha && alpha < beta && beta <= EVAL_INFINITE);
 
@@ -623,18 +615,20 @@ void Search::initLMR() {
 }
 
 int Search::scaleOutput(const int rawEval, const Board &board) {
-    const int gamePhase = materialScaleKnight * board.pieces(PieceType::KNIGHT).count() +
-                          materialScaleBishop * board.pieces(PieceType::BISHOP).count() +
-                          materialScaleRook * board.pieces(PieceType::ROOK).count() +
-                          materialScaleQueen * board.pieces(PieceType::QUEEN).count();
+    const int gamePhase = 3 * board.pieces(PieceType::KNIGHT).count() +
+                          3 * board.pieces(PieceType::BISHOP).count() +
+                          5 * board.pieces(PieceType::ROOK).count() +
+                          9 * board.pieces(PieceType::QUEEN).count();
 
-    const int finalEval = rawEval * (materialScaleGamePhaseAdd + gamePhase) / materialScaleGamePhaseDiv;
+    const int finalEval = rawEval * (160 + gamePhase) / 270;
 
     return std::clamp(finalEval, -EVAL_MATE, EVAL_MATE);
 }
 
 int Search::evaluate(const Board &board) const {
-    return std::clamp(net.evaluate(board.sideToMove(), board.occ().count()), -EVAL_MATE, EVAL_MATE);
+    const int rawEval = net.evaluate(board.sideToMove(), board.occ().count());
+    const int scaledEval = scaleOutput(rawEval, board);
+    return std::clamp(scaledEval, -EVAL_MATE, EVAL_MATE);
 }
 
 void Search::updatePv(const int ply, const Move &move) {
