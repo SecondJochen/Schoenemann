@@ -320,7 +320,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
                     // Since we don't want the history scores to be over saturated, and we want to
                     // penalize all other quiet moves since they are not promising, we apply a negative
                     // bonus to all other quiet moves so they get lower ranked in move ordering
-                    for (int x = 0; x < moveCount; x++) {
+                    for (int x = 0; x < quietMoveCount; x++) {
                         Move madeMove = quietMoves[x];
                         if (madeMove == bestMoveInPVS) {
                             continue;

@@ -20,6 +20,9 @@
 #include <cstring>
 
 #include "history.h"
+
+#include <assert.h>
+
 #include "tune.h"
 
 DEFINE_PARAM_B(quietHistoryDiv, 28000, 10000, 50000);
@@ -42,13 +45,15 @@ int History::getContinuationHistory(PieceType piece, const Move move, int ply, c
     const int to = move.to().index();
     int score = 0;
 
-    if (ply - 1 >= 0 && stack[ply - 1].previousMovedPiece != PieceType::NONE) {
+    assert(piece != PieceType::NONE);
+
+    if (ply > 0 && stack[ply - 1].previousMovedPiece != PieceType::NONE) {
         score += 2 * continuationHistory[stack[ply - 1].previousMovedPiece]
                 [stack[ply - 1].previousMove.to().index()]
                 [piece]
                 [to];
     }
-    if (ply - 2 >= 0 && stack[ply - 2].previousMovedPiece != PieceType::NONE) {
+    if (ply > 1 && stack[ply - 2].previousMovedPiece != PieceType::NONE) {
         score += continuationHistory[stack[ply - 2].previousMovedPiece]
                 [stack[ply - 2].previousMove.to().index()]
                 [piece]
@@ -61,19 +66,21 @@ int History::getContinuationHistory(PieceType piece, const Move move, int ply, c
 
 void History::updateContinuationHistory(const PieceType piece, const Move move, const int bonus, const int ply,
                                         const SearchStack *stack) {
+    assert(piece != PieceType::NONE);
+
     const int current = getContinuationHistory(piece, move, ply, stack);
     const int gravity = bonus - current * std::abs(bonus) / continuationHistoryDiv;
 
     const int to = move.to().index();
 
-    if (ply - 1 >= 0 && stack[ply - 1].previousMovedPiece != PieceType::NONE) {
+    if (ply > 0 && stack[ply - 1].previousMovedPiece != PieceType::NONE) {
         continuationHistory[stack[ply - 1].previousMovedPiece]
                 [stack[ply - 1].previousMove.to().index()]
                 [piece]
                 [to] += gravity;
     }
 
-    if (ply - 2 >= 0 && stack[ply - 2].previousMovedPiece != PieceType::NONE) {
+    if (ply > 1 && stack[ply - 2].previousMovedPiece != PieceType::NONE) {
         continuationHistory[stack[ply - 2].previousMovedPiece]
                 [stack[ply - 2].previousMove.to().index()]
                 [piece]
