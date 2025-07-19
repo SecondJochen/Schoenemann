@@ -147,7 +147,8 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
             int value = beta - score;
             stack[ply].failHighMargin = value;
             const int nmpBonus = std::min(30 + 200 * depth, 2000);
-            history.updateThreatHistory(nmpFailHighMove, board.at(nmpFailHighMove.from()).type(), board.sideToMove(), nmpBonus);
+            history.updateThreatHistory(nmpFailHighMove, board.at(nmpFailHighMove.from()).type(), board.sideToMove(),
+                                        nmpBonus);
         }
     }
 
@@ -340,7 +341,8 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
                         }
 
                         if (madeMove != nmpFailHighMove) {
-                            history.updateThreatHistory(madeMove, board.at(move.from()).type(), board.sideToMove(), nmpMalus);
+                            history.updateThreatHistory(madeMove, board.at(move.from()).type(), board.sideToMove(),
+                                                        nmpMalus);
                         }
 
                         history.updateQuietHistory(board, madeMove, -quietHistoryMalus);
@@ -366,14 +368,14 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
     const bool failLow = alpha == oldAlpha;
     const Bound flag = failHigh ? Bound::LOWER : !failLow ? Bound::EXACT : Bound::UPPER;
     if (!isSingularSearch) {
-        transpositionTable.storeHash(board.hash(), depth, flag, tt::scoreToTT(bestScore, ply), bestMoveInPVS, staticEval);
+        transpositionTable.storeHash(board.hash(), depth, flag, tt::scoreToTT(bestScore, ply), bestMoveInPVS,
+                                     staticEval);
     }
 
     return bestScore;
 }
 
 int Search::qs(int alpha, int beta, Board &board, const int ply) {
-    
     assert(alpha >= -EVAL_INFINITE && alpha < beta && beta <= EVAL_INFINITE);
 
     nodes++;
@@ -479,7 +481,7 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
     if (!isSingularSearch) {
         const bool failHigh = bestScore >= beta;
         transpositionTable.storeHash(board.hash(), 0, failHigh ? Bound::LOWER : Bound::UPPER,
-                                 tt::scoreToTT(bestScore, ply), bestMoveInQs, standPat);
+                                     tt::scoreToTT(bestScore, ply), bestMoveInQs, standPat);
     }
 
     return bestScore;
