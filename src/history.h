@@ -26,7 +26,7 @@ class History {
     int continuationHistory[6][64][6][64] = {};
     int pawnCorrectionHistory[2][16384] = {};
     // Indexed as follows: Color | Threat Piece | Threat Piece Destination
-    int nmpThreatHistory[2][7][64] = {};
+    int nmpThreatHistory[2][6][64] = {};
 
     static std::uint64_t getPieceKey(PieceType piece, const Board &board);
 

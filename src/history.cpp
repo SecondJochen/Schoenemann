@@ -21,7 +21,7 @@
 
 #include "history.h"
 
-#include <assert.h>
+#include <cassert>
 
 #include "tune.h"
 
@@ -89,6 +89,7 @@ void History::updateContinuationHistory(const PieceType piece, const Move move, 
 }
 
 void History::updateThreatHistory(Move move, PieceType pieceType, Color color, int score) {
+    assert(pieceType != PieceType::NONE);
     nmpThreatHistory[color][pieceType][move.to().index()] = score;
 }
 
@@ -111,6 +112,7 @@ int History::correctEval(const int rawEval, const Board &board) const {
 }
 
 int History::getThreatHistory(Move move, PieceType pieceType, Color color) const {
+    assert(pieceType != PieceType::NONE);
     return nmpThreatHistory[color][pieceType][move.to().index()];
 }
 

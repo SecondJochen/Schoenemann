@@ -147,7 +147,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
             int value = beta - score;
             stack[ply].failHighMargin = value;
             const int nmpBonus = std::min(30 + 200 * depth, 2000);
-            history.updateThreatHistory(nmpFailHighMove, board.at(nmpFailHighMove.to()).type(), board.sideToMove(), nmpBonus);
+            history.updateThreatHistory(nmpFailHighMove, board.at(nmpFailHighMove.from()).type(), board.sideToMove(), nmpBonus);
         }
     }
 
@@ -340,7 +340,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
                         }
 
                         if (madeMove != nmpFailHighMove) {
-                            history.updateThreatHistory(madeMove, board.at(move.to()).type(), board.sideToMove(), nmpMalus);
+                            history.updateThreatHistory(madeMove, board.at(move.from()).type(), board.sideToMove(), nmpMalus);
                         }
 
                         history.updateQuietHistory(board, madeMove, -quietHistoryMalus);
