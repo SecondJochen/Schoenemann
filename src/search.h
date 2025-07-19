@@ -76,6 +76,8 @@ private:
     History history;
     Network &net;
 
+    Move nmpFailHighMove = Move::NULL_MOVE;
+
     std::chrono::steady_clock::time_point start;
 
     std::unique_ptr<RootMove[]> rootMoveList;

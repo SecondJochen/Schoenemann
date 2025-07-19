@@ -133,6 +133,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
         const int nmpDepthReduction = 3 + depth / 3;
         stack[ply].previousMovedPiece = PieceType::NONE;
         stack[ply].previousMove = Move::NULL_MOVE;
+        nmpFailHighMove = Move::NULL_MOVE;
 
         board.makeNullMove();
         const int score = -pvs(-beta, -alpha, depth - nmpDepthReduction, ply + 1, board, !cutNode);
@@ -140,6 +141,11 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
 
         if (score >= beta) {
             return score;
+        }
+
+        if (nmpFailHighMove != Move::NULL_MOVE) {
+            int value = beta - score;
+            history.updateThreatHistory(nmpFailHighMove.from(), board.at(nmpFailHighMove.from()).type(), value);
         }
     }
 
@@ -315,6 +321,8 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
 
                     history.updateContinuationHistory(board.at(move.from()).type(), move, continuationHistoryBonus, ply,
                                                       stack);
+
+                    nmpFailHighMove = move;
 
                     // History malus
                     // Since we don't want the history scores to be over saturated, and we want to

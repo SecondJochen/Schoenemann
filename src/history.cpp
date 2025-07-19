@@ -88,6 +88,10 @@ void History::updateContinuationHistory(const PieceType piece, const Move move, 
     }
 }
 
+void History::updateThreatHistory(Square square, PieceType pieceType, int score) {
+    nmpThreatHistory[square.index()][pieceType] = score;
+}
+
 void History::updatePawnCorrectionHistory(const int bonus, const Board &board, const int div) {
     const std::uint64_t pawnHash = getPieceKey(PieceType::PAWN, board);
     // Gravity
@@ -105,6 +109,10 @@ int History::correctEval(const int rawEval, const Board &board) const {
     return rawEval + corrHistoryBonus / correctionValueDiv;
 }
 
+int History::getThreatHistory(Square square, PieceType pieceType) const {
+    return nmpThreatHistory[square.index()][pieceType];
+}
+
 std::uint64_t History::getPieceKey(const PieceType piece, const Board &board) {
     std::uint64_t key = 0;
     Bitboard bitboard = board.pieces(piece);
@@ -119,4 +127,5 @@ void History::resetHistories() {
     std::memset(&quietHistory, 0, sizeof(quietHistory));
     std::memset(&continuationHistory, 0, sizeof(continuationHistory));
     std::memset(&pawnCorrectionHistory, 0, sizeof(pawnCorrectionHistory));
+    std::memset(&nmpThreatHistory, 0, sizeof(nmpThreatHistory));
 }
