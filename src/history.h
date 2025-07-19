@@ -25,8 +25,8 @@ class History {
     int quietHistory[2][7][64] = {};
     int continuationHistory[6][64][6][64] = {};
     int pawnCorrectionHistory[2][16384] = {};
-    // Indexed as follows: Square | Piece
-    int nmpThreatHistory[64][6] = {};
+    // Indexed as follows: Color | Threat Piece | Threat Piece Destination
+    int nmpThreatHistory[2][7][64] = {};
 
     static std::uint64_t getPieceKey(PieceType piece, const Board &board);
 
@@ -38,14 +38,14 @@ public:
     int getContinuationHistory(PieceType piece, Move move, int ply, const SearchStack *stack) const;
 
     int correctEval(int rawEval, const Board &board) const;
-    int getThreatHistory(Square square, PieceType pieceType) const;
+    int getThreatHistory(Move move, PieceType pieceType, Color color) const;
 
     void updateQuietHistory(const Board &board, Move move, int bonus);
 
     void updatePawnCorrectionHistory(int bonus, const Board &board, int div);
 
     void updateContinuationHistory(PieceType piece, Move move, int bonus, int ply, const SearchStack *stack);
-    void updateThreatHistory(Square square, PieceType pieceType, int score);
+    void updateThreatHistory(Move move, PieceType pieceType, Color color, int score);
 
     void resetHistories();
 };

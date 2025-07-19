@@ -145,7 +145,9 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
 
         if (nmpFailHighMove != Move::NULL_MOVE) {
             int value = beta - score;
-            history.updateThreatHistory(nmpFailHighMove.from(), board.at(nmpFailHighMove.from()).type(), value);
+            stack[ply].failHighMargin = value;
+            const int nmpBonus = std::min(30 + 200 * depth, 2000);
+            history.updateThreatHistory(nmpFailHighMove, board.at(nmpFailHighMove.to()).type(), board.sideToMove(), nmpBonus);
         }
     }
 
@@ -324,6 +326,9 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
 
                     nmpFailHighMove = move;
 
+                    const int nmpMalus = std::min(15 + 170 * depth, 1900);
+
+
                     // History malus
                     // Since we don't want the history scores to be over saturated, and we want to
                     // penalize all other quiet moves since they are not promising, we apply a negative
@@ -332,6 +337,10 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
                         Move madeMove = quietMoves[x];
                         if (madeMove == bestMoveInPVS) {
                             continue;
+                        }
+
+                        if (madeMove != nmpFailHighMove) {
+                            history.updateThreatHistory(madeMove, board.at(move.to()).type(), board.sideToMove(), nmpMalus);
                         }
 
                         history.updateQuietHistory(board, madeMove, -quietHistoryMalus);

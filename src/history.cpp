@@ -88,9 +88,10 @@ void History::updateContinuationHistory(const PieceType piece, const Move move, 
     }
 }
 
-void History::updateThreatHistory(Square square, PieceType pieceType, int score) {
-    nmpThreatHistory[square.index()][pieceType] = score;
+void History::updateThreatHistory(Move move, PieceType pieceType, Color color, int score) {
+    nmpThreatHistory[color][pieceType][move.to().index()] = score;
 }
+
 
 void History::updatePawnCorrectionHistory(const int bonus, const Board &board, const int div) {
     const std::uint64_t pawnHash = getPieceKey(PieceType::PAWN, board);
@@ -109,9 +110,10 @@ int History::correctEval(const int rawEval, const Board &board) const {
     return rawEval + corrHistoryBonus / correctionValueDiv;
 }
 
-int History::getThreatHistory(Square square, PieceType pieceType) const {
-    return nmpThreatHistory[square.index()][pieceType];
+int History::getThreatHistory(Move move, PieceType pieceType, Color color) const {
+    return nmpThreatHistory[color][pieceType][move.to().index()];
 }
+
 
 std::uint64_t History::getPieceKey(const PieceType piece, const Board &board) {
     std::uint64_t key = 0;
