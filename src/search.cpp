@@ -341,7 +341,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
                         }
 
                         if (madeMove != nmpFailHighMove) {
-                            history.updateThreatHistory(madeMove, board.at(move.from()).type(), board.sideToMove(),
+                            history.updateThreatHistory(madeMove, board.at(madeMove.from()).type(), board.sideToMove(),
                                                         -nmpMalus);
                         }
 
