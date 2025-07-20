@@ -88,7 +88,7 @@ void History::updateContinuationHistory(const PieceType piece, const Move move, 
     }
 }
 
-void History::updateThreatHistory(Move move, PieceType pieceType, Color color, int score) {
+void History::updateThreatHistory(const Move move, const PieceType pieceType, const Color color, const int score) {
     assert(pieceType != PieceType::NONE);
     nmpThreatHistory[color][pieceType][move.to().index()] = score;
 }
