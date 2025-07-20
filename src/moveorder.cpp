@@ -51,7 +51,7 @@ void MoveOrder::orderMoves(const History *history, Movelist &moveList, const Has
         } else {
             scores[i] += history->getQuietHistory(board, move);
             scores[i] += history->getContinuationHistory(board.at(move.from()).type(), move, ply, stack);
-            scores[i] += history->getThreatHistory(move, board.at(move.from()).type(), board.sideToMove()) / 5;
+            scores[i] += history->getThreatHistory(move, board.at(move.from()).type(), board.sideToMove()) + stack[ply].failHighMargin;
         }
     }
 }
