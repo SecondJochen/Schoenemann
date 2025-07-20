@@ -77,6 +77,8 @@ private:
     Network &net;
 
     Move nmpFailHighMove = Move::NULL_MOVE;
+    PieceType nmpFailHighPieceType = PieceType::NONE;
+    Color nmpColor = Color::NONE;
 
     std::chrono::steady_clock::time_point start;
 
