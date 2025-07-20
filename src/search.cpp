@@ -134,6 +134,8 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
         stack[ply].previousMovedPiece = PieceType::NONE;
         stack[ply].previousMove = Move::NULL_MOVE;
         nmpFailHighMove = Move::NULL_MOVE;
+        nmpFailHighPieceType = PieceType::NONE;
+        nmpColor = Color::NONE;
 
         board.makeNullMove();
         const int score = -pvs(-beta, -alpha, depth - nmpDepthReduction, ply + 1, board, !cutNode);
