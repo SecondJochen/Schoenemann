@@ -134,6 +134,8 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
         stack[ply].previousMovedPiece = PieceType::NONE;
         stack[ply].previousMove = Move::NULL_MOVE;
         nmpFailHighMove = Move::NULL_MOVE;
+        nmpFailHighPieceType = PieceType::NONE;
+        nmpColor = Color::NONE;
 
         board.makeNullMove();
         const int score = -pvs(-beta, -alpha, depth - nmpDepthReduction, ply + 1, board, !cutNode);
@@ -146,7 +148,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
         if (nmpFailHighMove != Move::NULL_MOVE && nmpFailHighPieceType != PieceType::NONE && nmpColor != Color::NONE) {
             int value = beta - score;
             stack[ply].failHighMargin = value;
-            const int nmpBonus = std::min(3 + 12 * depth, 400);
+            const int nmpBonus = std::min(5 + 22 * depth, 800);
             history.updateThreatHistory(nmpFailHighMove, nmpFailHighPieceType, nmpColor,
                                         nmpBonus);
         }
@@ -329,7 +331,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
                     nmpFailHighPieceType = board.at(move.from()).type();
                     nmpColor = board.sideToMove();
 
-                    const int nmpMalus = std::min(5 + 15 * depth, 500);
+                    const int nmpMalus = std::min(8 + 27 * depth, 850);
 
 
                     // History malus
