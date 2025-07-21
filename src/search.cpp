@@ -248,6 +248,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
                 // so we decrease the depth reduction
                 depthReduction -= pvNode;
 
+                // We increase the reduction if we are in an expected cut node
                 depthReduction += cutNode;
 
                 depthReduction = std::clamp(depthReduction, 0, depth - 1);
@@ -273,6 +274,8 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
 
         if (score > bestScore) {
             bestScore = score;
+
+            // Our new score beat alpha so we update it
             if (score > alpha) {
                 alpha = score;
                 bestMoveInPVS = move;
@@ -336,6 +339,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
         }
     }
 
+    // If we got no legal moves we check for a draw or checkmate
     if (moveCount == 0) {
         if (isSingularSearch) {
             return -EVAL_INFINITE;
@@ -349,18 +353,18 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
     const bool failLow = alpha == oldAlpha;
     const Bound flag = failHigh ? Bound::LOWER : !failLow ? Bound::EXACT : Bound::UPPER;
     if (!isSingularSearch) {
-        transpositionTable.storeHash(board.hash(), depth, flag, tt::scoreToTT(bestScore, ply), bestMoveInPVS, staticEval);
+        transpositionTable.storeHash(board.hash(), depth, flag, tt::scoreToTT(bestScore, ply), bestMoveInPVS,
+                                     staticEval);
     }
 
     return bestScore;
 }
 
 int Search::qs(int alpha, int beta, Board &board, const int ply) {
-    
     assert(alpha >= -EVAL_INFINITE && alpha < beta && beta <= EVAL_INFINITE);
 
+    // Setup some search constants
     nodes++;
-
     const bool pvNode = beta > alpha + 1;
 
     if (pvNode) {
@@ -380,6 +384,7 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
     int hashedScore = EVAL_NONE;
     Bound hashedType = Bound::NONE;
 
+    // Try to reuse the score from the transposition table
     if (entry != nullptr) {
         hashedScore = tt::scoreFromTT(entry->score, ply);
         hashedType = entry->type;
@@ -392,20 +397,23 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
         return hashedScore;
     }
 
-    const int standPat = evaluate(board);
+    const int staticEval = evaluate(board);
 
-    if (standPat >= beta) {
-        return standPat;
+    // Beta Cutoff
+    if (staticEval >= beta) {
+        return staticEval;
     }
 
-    if (alpha < standPat) {
-        alpha = standPat;
+    // Our static evaluation beats alpha so we use it as our lower bound
+    // Note that we use the static evaluation for a more accurate score of the position
+    if (staticEval > alpha) {
+        alpha = staticEval;
     }
 
     Movelist moveList;
     movegen::legalmoves<movegen::MoveGenType::CAPTURE>(moveList, board);
 
-    int bestScore = standPat;
+    int bestScore = staticEval;
     Move bestMoveInQs = Move::NULL_MOVE;
     int moveCount = 0;
     const bool isSingularSearch = stack[ply].excludedMove != Move::NULL_MOVE;
@@ -462,7 +470,7 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
     if (!isSingularSearch) {
         const bool failHigh = bestScore >= beta;
         transpositionTable.storeHash(board.hash(), 0, failHigh ? Bound::LOWER : Bound::UPPER,
-                                 tt::scoreToTT(bestScore, ply), bestMoveInQs, standPat);
+                                     tt::scoreToTT(bestScore, ply), bestMoveInQs, staticEval);
     }
 
     return bestScore;
@@ -564,16 +572,17 @@ void Search::iterativeDeepening(Board &board, const SearchParams &params) {
         }
 
         std::chrono::duration<double, std::milli> elapsed = std::chrono::steady_clock::now() - start;
-        std::cout
-                << "info depth " << i
-                << scoreToUci()
-                << " nodes " << nodes
-                << " nps " << static_cast<std::uint64_t>(nodes / (elapsed.count() + 1) * 1000)
-                << " hashfull " << transpositionTable.estimateHashfull()
-                << " time " << static_cast<std::uint64_t>(elapsed.count() + 1)
-                << " pv " << getPVLine()
-                << std::endl;
-
+        if (!shouldStop) {
+            std::cout
+                    << "info depth " << i
+                    << scoreToUci()
+                    << " nodes " << nodes
+                    << " nps " << static_cast<std::uint64_t>(nodes / (elapsed.count() + 1) * 1000)
+                    << " hashfull " << transpositionTable.estimateHashfull()
+                    << " time " << static_cast<std::uint64_t>(elapsed.count() + 1)
+                    << " pv " << getPVLine()
+                    << std::endl;
+        }
         // std::cout << "Time for this move: " << timeForMove << " | Time used: " << static_cast<int>(elapsed.count()) << " | Depth: " << i << " | bestmove: " << bestMove << std::endl;
     }
 
@@ -641,6 +650,7 @@ void Search::updatePv(const int ply, const Move &move) {
 
 std::string Search::getPVLine() const {
     std::string pvLine;
+
     for (int i = 0; i < stack[0].pvLength; i++) {
         pvLine += uci::moveToUci(stack[0].pvLine[i]) + " ";
     }

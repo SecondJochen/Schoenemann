@@ -193,6 +193,8 @@ int main(int argc, char *argv[]) {
             std::cout << engineParameterToSpsaInput() << std::endl;
         } else if (token == "stop") {
             search->shouldStop = true;
+        } else if (token == "test") {
+            Helper::transpositionTableTest(transpositionTable);
         }
         else {
             std::cout << "No valid command: '" << token << "'!" << std::endl;
