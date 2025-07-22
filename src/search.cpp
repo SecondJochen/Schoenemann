@@ -212,7 +212,9 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
             stack[ply].excludedMove = Move::NULL_MOVE;
 
             if (singularScore < singularBeta) {
-                extensions++;
+                extensions = 1;
+            } else if (hashedScore >= beta) {
+                extensions -= 1;
             }
         }
 
