@@ -18,169 +18,128 @@
 */
 
 #include "datagen.h"
+#include "consts.h"
+#include "helper.h"
+#include "see.h"
+#include "timeman.h"
+#include "NNUE/nnue.h"
+#include <random>
+#include <string>
+#include <vector>
+#include <mutex>
+#include <atomic>
+#include <cassert>
 
-void generate(Board &board, Search &search, tt &transpositionTable, SearchParams &params) {
-    // Set up the nodes limit
-    search.nodeLimit = 10000;
+// Global resources shared across all threads
+extern std::mutex outputFileMutex;
+extern std::atomic<std::uint64_t> totalPositionsGenerated;
 
-    // Initialize stuff for random moves
+void generate(int threadId, std::ofstream &outputFile, std::uint64_t positionAmount) {
+    tt transpositionTable(16);
+    TimeManagement timeManagement;
+    Network net;
+    const auto search =
+            std::make_unique<Search>(timeManagement, transpositionTable, net);
+    SearchParams params;
+    params.minimal = true;
+    Board board(&net);
+    search->initLMR();
+
     std::random_device rd;
-    std::mt19937 gen(rd());
+    std::mt19937 gen(rd() + threadId);
 
-    // Open the outfile
-    std::ofstream outputFile("outputt.txt", std::ios::app);
+    // The persistent buffer for batching writes.
+    std::vector<std::string> writeBuffer;
 
-    // Check if the file is open
-    if (!outputFile.is_open()) {
-        std::cout << "Error opening output file!" << std::endl;
-        return;
-    }
+    // Pre-allocate memory
+    writeBuffer.reserve(5120);
 
-    // Set TT-Size
-    transpositionTable.setSize(16);
-
-    // Needed for logging
-    std::uint64_t counter = 0;
-    int positions = 0;
-
-    auto startTime = std::chrono::steady_clock::now();
-
-    while (true) {
-        counter++;
-
-        // Reset the board
+    while (totalPositionsGenerated < positionAmount) {
         board.setFen(STARTPOS);
-
         bool exitEarly = false;
 
-        // Play random moves
         for (int i = 0; i < 10; i++) {
-            // Generate all legal moves
             Movelist moveList;
             movegen::legalmoves(moveList, board);
-
-            // Check if the game ended already
-            auto [fst, snd] = board.isGameOver();
-            if (snd != GameResult::NONE) {
+            if (auto [fst, snd] = board.isGameOver(); snd != GameResult::NONE || moveList.empty()) {
                 exitEarly = true;
                 break;
             }
-
-            if (moveList.size() == 0) {
-                exitEarly = true;
-                break;
-            }
-
-            // Pick a random move
-            std::uniform_int_distribution<> dis(0, moveList.size() - 1);
-
-            // Choose a random move
+            std::uniform_int_distribution dis(0, moveList.size() - 1);
             Move move = moveList[dis(gen)];
-            if (!SEE::see(board, move, 0)) {
-                exitEarly = true;
-                break;
-            }
-
-            // Make the random move
             board.makeMove(move);
         }
 
-        // If we got an early exit we continue
         if (exitEarly) {
             continue;
         }
 
-        // Initialize values that are usefully later
-        std::string outputLine[501];
+        // Temporary storage for the current game
+        std::vector<std::pair<std::string, int> > currentGameData;
         std::string resultString = "none";
-        int moveCount = 0;
-        bool isIllegal = false;
 
+        // Play out the game
         for (int i = 0; i < 500; i++) {
-            // Check if the game is over
-            std::pair<GameResultReason, GameResult> result = board.isGameOver();
-            if (result.second != GameResult::NONE) {
-                if (result.second == GameResult::DRAW) {
-                    resultString = "0.5";
-                }
-
-                // We check if it is a win or a loose for white
-                if (result.second == GameResult::LOSE && board.sideToMove() == Color::BLACK) {
-                    resultString = "1.0";
-                } else {
-                    resultString = "0.0";
-                }
-
+            if (auto [fst, snd] = board.isGameOver(); snd != GameResult::NONE) {
+                if (snd == GameResult::DRAW) resultString = "0.5";
+                else resultString = snd == GameResult::LOSE && board.sideToMove() == Color::BLACK ? "1.0" : "0.0";
                 break;
             }
 
-            // Search for 5000 nodes
-            search.iterativeDeepening(board, params);
+            search->nodeLimit = 5000;
+            search->iterativeDeepening(board, params);
+            Move bestMove = search->rootBestMove;
 
-            // Get the best move
-            Move bestMove = search.rootBestMove;
-
-            // Check if the move is illegal the want to make
-            if (board.at(bestMove.from()) == Piece::NONE || !(board.at(bestMove.from()) < Piece::BLACKPAWN) == (
-                    board.sideToMove() == Color::WHITE)) {
-                isIllegal = true;
-                break;
-            }
-
-            // We skip check moves, captures and if the score is to high for any side
-            if (bestMove.typeOf() == Move::PROMOTION ||
-                board.inCheck() ||
-                board.isCapture(bestMove) ||
-                (board.sideToMove() == Color::WHITE && search.currentScore >= 10000) ||
-                (board.sideToMove() == Color::BLACK && search.currentScore <= 10000)) {
+            if (bestMove.typeOf() == Move::PROMOTION || board.inCheck() || board.isCapture(bestMove) || std::abs(
+                    search->currentScore) >= 10000) {
                 board.makeMove(bestMove);
                 continue;
             }
 
-            // We create the output string based on whites perspective
-            if (board.sideToMove() == Color::WHITE) {
-                outputLine[i] = board.getFen() + " | " + std::to_string(search.currentScore) + " | ";
-            } else if (board.sideToMove() == Color::WHITE) {
-                outputLine[i] = board.getFen() + " | " + std::to_string(-search.currentScore) + " | ";
-            }
+            int score = board.sideToMove() == Color::WHITE ? search->currentScore : -search->currentScore;
 
-            // Count up the position
-            moveCount++;
+            // Store FEN and score in the temporary container
+            currentGameData.emplace_back(board.getFen(), score);
 
-            // Make the move on the board
             board.makeMove(bestMove);
         }
 
-        // If something has interrupted our FEN-Gen we continue
-        if (resultString == "none" || isIllegal) {
+        // Discard incomplete games
+        if (resultString == "none") {
             continue;
         }
 
-        // Write the output to the file
-        for (int i = 0; i < std::min(moveCount, 500); i++) {
-            // If empty we don't want to write to the output file
-            if (outputLine[i].empty()) {
-                continue;
-            }
-
-            // Write to the file
-            outputFile << outputLine[i] + resultString + "\n";
-
-            // Increment the written positions
-            positions++;
+        // Append the result
+        for (const auto &[fst, snd]: currentGameData) {
+            std::string line = fst;
+            line.append(" | ");
+            line.append(std::to_string(snd));
+            line.append(" | ");
+            line.append(resultString);
+            writeBuffer.push_back(line);
         }
+        totalPositionsGenerated += currentGameData.size();
 
-        // Every 1000 iterations we want to print stats
-        if (counter % 10 == 0) {
-            auto currentTime = std::chrono::steady_clock::now();
-            auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
-            double positionsPerSecond = static_cast<double>(positions) / elapsedTime;
-            std::cout << "Generated: " << positions << " positions | " << "PPS: " << (int) positionsPerSecond <<
-                    std::endl;
+        // Check if the persistent buffer is full enough to write
+        if (writeBuffer.size() >= 5000) {
+            std::lock_guard guard(outputFileMutex);
+            for (const auto &line: writeBuffer) {
+                outputFile << line << "\n";
+            }
+            outputFile.flush();
+
+            // Clear the buffer for the next batch
+            writeBuffer.clear();
         }
     }
 
-    // Reset everything
-    transpositionTable.clear();
-    outputFile.close();
+    // After the loop, write any remaining data in the buffer.
+    if (!writeBuffer.empty()) {
+        std::lock_guard guard(outputFileMutex);
+        for (const auto& line : writeBuffer) {
+            outputFile << line << "\n";
+        }
+        outputFile.flush();
+        writeBuffer.clear();
+    }
 }

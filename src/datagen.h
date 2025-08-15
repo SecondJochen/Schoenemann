@@ -20,18 +20,9 @@
 #ifndef DATAGEN_H
 #define DATAGEN_H
 
-#include "consts.h"
-#include "see.h"
-#include "search.h"
-#include "tt.h"
-#include <random>
-#include <chrono>
-#include <iostream>
+#include <cstdint>
 #include <fstream>
-#include <sstream>
-#include <string>
-#include <vector>
 
-void generate(Board &board, Search &search, tt &transpositionTable, SearchParams &params);
+void generate(int threadId, std::ofstream &outputFile, std::uint64_t positionAmount);
 
 #endif

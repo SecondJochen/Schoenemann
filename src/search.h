@@ -31,6 +31,7 @@
 struct alignas(8) SearchParams {
     bool isInfinite = false;
     int depth = MAX_PLY;
+    bool minimal = false;
 };
 
 class Search {
@@ -53,6 +54,8 @@ public:
     int timeForMove = 0;
     int currentScore = 0;
     int previousBestScore = 0;
+
+    static constexpr std::uint64_t NO_NODE_LIMIT = std::numeric_limits<std::uint64_t>::max();
 
     std::uint8_t reductions[MAX_PLY][MAX_MOVES];
     SearchStack stack[MAX_PLY];
@@ -80,7 +83,7 @@ private:
 
     std::unique_ptr<RootMove[]> rootMoveList;
     int rootMoveListSize = 0;
-    static constexpr std::uint64_t NO_NODE_LIMIT = std::numeric_limits<std::uint64_t>::max();
+
 
     static bool isDraw(const Board &board);
 
