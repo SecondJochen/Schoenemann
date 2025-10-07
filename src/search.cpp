@@ -428,7 +428,7 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
     bool ttHit = false;
     Bound hashedType = Bound::NONE;
 
-    if (entry != nullptr) {
+    if (entry != nullptr && entry->key == board.hash()) {
         ttHit = true;
         hashedScore = tt::scoreFromTT(entry->score, ply);
         hashedType = entry->type;
