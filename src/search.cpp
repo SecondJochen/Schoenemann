@@ -425,9 +425,11 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
     // Transposition Table lookup
     const Hash *entry = transpositionTable.getHash(board.hash());
     int hashedScore = EVAL_NONE;
+    bool ttHit = false;
     Bound hashedType = Bound::NONE;
 
     if (entry != nullptr) {
+        ttHit = true;
         hashedScore = tt::scoreFromTT(entry->score, ply);
         hashedType = entry->type;
     }
@@ -439,20 +441,34 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
         return hashedScore;
     }
 
-    const int standPat = evaluate(board);
+    int staticEval = EVAL_NONE;
+    int bestScore = EVAL_NONE;
 
-    if (standPat >= beta) {
-        return standPat;
-    }
+    const bool inCheck = board.inCheck();
 
-    if (alpha < standPat) {
-        alpha = standPat;
+    if (!inCheck) {
+        if (ttHit && entry->eval != EVAL_NONE) {
+            staticEval = entry->eval;
+        } else {
+            staticEval = evaluate(board);
+        }
+
+        stack[ply].staticEval = staticEval;
+
+        bestScore = staticEval;
+
+        if (staticEval >= beta) {
+            return staticEval;
+        }
+
+        if (alpha < staticEval) {
+            alpha = staticEval;
+        }
     }
 
     Movelist moveList;
     movegen::legalmoves<movegen::MoveGenType::CAPTURE>(moveList, board);
 
-    int bestScore = standPat;
     Move bestMoveInQs = Move::NULL_MOVE;
     int moveCount = 0;
     const bool isSingularSearch = stack[ply].excludedMove != Move::NULL_MOVE;
@@ -509,7 +525,7 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
     if (!isSingularSearch) {
         const bool failHigh = bestScore >= beta;
         transpositionTable.storeHash(board.hash(), 0, failHigh ? Bound::LOWER : Bound::UPPER,
-                                     tt::scoreToTT(bestScore, ply), bestMoveInQs, standPat);
+                                     tt::scoreToTT(bestScore, ply), bestMoveInQs, staticEval);
     }
 
     return bestScore;
