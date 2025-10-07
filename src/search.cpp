@@ -114,10 +114,12 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
 
     // Check if we improved over one move
     // That means we check if our evaluation is greater than two plies ago
-    if (ply > 2 && staticEval > stack[ply - 2].staticEval && stack[ply - 2].staticEval != EVAL_NONE) {
-        improving = true;
-    } else if (ply > 4 && staticEval > stack[ply - 4].staticEval && stack[ply - 4].staticEval != EVAL_NONE) {
-        improving = true;
+    if (!inCheck) {
+        if (ply > 2 && stack[ply - 2].staticEval != EVAL_NONE) {
+            improving = staticEval > stack[ply - 2].staticEval;
+        } else if (ply > 4 && stack[ply - 4].staticEval != EVAL_NONE) {
+            improving = staticEval > stack[ply - 4].staticEval;
+        }
     }
 
     // Reverse Futility Pruning
