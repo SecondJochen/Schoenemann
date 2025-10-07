@@ -464,6 +464,10 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
         if (alpha < staticEval) {
             alpha = staticEval;
         }
+    } else {
+        staticEval = -EVAL_INFINITE;
+        stack[ply].staticEval = -EVAL_INFINITE;
+        bestScore = -EVAL_INFINITE;
     }
 
     Movelist moveList;
