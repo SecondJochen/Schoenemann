@@ -493,12 +493,12 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
         stack[ply].previousMove = move;
 
         board.makeMove(move);
+        moveCount++;
 
         const int score = -qs(-beta, -alpha, board, ply + 1);
         assert(score < EVAL_INFINITE && score > -EVAL_INFINITE);
 
         board.unmakeMove(move);
-        moveCount++;
 
         // Our current Score is better than the previous bestScore so we update it
         if (score > bestScore) {
