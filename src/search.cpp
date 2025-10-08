@@ -477,6 +477,7 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
     movegen::legalmoves<movegen::MoveGenType::CAPTURE>(moveList, board);
 
     Move bestMoveInQs = Move::NULL_MOVE;
+    int moveCount = 0;
     const bool isSingularSearch = stack[ply].excludedMove != Move::NULL_MOVE;
 
     for (const Move &move: moveList) {
@@ -497,6 +498,7 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
         assert(score < EVAL_INFINITE && score > -EVAL_INFINITE);
 
         board.unmakeMove(move);
+        moveCount++;
 
         // Our current Score is better than the previous bestScore so we update it
         if (score > bestScore) {
