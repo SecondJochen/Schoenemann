@@ -93,7 +93,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
     int staticEval;
 
     // We check if we have the static eval already stored in the transposition table.
-    // If that is the case, we use this eval elsewhere we have to evaluate the position
+    // If that is the case, we use this eval, otherwise we have to evaluate the position
     if (ttHit) {
         staticEval = entry->eval;
     } else {
@@ -125,10 +125,8 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
     // Reverse Futility Pruning
     // If we subtract a margin from our static evaluation, and it is still far
     // above beta, we can assume that the node will fail high (beta cutoff) and prune it
+    // For more information please look at docs/rfp.md
     if (!isSingularSearch && !inCheck && !pvNode && depth < 9 && staticEval - rfpSub * (depth - improving) >= beta) {
-        // By tweaking the return value with beta, we try to adjust it more to the window.
-        // As we do this, we make the value more inaccurate, but we are potentially adjusting
-        // it more to our window which can probably produce a fail high
         return (staticEval + beta) / 2;
     }
 
@@ -153,15 +151,15 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
 
     // Null Move Pruning
     // If our position is excellent we pass a move to our opponent.
-    // We search this with a full window and a reduced search depth.
     // If the search returns a score above beta we can cut that off.
+    // For more information please look at docs/nmp.md
     if (!isSingularSearch && !pvNode && depth > 3 && !inCheck && staticEval >= beta) {
         const int nmpDepthReduction = nmpBase + depth / nmpDiv;
         stack[ply].previousMovedPiece = PieceType::NONE;
         stack[ply].previousMove = Move::NULL_MOVE;
 
         board.makeNullMove();
-        const int score = -pvs(-beta, -alpha, depth - nmpDepthReduction, ply + 1, board, !cutNode);
+        const int score = -pvs(-beta, -beta + 1, depth - nmpDepthReduction, ply + 1, board, !cutNode);
         board.unmakeNullMove();
 
         if (score >= beta) {
@@ -171,7 +169,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
 
     // Internal Iterative Reduction
     // If we have no hashed move, we expect that our move ordering is worse
-    // so we reduce our depth
+    // so we reduce our search depth
     if (!isSingularSearch && hashedMove == Move::NULL_MOVE && pvNode && hashedDepth > depth && !inCheck && depth > 3) {
         depth--;
     }
@@ -194,6 +192,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
     for (int i = 0; i < moveList.size(); i++) {
         const Move move = MoveOrder::sortByScore(moveList, scoreMoves, i);
 
+        // We exclude the excluded move from the move loop
         if (move == stack[ply].excludedMove) {
             continue;
         }
@@ -261,6 +260,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
         board.makeMove(move);
         moveCount++;
 
+        // Check extension
         extensions += board.inCheck();
 
         if (isQuiet) {
@@ -287,8 +287,11 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
                 // so we decrease the depth reduction
                 depthReduction -= pvNode;
 
+                // Since it is an expected cuteNode we expect to fail high
+                // so we increase the depth reduction
                 depthReduction += cutNode;
 
+                // Finally clamp the depth reduction
                 depthReduction = std::clamp(depthReduction, 0, depth - 1);
             }
 
@@ -316,7 +319,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
                 alpha = score;
                 bestMoveInPVS = move;
 
-                // If we are ate the root we set the bestMove
+                // If we are at the root we set the bestMove
                 if (root) {
                     // Update the score of the root move
                     for (int x = 0; x < rootMoveListSize; x++) {
@@ -395,7 +398,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
     if (!inCheck && (bestMoveInPVS == Move::NULL_MOVE || !board.isCapture(bestMoveInPVS)) && (
             (flag == Bound::EXACT) || (flag == Bound::UPPER && bestScore <= staticEval) || (
                 flag == Bound::LOWER && bestScore > staticEval))) {
-        const int bonus = std::clamp((int) (bestScore - staticEval) * depth * 180 / 768, -CORRHIST_LIMIT / 4,
+        const int bonus = std::clamp((bestScore - staticEval) * depth * 180 / 768, -CORRHIST_LIMIT / 4,
                                      CORRHIST_LIMIT / 4);
         history.updatePawnCorrectionHistory(bonus, board, 768);
     }
@@ -474,7 +477,6 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
     movegen::legalmoves<movegen::MoveGenType::CAPTURE>(moveList, board);
 
     Move bestMoveInQs = Move::NULL_MOVE;
-    int moveCount = 0;
     const bool isSingularSearch = stack[ply].excludedMove != Move::NULL_MOVE;
 
     for (const Move &move: moveList) {
@@ -490,7 +492,6 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
         stack[ply].previousMove = move;
 
         board.makeMove(move);
-        moveCount++;
 
         const int score = -qs(-beta, -alpha, board, ply + 1);
         assert(score < EVAL_INFINITE && score > -EVAL_INFINITE);
