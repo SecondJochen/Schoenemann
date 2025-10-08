@@ -384,7 +384,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
 
     assert(bestScore > -EVAL_INFINITE && bestScore < EVAL_INFINITE);
 
-    const bool failHigh = score >= beta;
+    const bool failHigh = bestScore >= beta;
     const bool failLow = alpha == oldAlpha;
     const Bound flag = failHigh ? Bound::LOWER : !failLow ? Bound::EXACT : Bound::UPPER;
     if (!isSingularSearch) {
