@@ -9,12 +9,10 @@
 ---
 
 ## Table of Contents  
-- [About](#about)  
-- [How It Works](#how-it-works)  
+- [About](#about)   
 - [Build Instructions](#build-instructions)  
 - [Performance Rating](#performance-rating)  
-- [Acknowledgments](#acknowledgments)  
-
+- [Acknowledgments](#acknowledgments)
 ---
 
 ## About  
@@ -22,22 +20,7 @@
 ```
 1. e4 e5 2. Nf3 Nc6 3. Bb5 f5 4. d4 fxe4 5. Nxe5 Nxe5 6. dxe5 c6 7. Nc3 *
 ```  
-At first glance, it may appear that White is hanging a bishop, but they are not at a disadvantage.  
-
----
-
-## How It Works  
-Schönemann implemts this features (and some more that if forgot to include here):  
-- **NNUE** with 1024 hidden layers, trained using **Monty** data (Currently doing selfgen in the background)
-- **Principal Variation Search (PVS)**  
-- **SEE Pruning** 
-- **Check Extensions**
-- **MVA–LVV**
-- **Quiet History**
-- **Null Move Prunning (NMP)**
-- **RFP**
-- **Simple Probcut**
-- **(and many others)**
+At first glance, it may appear that White is hanging a bishop, but they are not at a disadvantage.
 
 ---
 
@@ -50,8 +33,8 @@ This will produce an executable named `null` (depending on your OS).
 
 ---
 
-## Performance Rating  
-Schönemann is rated approximately **3329 Elo** (45/15) on the CCRL.  
+## Rating  
+Schönemann is rated approximately **3329 Elo** (45/15) on CCRL.  
 
 Lichess performance:  
 - **[Bullet](https://lichess.org/@/Schoenemann/perf/bullet):**  
