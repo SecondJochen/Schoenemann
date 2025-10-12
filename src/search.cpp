@@ -131,21 +131,10 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
     }
 
     // Razoring
-    if (!isSingularSearch && !pvNode && !board.inCheck() && depth <= 1) {
-        const int ralpha = alpha - razorAlpha - depth * razorDepthMul;
-
-        if (staticEval < ralpha) {
-            int qscore;
-            if (depth == 1 && ralpha < alpha) {
-                qscore = qs(alpha, beta, board, ply);
-                return qscore;
-            }
-
-            qscore = qs(ralpha, ralpha + 1, board, ply);
-
-            if (qscore <= ralpha) {
-                return qscore;
-            }
+    if (!isSingularSearch && !pvNode && !inCheck && depth < 3 && staticEval + 5 * depth < alpha) {
+        const int score = qs(alpha, beta, board, ply);
+        if (score < alpha) {
+            return score;
         }
     }
 
