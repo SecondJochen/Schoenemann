@@ -388,7 +388,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
     const std::uint8_t flag = failHigh ? LOWER : !failLow ? EXACT : UPPER;
     if (!isSingularSearch) {
         transpositionTable.storeHash(board.hash(), depth, flag, tt::scoreToTT(bestScore, ply), bestMoveInPVS,
-                                     rawEval, stack->ttPv);
+                                     rawEval, stack[ply].ttPv);
     }
 
     if (!inCheck && (bestMoveInPVS == Move::NULL_MOVE || !board.isCapture(bestMoveInPVS)) && (
