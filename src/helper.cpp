@@ -54,7 +54,7 @@ void Helper::transpositionTableTest(const tt &transpositionTable) {
     assert(hashedMove == uci::uciToMove(board, "d5e4"));
 
     const bool ttPv = tt::getttPv(entry->flags);
-    assert(ttPv = false);
+    assert(ttPv == false);
 }
 
 // Print the uci info
