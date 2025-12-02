@@ -14,6 +14,7 @@ struct alignas(1024) SearchStack {
     PieceType previousMovedPiece = PieceType::NONE; // (1 Byte)
     Move previousMove = Move::NULL_MOVE; // (4 Byte)
     Move excludedMove = Move::NULL_MOVE; // (4 Byte)
+    bool ttPv = false; // (1 Byte)
 };
 
 struct alignas(8) RootMove {
