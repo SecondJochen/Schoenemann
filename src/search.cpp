@@ -71,7 +71,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
     int hashedDepth = 0;
     Move hashedMove = Move::NULL_MOVE;
     const int oldAlpha = alpha;
-    bool ttPv = isSingularSearch ? stack[ply].ttPv : pvNode;
+    stack[ply].ttPv = isSingularSearch ? stack[ply].ttPv : pvNode;
     std::uint8_t hashedType = NONE;
 
     if (!isSingularSearch && entry != nullptr && entry->key == board.hash()) {
@@ -283,7 +283,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
                 // so we increase the depth reduction
                 depthReduction += cutNode;
 
-                if (ttPv) {
+                if (stack[ply].ttPv) {
                     depthReduction -= 1;
                 }
 
