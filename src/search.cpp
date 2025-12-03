@@ -71,8 +71,8 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
     int hashedDepth = 0;
     Move hashedMove = Move::NULL_MOVE;
     const int oldAlpha = alpha;
-    stack[ply].ttPv = isSingularSearch ? stack[ply].ttPv : pvNode;
     std::uint8_t hashedType = NONE;
+    bool ttPv = pvNode;
 
     if (!isSingularSearch && entry != nullptr && entry->key == board.hash()) {
         ttHit = true;
@@ -80,7 +80,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
         hashedType = tt::getType(entry->flags);
         hashedDepth = entry->depth;
         hashedMove = entry->move;
-        stack[ply].ttPv = stack[ply].ttPv || tt::getttPv(entry->flags);
+        ttPv |= tt::getttPv(entry->flags);
     }
 
     // Check if we can return our score that we got from the transposition table
@@ -283,7 +283,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
                 // so we increase the depth reduction
                 depthReduction += cutNode;
 
-                if (stack[ply].ttPv) {
+                if (ttPv) {
                     depthReduction -= 1;
                 }
 
@@ -388,7 +388,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
     const std::uint8_t flag = failHigh ? LOWER : !failLow ? EXACT : UPPER;
     if (!isSingularSearch) {
         transpositionTable.storeHash(board.hash(), depth, flag, tt::scoreToTT(bestScore, ply), bestMoveInPVS,
-                                     rawEval, stack[ply].ttPv);
+                                     rawEval, ttPv);
     }
 
     if (!inCheck && (bestMoveInPVS == Move::NULL_MOVE || !board.isCapture(bestMoveInPVS)) && (
@@ -432,7 +432,7 @@ int Search::qs(int alpha, int beta, Board &board, const int ply) {
         ttHit = true;
         hashedScore = tt::scoreFromTT(entry->score, ply);
         hashedType = tt::getType(entry->flags);
-        ttPv = ttPv || tt::getttPv(entry->flags);
+        ttPv |= tt::getttPv(entry->flags);
     }
 
     // Check if we can return our score that we got from the transposition table
