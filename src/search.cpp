@@ -277,6 +277,8 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
                 // so we decrease the depth reduction
                 depthReduction -= pvNode;
 
+                depthReduction -= !ttHit;
+
                 // Since it is an expected cuteNode we expect to fail high
                 // so we increase the depth reduction
                 depthReduction += cutNode;
