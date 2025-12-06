@@ -33,14 +33,15 @@ struct alignas(16) Hash {
     std::int16_t score; // 2 Byte
     std::int16_t eval; // 2 Byte
     std::int8_t depth; // 1 Byte
-    Bound type; // 1 Byte
+    std::uint8_t flags; // 1 Byte
 
-    void setEntry(const std::uint64_t _key, const std::uint8_t _depth, const Bound _type,
+    void setEntry(const std::uint64_t _key, const std::uint8_t _depth, const std::uint8_t _type,
                   const std::int16_t _score, const Move _move,
-                  const std::int16_t _eval) {
+                  const std::int16_t _eval, const bool ttPV) {
         key = _key;
         depth = _depth;
-        type = _type;
+        flags = _type;
+        flags |= ttPV << 2;
         score = _score;
         move = _move;
         eval = _eval;
@@ -59,9 +60,17 @@ public:
 
     void clear() const;
 
-    void storeHash(std::uint64_t key, int depth, Bound type, int score,
+    void storeHash(std::uint64_t key, int depth, std::uint8_t type, int score,
                    Move move,
-                   int eval) const noexcept;
+                   int eval, bool ttPV) const noexcept;
+
+    static bool getttPv(const std::uint8_t flag) {
+        return flag >> 2 & 1;
+    }
+
+    static std::uint8_t getType(const std::uint8_t flag) {
+        return flag & 0b00000011;
+    }
 
     [[nodiscard]] int estimateHashfull() const noexcept;
 

@@ -20,13 +20,13 @@
 #ifndef CONSTS_H
 #define CONSTS_H
 
-#include <iostream>
 #include <cstdint>
+#include <iostream>
 
 const std::string STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 // Bench depth
-constexpr int benchDepth = 14;
+constexpr int benchDepth = 10;
 
 constexpr int hashMoveScore = 500000;
 constexpr int killerScore = 300000;
@@ -34,12 +34,11 @@ constexpr int promotion = 200000;
 constexpr int goodCapture = 400000;
 constexpr int badCapture = -500000;
 
-enum Bound : std::uint8_t {
+constexpr inline std::uint8_t
     EXACT = 0,
     UPPER = 1,
     LOWER = 2,
-    NONE = 3
-};
+    NONE = 3;
 
 constexpr int CORRHIST_LIMIT = 1024;
 

@@ -21,15 +21,15 @@
 
 #include <cstring>
 
-void tt::storeHash(const std::uint64_t key, const int depth, const Bound type, const int score,
-                   const Move move, const int eval) const noexcept {
+void tt::storeHash(const std::uint64_t key, const int depth, const std::uint8_t type, const int score,
+                   const Move move, const int eval, const bool ttPV) const noexcept {
     const std::uint64_t index = key % size;
 
     // Get the HashNode
     Hash *node = table + index;
 
     // Store the entry
-    node->setEntry(key, depth, type, score, move, eval);
+    node->setEntry(key, depth, type, score, move, eval, ttPV);
 }
 
 Hash *tt::getHash(const std::uint64_t zobristKey) const noexcept {
