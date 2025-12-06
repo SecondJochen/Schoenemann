@@ -124,6 +124,13 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
         }
     }
 
+    int ttAdjustedEval = staticEval;
+
+    if (!isSingularSearch && hashedMove != Move::NULL_MOVE && !inCheck && ((hashedType == UPPER && hashedScore <= staticEval) || (hashedType == LOWER && hashedScore >= staticEval) ||  hashedType == EXACT)) {
+        ttAdjustedEval = hashedScore;
+    }
+
+
     // Reverse Futility Pruning
     // If we subtract a margin from our static evaluation, and it is still far
     // above beta, we can assume that the node will fail high (beta cutoff) and prune it
@@ -143,7 +150,7 @@ int Search::pvs(int alpha, int beta, int depth, const int ply, Board &board, boo
     // If our position is excellent we pass a move to our opponent.
     // If the search returns a score above beta we can cut that off.
     // For more information please look at docs/nmp.md
-    if (!isSingularSearch && !pvNode && depth > 3 && !inCheck && staticEval >= beta) {
+    if (!isSingularSearch && !pvNode && depth > 3 && !inCheck && ttAdjustedEval >= beta) {
         const int nmpDepthReduction = nmpBase + depth / nmpDiv;
         stack[ply].previousMovedPiece = PieceType::NONE;
         stack[ply].previousMove = Move::NULL_MOVE;
